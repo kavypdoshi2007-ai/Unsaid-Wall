@@ -1,0 +1,419 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Unsaid Wall | A Safe Space for Your Thoughts</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Literata:wght@400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c0c8c9",
+                    "secondary": "#3b656a",
+                    "inverse-surface": "#283233",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#dae4e5",
+                    "outline": "#70797a",
+                    "secondary-container": "#beeaf0",
+                    "primary-fixed-dim": "#9ccfd6",
+                    "inverse-on-surface": "#e8f3f4",
+                    "secondary-fixed": "#beeaf0",
+                    "on-tertiary-fixed": "#1d1b18",
+                    "surface-dim": "#d1dcdd",
+                    "surface-container-highest": "#dae4e5",
+                    "on-surface-variant": "#404849",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#ebf6f6",
+                    "on-surface": "#131d1e",
+                    "on-tertiary-fixed-variant": "#494642",
+                    "secondary-fixed-dim": "#a3ced3",
+                    "primary-container": "#4a7c82",
+                    "on-primary-fixed-variant": "#174e53",
+                    "on-primary-container": "#f4feff",
+                    "on-secondary-fixed-variant": "#224d51",
+                    "surface-bright": "#f1fbfc",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#001f23",
+                    "primary-fixed": "#b8ecf2",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#416b70",
+                    "tertiary-container": "#77746f",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#cac6c0",
+                    "primary": "#306369",
+                    "on-tertiary-container": "#fffbff",
+                    "background": "#f1fbfc",
+                    "inverse-primary": "#9ccfd6",
+                    "tertiary": "#5e5c57",
+                    "on-secondary-fixed": "#002023",
+                    "surface-container": "#e5f0f1",
+                    "on-background": "#131d1e",
+                    "surface-container-high": "#dfeaeb",
+                    "surface": "#f1fbfc",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#33666c",
+                    "tertiary-fixed": "#e6e2dc",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "20px",
+                    "xs": "4px",
+                    "xl": "80px",
+                    "md": "24px",
+                    "gutter": "24px",
+                    "margin-desktop": "auto",
+                    "max-width": "1140px",
+                    "base": "8px",
+                    "lg": "48px",
+                    "sm": "12px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Literata"],
+                    "caption": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Literata"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .wall-masonry {
+            column-count: 1;
+            column-gap: 24px;
+        }
+        @media (min-width: 768px) {
+            .wall-masonry { column-count: 2; }
+        }
+        @media (min-width: 1024px) {
+            .wall-masonry { column-count: 3; }
+        }
+        .pulse-soft {
+            animation: pulse-soft 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Unsaid Wall</div>
+<!-- Desktop Nav -->
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-primary dark:text-primary-fixed-dim font-semibold border-b-2 border-primary dark:border-primary-fixed-dim pb-1 font-body-md text-body-md" href="#">The Wall</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md" href="#">Coaches</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md" href="#">Emotion Insights</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md" href="#">About</a>
+</div>
+
+</div>
+</nav>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[90vh] flex items-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-40" data-alt="A tranquil and minimalist landscape featuring soft, rolling fog over a calm body of water at dawn. The scene is bathed in muted teal and soft gray light, creating an atmosphere of profound serenity and safety. In the foreground, subtle organic shapes suggest a quiet place for reflection. The overall visual style is airy and clean, emphasizing modern minimalism and emotional tranquility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZAXVdw0YZ5rLl9QSc3SsLAnhcZ85X_j2z_ChHTgi6vRpYueYvGJibLMcrGfrwQ1eiYWVq9lpQmhH3gV4Ce_W_xD0UAC8AiudVQpaHE19xhiJGaKYrp1iTzzEWrmDPi_SD2yXO6WzQsWHSsAlTqHVNW7dyw8Fn0yMgCC2ZdMTDxNSvzoVg4uFlaRJSMk3w-YifPHMp05rLfY1cT7jcLsSCrtu1rXbvW7zRrwmUbgKMGnHGz5RzFxfsaO8owHGbt1XCLBKoC5R7Ydk">
+<div class="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background"></div>
+</div>
+<div class="relative z-10 max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop text-center md:text-left grid md:grid-cols-2 gap-lg items-center">
+<div class="space-y-md">
+<h1 class="font-display-lg text-display-lg md:text-display-lg text-on-surface leading-tight">
+                        Your thoughts deserve a <span class="text-primary italic">safe space.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Share anonymously, gain emotional insights, and connect with expert coaches. You are not alone on this journey.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-base pt-sm">
+<button class="bg-primary text-on-primary px-lg py-4 rounded-full font-label-md text-label-md hover:shadow-lg transition-all active:scale-95">
+                            Join the Community
+                        </button>
+<button class="border-2 border-primary text-primary px-lg py-4 rounded-full font-label-md text-label-md hover:bg-primary/5 transition-colors">
+                            Explore The Wall
+                        </button>
+</div>
+</div>
+<div class="hidden md:block relative">
+<!-- Breathing Prompt Component -->
+<div class="glass-card p-lg rounded-xl relative overflow-hidden shadow-xl">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/10 rounded-full pulse-soft"></div>
+<div class="relative z-10 text-center space-y-md">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="air">air</span>
+<h3 class="font-headline-md text-headline-md text-primary">Pause for a breath</h3>
+<p class="font-body-md text-body-md text-on-surface-variant italic">Take a moment to ground yourself before sharing.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- The Anonymous Wall Section -->
+<section class="py-xl bg-surface-container-lowest">
+<div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="flex flex-col md:flex-row justify-between items-end mb-lg gap-md">
+<div class="max-w-2xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-base">The Anonymous Wall</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">A collective journal of unspoken truths, shared without judgment or identity.</p>
+</div>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs px-md py-xs bg-secondary-container text-on-secondary-container rounded-full text-caption font-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="verified_user">verified_user</span> Moderated
+                        </span>
+<span class="flex items-center gap-xs px-md py-xs bg-primary-fixed text-on-primary-fixed-variant rounded-full text-caption font-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="visibility_off">visibility_off</span> 100% Anonymous
+                        </span>
+</div>
+</div>
+<div class="wall-masonry space-y-gutter">
+<!-- Sample Post 1 -->
+<div class="break-inside-avoid bg-white p-lg rounded-xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<span class="px-sm py-1 bg-surface-container-low text-secondary rounded-full text-caption font-label-md">Grief</span>
+<span class="text-caption text-outline">2h ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed mb-md">
+                            "Some days the silence in the house is so loud I can't even hear my own thoughts. I miss her voice most of all."
+                        </p>
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-md" data-icon="favorite">favorite</span>
+<span class="text-caption">12 hearts</span>
+</div>
+</div>
+<!-- Sample Post 2 -->
+<div class="break-inside-avoid bg-white p-lg rounded-xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<span class="px-sm py-1 bg-surface-container-low text-secondary rounded-full text-caption font-label-md">Work-Life</span>
+<span class="text-caption text-outline">5h ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed mb-md">
+                            "I'm succeeding by everyone else's standards, but I feel like I'm drowning in my own expectations. Is it okay to just want to stop for a while?"
+                        </p>
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-md" data-icon="favorite">favorite</span>
+<span class="text-caption">45 hearts</span>
+</div>
+</div>
+<!-- Sample Post 3 -->
+<div class="break-inside-avoid bg-white p-lg rounded-xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<span class="px-sm py-1 bg-surface-container-low text-secondary rounded-full text-caption font-label-md">Hope</span>
+<span class="text-caption text-outline">Just now</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed mb-md">
+                            "Finally took that first step today. It was small, but it felt like a mountain. Grateful for the courage I found here."
+                        </p>
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-md" data-icon="favorite">favorite</span>
+<span class="text-caption">8 hearts</span>
+</div>
+</div>
+</div>
+<div class="mt-lg text-center">
+<button class="text-primary font-label-md hover:underline flex items-center gap-xs mx-auto">
+                        View more from the wall <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- AI Emotion Insights Section -->
+<section class="py-xl bg-surface">
+<div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-2 gap-lg items-center">
+<div class="order-2 md:order-1">
+<div class="relative p-lg glass-card rounded-xl shadow-lg border-primary/10">
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary">Insight Report</h4>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%]"></div>
+</div>
+<div class="flex justify-between text-caption font-label-md text-on-surface-variant">
+<span class="">Emotional Resilience</span>
+<span class="">75% Stability</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic border-l-4 border-primary/20 pl-md py-xs">
+                                "Your recent posts suggest a pattern of 'Reflection' followed by 'Growth'. You are navigating this phase with awareness."
+                            </p>
+</div>
+</div>
+</div>
+<div class="order-1 md:order-2 space-y-md">
+<span class="text-primary font-label-md tracking-wider uppercase">Emotional Intelligence</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface leading-tight">Understand your feelings through AI analysis.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Our private AI identifies patterns in your sharing, helping you name emotions you might be struggling to define. It's like a personal emotional mirror, reflecting your progress back to you.
+                    </p>
+<ul class="space-y-sm">
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Detect subtle shifts in your mental well-being over time.</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Privacy-first processing—your identity is never revealed.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Verified Coaches Section -->
+<section class="py-xl bg-surface-container-low">
+<div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-lg">
+<div class="inline-flex items-center gap-xs px-md py-1 bg-white border border-outline-variant rounded-full text-caption font-label-md text-secondary mb-md">
+<span class="material-symbols-outlined text-sm" data-icon="handshake">handshake</span> In partnership with Surat Psychology Club
+                    </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Guided by Experts</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                        Sometimes, a listening ear needs to be a professional one. Connect with verified mental health experts for personalized support.
+                    </p>
+</div>
+<div class="grid md:grid-cols-3 gap-gutter">
+<!-- Coach 1 -->
+<div class="bg-white p-lg rounded-xl text-center shadow-sm border border-transparent hover:border-primary/20 transition-all group">
+<div class="w-24 h-24 mx-auto mb-md rounded-full overflow-hidden border-4 border-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female psychologist with a warm, empathetic expression. She is in her late 30s with a kind smile and spectacles, set against a soft-focus office background with books and a green plant. The lighting is bright and professional yet welcoming, maintaining the modern minimalist aesthetic of the platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB47eql7E1shj7x9ZcoYJ4EDbMiU0U8VsGPGhAaNAsR93EX2paEufA_F87iNu5ZFGJetK4rmzd2j51eio8-RgbCuaptL3wsesmOTqE1XBJCcRcVQxmWFhzsg5S6TKACy-A3tHZdQxxWPzBdk4kxTQZ6B9YPBEiZDI15IUYTBS_holRsE0xZYwsiiBifrbOKas5Ac4sHUTPCyP5tk041LpROPdkth4M65FjqnIomVCadHZLLQ-YuAnojpTUnAZYaiCBJ68pEmfcF6UU">
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Dr. Ananya Mehta</h4>
+<p class="text-primary font-label-md mb-md">Trauma &amp; Resilience</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">Specializing in helping young adults navigate life transitions and grief.</p>
+
+</div>
+<!-- Coach 2 -->
+<div class="bg-white p-lg rounded-xl text-center shadow-sm border border-transparent hover:border-primary/20 transition-all group">
+<div class="w-24 h-24 mx-auto mb-md rounded-full overflow-hidden border-4 border-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a male psychologist in his early 40s. He has a calm and steady demeanor, wearing a simple linen shirt. The background is a clean, neutral-toned wall with soft shadows, fitting the tranquil and modern UI style. The lighting is soft and flattering, emphasizing a sense of safety and trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSy_McCKYdHPcknKXNO4oAeMbh0BAdf_R0fnUgLfRADzme3-jnYzh4BhzWnPxMCrzOQqj6Jm0vXs3xcbMZY5jYlleinvw8_3b0m2oern7YvtEIMeBDb5CJIlX_2DxmhKQxEsYxSWP3FrQwMYZ2uY5dH7GJnreNOWJR7ZyodJ_4pgIkEj2zh8dE9Fv6XDHu-2lhNuYSXdyTLpRDfR169s520Kf-ZrvITQSbGibR-VXaHUv6T60ppnWPsnNXLGTGA_j3gEW3QlG5bAc">
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Rahul Varma</h4>
+<p class="text-primary font-label-md mb-md">Anxiety &amp; Workplace Stress</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">Focused on mindfulness techniques and cognitive behavioral approaches.</p>
+
+</div>
+<!-- Coach 3 -->
+<div class="bg-white p-lg rounded-xl text-center shadow-sm border border-transparent hover:border-primary/20 transition-all group">
+<div class="w-24 h-24 mx-auto mb-md rounded-full overflow-hidden border-4 border-surface-container">
+<img class="w-full h-full object-cover" data-alt="A serene headshot of a female mental health counselor with a soft, comforting smile. She is wearing a light teal sweater that complements the brand colors. The setting is bright and airy, suggesting a modern therapeutic environment. The visual style is clean, modern, and deeply human, ensuring a high-end UI feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBV0nI7o881xWKdzUZ_oJcXknmph51nJFOMnVnFw1-YeTaxMX0CzTx8_Ktxp1mN8KW9phKbNof-R8juDw47uBfN8CXVcBwp-BB20cn4f3CJhT7UT8IMeCW-J_vXUyP30jgniqD_9UxgRTqP4Oq9sa0wVMCHsxsU4-6bXtv8QCFttJIZFsSORCrwfMRDGW7EVpXNgiO2312_4qaVG5J6YyW1Axy2n0lFev8lmfOX9Y9G61nnxS7z4vKEa9rCFBVSLJ9v9HK-9fmPOSM">
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Sara Khan</h4>
+<p class="text-primary font-label-md mb-md">Relationship Wellness</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">Expert in family dynamics and building healthy interpersonal connections.</p>
+
+</div>
+</div>
+<div class="mt-lg text-center">
+<button class="bg-primary text-on-primary px-lg py-4 rounded-full font-label-md text-label-md hover:shadow-lg transition-all">
+                        Talk to a Coach
+                    </button>
+</div>
+</div>
+</section>
+<!-- How it Works Section -->
+<section class="py-xl bg-surface">
+<div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+<h2 class="font-headline-lg text-headline-lg text-on-surface text-center mb-xl">Your journey in three steps</h2>
+<div class="grid md:grid-cols-3 gap-lg text-center relative">
+<!-- Connector Line (Desktop) -->
+<div class="hidden md:block absolute top-1/4 left-[20%] right-[20%] h-px bg-outline-variant/30"></div>
+<div class="relative space-y-md">
+<div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center mx-auto text-headline-md font-bold relative z-10">1</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Share</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Post your thoughts on the wall anonymously. No accounts needed to start.</p>
+</div>
+<div class="relative space-y-md">
+<div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center mx-auto text-headline-md font-bold relative z-10">2</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Reflect</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Receive AI-driven insights about your emotional state and see how you evolve.</p>
+</div>
+<div class="relative space-y-md">
+<div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center mx-auto text-headline-md font-bold relative z-10">3</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Connect</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Access a community of peers or talk privately with a verified coach.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Closing CTA -->
+<section class="py-xl">
+<div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="bg-primary-container p-xl rounded-[2rem] text-center text-on-primary-container shadow-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+<div class="relative z-10 space-y-md max-w-2xl mx-auto">
+<h2 class="font-display-lg text-display-lg">Ready to find your peace?</h2>
+<p class="font-body-lg text-body-lg opacity-90">Start your journey to mental well-being today. A single post can be the beginning of a lighter heart.</p>
+<div class="pt-md">
+<button class="bg-on-primary-container text-primary px-xl py-4 rounded-full font-label-md text-label-md hover:shadow-lg transition-all active:scale-95">
+                                Join the Community Now
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg mt-xl bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline">
+<div class="flex flex-col md:flex-row justify-between items-center gap-md px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+<div class="space-y-sm text-center md:text-left">
+<div class="font-headline-md text-headline-md font-bold text-on-surface dark:text-inverse-on-surface">Unsaid Wall</div>
+<p class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant">© 2024 Unsaid Wall. In partnership with Surat Psychology Club.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-md">
+<a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Crisis Resources</a>
+<a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Contact Us</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for hover effects on masonry cards
+        document.querySelectorAll('.wall-masonry > div').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+
+
+</body></html>

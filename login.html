@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html class="light" lang="en" style="">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Join Unsaid Wall | A Safe Space for Expression</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;family=Inter:wght@100..900&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#404849",
+                        "tertiary-fixed": "#e6e2dc",
+                        "on-tertiary-fixed-variant": "#494642",
+                        "on-error": "#ffffff",
+                        "outline": "#70797a",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d1dcdd",
+                        "on-secondary-fixed-variant": "#224d51",
+                        "on-primary-container": "#f4feff",
+                        "on-primary-fixed-variant": "#174e53",
+                        "inverse-surface": "#283233",
+                        "secondary-fixed": "#beeaf0",
+                        "secondary": "#3b656a",
+                        "primary-fixed": "#b8ecf2",
+                        "inverse-on-surface": "#e8f3f4",
+                        "surface-tint": "#33666c",
+                        "surface-container-high": "#dfeaeb",
+                        "primary-container": "#4a7c82",
+                        "on-tertiary-container": "#fffbff",
+                        "outline-variant": "#c0c8c9",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#ebf6f6",
+                        "on-secondary-fixed": "#002023",
+                        "on-background": "#131d1e",
+                        "tertiary-container": "#77746f",
+                        "surface": "#f1fbfc",
+                        "secondary-container": "#beeaf0",
+                        "secondary-fixed-dim": "#a3ced3",
+                        "primary-fixed-dim": "#9ccfd6",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#5e5c57",
+                        "tertiary-fixed-dim": "#cac6c0",
+                        "on-surface": "#131d1e",
+                        "on-primary-fixed": "#001f23",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e5f0f1",
+                        "surface-variant": "#dae4e5",
+                        "on-secondary-container": "#416b70",
+                        "inverse-primary": "#9ccfd6",
+                        "on-tertiary-fixed": "#1d1b18",
+                        "background": "#f1fbfc",
+                        "primary": "#306369",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#dae4e5",
+                        "surface-bright": "#f1fbfc",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "48px",
+                        "xl": "80px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "md": "24px",
+                        "margin-mobile": "20px",
+                        "max-width": "1140px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "margin-desktop": "auto"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Literata"],
+                        "caption": ["Inter"],
+                        "display-lg": ["Literata"],
+                        "headline-lg": ["Literata"],
+                        "headline-lg-mobile": ["Literata"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f1fbfc;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .tonal-layer {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 16px 32px -8px rgba(48, 99, 105, 0.08);
+        }
+
+        .form-input {
+            background-color: #f1fbfc;
+            /* Warm neutral fill */
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            box-shadow: 0 0 0 4px rgba(48, 99, 105, 0.15);
+            outline: none;
+            border-color: #306369;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .breathing-bg {
+            background: radial-gradient(circle at center, #b8ecf2 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-body-md text-on-surface">
+    <!-- TopNavBar -->
+    <header
+        class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm dark:shadow-none">
+        <nav
+            class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+            <div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Unsaid
+                Wall</div>
+
+            <button class="md:hidden text-primary">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </nav>
+    </header>
+    <main class="min-h-screen pt-16 flex items-center justify-center relative overflow-hidden">
+        <!-- Breathing Background Layer -->
+        <div class="absolute inset-0 pointer-events-none breathing-bg z-0"></div>
+        <div class="w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-xl relative z-10">
+            <div
+                class="grid grid-cols-1 lg:grid-cols-2 bg-surface-container-lowest rounded-xl overflow-hidden shadow-xl min-h-[600px] border border-outline-variant/30">
+                <!-- Visual Side -->
+                <div class="hidden lg:block relative overflow-hidden bg-primary-container">
+                    <img class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60"
+                        data-alt="A tranquil digital art piece featuring soft, layered waves of teal and light blue light moving gently like a slow ocean. The lighting is ethereal and diffused, creating a deep sense of calm and safety. Minimalist organic shapes float subtly in the background, reinforcing the brand's 'safe harbor' aesthetic with a modern, high-key light mode feeling."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyraUOnvSzU9ZOsmiqlXZmK_zf1xKDE2a6NzgpVO2zyL8zeFknd288Ie0iX4IBMwnr3oVw7eD52mK0Qdhfri3DnhEva1Tl1s9qRVX-6Bgff1nrbutCqQ_t7D3fKTW0zcyUdTqRfTfWFuSmeFq7qvOECTiYdRgpV90QnHEQVgxls53WSIbBMHUmrEUQC6u0xYMDFHsQb-I2Cr_htM5phacq4TijE8WDcN7tgRCTvAk501b8P3eQD-rXdYNz9-viLnH62z7gcmKkNGw">
+                    <div
+                        class="absolute inset-0 flex flex-col justify-end p-xl bg-gradient-to-t from-primary/80 to-transparent text-on-primary">
+                        <h2 class="font-display-lg text-display-lg mb-md">A lighter heart starts with a single word.
+                        </h2>
+                        <p class="font-body-lg text-body-lg max-w-md opacity-90">Join thousands of others in a
+                            non-judgmental space designed for your emotional well-being. Express freely, remain
+                            anonymous, find peace.</p>
+                    </div>
+                </div>
+                <!-- Form Side -->
+                <div class="p-md md:p-xl flex flex-col justify-center">
+                    <div class="max-w-md mx-auto w-full">
+                        <div class="mb-xl text-center lg:text-left">
+                            <h1 class="font-headline-lg text-headline-lg text-primary mb-xs">Welcome Back</h1>
+                            <p class="text-on-surface-variant font-body-md">Step into your digital safe harbor.</p>
+                        </div>
+                        <!-- Tabs -->
+                        <div class="flex border-b border-outline-variant mb-xl">
+                            <button
+                                class="flex-1 pb-md font-label-md text-label-md text-primary border-b-2 border-primary transition-all"
+                                id="signInTab" onclick="switchTab('signin')">Sign In</button>
+                            <button
+                                class="flex-1 pb-md font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all"
+                                id="createAccountTab" onclick="switchTab('register')">Create Account</button>
+                        </div>
+                        <!-- Login Form -->
+                        <div id="signInForm">
+                            <form class="space-y-md" onsubmit="return false;">
+                                <div>
+                                    <label
+                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Anonymous
+                                        Identifier or Email</label>
+                                    <input
+                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
+                                        placeholder="e.g. BlueRiver42" type="text">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Password</label>
+                                    <input
+                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
+                                        placeholder="••••••••" type="password">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-xs cursor-pointer">
+                                        <input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary/20"
+                                            type="checkbox">
+                                        <span class="font-caption text-caption text-on-surface-variant">Stay
+                                            anonymous</span>
+                                    </label>
+                                    <a class="font-caption text-caption text-primary hover:underline"
+                                        href="#">Forgot?</a>
+                                </div>
+                                <button
+                                    class="w-full py-3 bg-primary text-on-primary rounded-full font-label-md text-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
+                                    Enter The Wall
+                                </button>
+                            </form>
+                        </div>
+                        <!-- Registration Form (Hidden by default) -->
+                        <div class="hidden" id="registerForm">
+                            <form class="space-y-md" onsubmit="return false;">
+                                <div
+                                    class="p-sm bg-surface-container-low border border-primary/20 rounded-lg flex gap-sm mb-md">
+                                    <span class="material-symbols-outlined text-primary">verified_user</span>
+                                    <p class="font-caption text-caption text-on-surface-variant">
+                                        <strong class="text-primary">Anonymity First:</strong> You don't need to use
+                                        your real name. Choose a handle that feels right to you.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Choose a
+                                        Handle</label>
+                                    <input
+                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
+                                        placeholder="e.g. QuietForest" type="text">
+                                </div>
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Email
+                                        (For recovery only)</label>
+                                    <input
+                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
+                                        placeholder="your@email.com" type="email">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Password</label>
+                                    <input
+                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
+                                        placeholder="••••••••" type="password">
+                                </div>
+                                <button
+                                    class="w-full py-3 bg-primary text-on-primary rounded-full font-label-md text-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
+                                    Begin Your Journey
+                                </button>
+                            </form>
+                        </div>
+                        <p class="mt-xl text-center font-caption text-caption text-on-surface-variant px-md">
+                            Your data is encrypted. We never share your identity with third parties.
+                            <a class="text-primary underline" href="#">Privacy Policy</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer
+        class="w-full py-lg mt-xl bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline">
+        <div
+            class="flex flex-col md:flex-row justify-between items-center gap-md px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+            <div class="font-headline-md text-headline-md font-bold text-on-surface dark:text-inverse-on-surface">Unsaid
+                Wall</div>
+            <p class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant">© 2024 Unsaid
+                Wall. In partnership with Surat Psychology Club.</p>
+            <div class="flex gap-md">
+                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
+                    href="#">Privacy Policy</a>
+                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
+                    href="#">Terms of Service</a>
+                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
+                    href="#">Crisis Resources</a>
+                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
+                    href="#">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+        function switchTab(type) {
+            const signInForm = document.getElementById('signInForm');
+            const registerForm = document.getElementById('registerForm');
+            const signInTab = document.getElementById('signInTab');
+            const createAccountTab = document.getElementById('createAccountTab');
+            const title = document.querySelector('h1');
+
+            if (type === 'signin') {
+                signInForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                signInTab.classList.add('text-primary', 'border-primary', 'border-b-2');
+                signInTab.classList.remove('text-on-surface-variant');
+                createAccountTab.classList.remove('text-primary', 'border-primary', 'border-b-2');
+                createAccountTab.classList.add('text-on-surface-variant');
+                title.textContent = 'Welcome Back';
+            } else {
+                signInForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                createAccountTab.classList.add('text-primary', 'border-primary', 'border-b-2');
+                createAccountTab.classList.remove('text-on-surface-variant');
+                signInTab.classList.remove('text-primary', 'border-primary', 'border-b-2');
+                signInTab.classList.add('text-on-surface-variant');
+                title.textContent = 'Start Anonymously';
+            }
+        }
+
+        // Lightweight atmospheric interaction
+        document.addEventListener('mousemove', (e) => {
+            const bg = document.querySelector('.breathing-bg');
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            bg.style.background = `radial-gradient(circle at ${x}% ${y}%, #b8ecf2 0%, transparent 70%)`;
+        });
+    </script>
+
+
+</body>
+
+</html>
