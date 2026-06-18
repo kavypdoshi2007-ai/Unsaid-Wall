@@ -1,259 +1,337 @@
 <!DOCTYPE html>
-
-<html class="light" lang="en" style="">
+<html class="light" lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Join Unsaid Wall | A Safe Space for Expression</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Unsaid Wall | Join the Space</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;family=Inter:wght@100..900&amp;display=swap"
-        rel="stylesheet" />
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap"
+        rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
+        rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <script
-        id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface-variant": "#36654d", "tertiary-fixed": "#00dcfe", "on-tertiary-fixed-variant": "#005361", "on-error": "#ffefee", outline: "#518167", "error-container": "#fb5151", "surface-dim": "#98e4bb", "on-secondary-fixed-variant": "#006946", "on-primary-container": "#005d2d", "on-primary-fixed-variant": "#006833", "inverse-surface": "#001208", "secondary-fixed": "#73fbbc", secondary: "#006946", "primary-fixed": "#4cfe91", "inverse-on-surface": "#77a78c", "surface-tint": "#006a34", "surface-container-high": "#aef1cc", "primary-container": "#4cfe91", "on-tertiary-container": "#004956", "outline-variant": "#87b89c", "on-tertiary": "#ddf7ff", "surface-container-low": "#c4fedc", "on-secondary-fixed": "#00492f", "on-background": "#013622", "tertiary-container": "#00dcfe", surface: "#dbffe8", "secondary-container": "#73fbbc", "secondary-fixed-dim": "#64ecaf", "primary-fixed-dim": "#37ef84", "on-secondary": "#c9ffdf", tertiary: "#006575", "tertiary-fixed-dim": "#00cded", "on-surface": "#013622", "on-primary-fixed": "#004821", "surface-container-lowest": "#ffffff", "on-error-container": "#570008", "surface-container": "#b8f6d3", "surface-variant": "#a5ecc5", "on-secondary-container": "#005e3e", "inverse-primary": "#4cfe91", "on-tertiary-fixed": "#00333d", background: "#dbffe8", primary: "#006a34", "on-primary": "#cdffd4", "surface-container-highest": "#a5ecc5", "surface-bright": "#dbffe8", error: "#b31b25", "primary-dim": "#005c2d", "error-dim": "#9f0519", "tertiary-dim": "#005867", "secondary-dim": "#005c3c" }, borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" }, spacing: { lg: "48px", xl: "80px", sm: "12px", gutter: "24px", md: "24px", "margin-mobile": "20px", "max-width": "1140px", xs: "4px", base: "8px", "margin-desktop": "auto" }, fontFamily: { "body-lg": ["Inter"], "label-md": ["Inter"], "headline-md": ["Literata"], caption: ["Inter"], "display-lg": ["Literata"], "headline-lg": ["Literata"], "headline-lg-mobile": ["Literata"], "body-md": ["Inter"], headline: ["Literata"], display: ["Literata"], body: ["Inter"], label: ["Inter"] }, fontSize: { "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }], "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "500" }], "headline-md": ["24px", { lineHeight: "32px", fontWeight: "500" }], caption: ["12px", { lineHeight: "16px", fontWeight: "400" }], "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "600" }], "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "600" }], "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "600" }], "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }] } } } };</script>
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006a30",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "outline-variant": "#8eb792",
+                        "on-background": "#10361a",
+                        "surface": "#dfffde",
+                        "primary-container": "#7df168",
+                        "surface-bright": "#dfffde",
+                        "on-primary-fixed-variant": "#006300",
+                        "inverse-primary": "#7df168",
+                        "error": "#b02500",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#80eb97",
+                        "on-tertiary": "#cefbff",
+                        "inverse-surface": "#001204",
+                        "surface-container-high": "#b9f0be",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-error-container": "#520c00",
+                        "surface-tint": "#006b00",
+                        "on-surface": "#10361a",
+                        "on-surface-variant": "#3e6444",
+                        "surface-container-low": "#cdfdd0",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-primary-fixed": "#004200",
+                        "inverse-on-surface": "#7ea782",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "on-secondary": "#ceffd1",
+                        "on-primary": "#d3ffc2",
+                        "surface-variant": "#b0ebb6",
+                        "primary": "#006b00",
+                        "secondary-container": "#8ef9a4",
+                        "primary-dim": "#005d00",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed-dim": "#6fe25b",
+                        "outline": "#59805e",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-primary-container": "#005800",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary": "#00666c",
+                        "surface-dim": "#a4e3ac",
+                        "primary-fixed": "#7df168",
+                        "error-container": "#f95630"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
     <style>
         body {
-            background-color: #f1fbfc;
-            -webkit-font-smoothing: antialiased;
+            background-color: #dfffde;
+            overflow-x: hidden;
         }
 
-        .tonal-layer {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 16px 32px -8px rgba(48, 99, 105, 0.08);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .form-input {
-            background-color: #f1fbfc;
-            /* Warm neutral fill */
-            transition: all 0.3s ease;
+        .ambient-glow {
+            position: fixed;
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(125, 241, 104, 0.15) 0%, rgba(223, 255, 222, 0) 70%);
+            z-index: -1;
+            top: -20%;
+            left: -10%;
+            filter: blur(60px);
         }
 
-        .form-input:focus {
-            box-shadow: 0 0 0 4px rgba(48, 99, 105, 0.15);
-            outline: none;
-            border-color: #306369;
+        .auth-tab-active {
+            border-bottom: 3px solid #006b00;
+            color: #006b00;
+            font-weight: 700;
         }
 
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-
-        .breathing-bg {
-            background: radial-gradient(circle at center, #b8ecf2 0%, transparent 70%);
-            animation: pulse 8s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-
-            50% {
-                transform: scale(1.1);
-                opacity: 0.5;
-            }
-        }
     </style>
 </head>
 
-<body class="font-body-md text-on-surface">
-    <!-- TopNavBar -->
-    <header
-        class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm dark:shadow-none">
-        <nav
-            class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
-            <div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Unsaid
-                Wall</div>
-            <button class="md:hidden text-primary">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-        </nav>
-    </header>
-    <main class="min-h-screen pt-16 flex items-center justify-center relative overflow-hidden">
-        <!-- Breathing Background Layer -->
-        <div class="absolute inset-0 pointer-events-none breathing-bg z-0"></div>
-        <div class="w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-xl relative z-10">
-            <div
-                class="grid grid-cols-1 lg:grid-cols-2 bg-surface-container-lowest rounded-xl overflow-hidden shadow-xl min-h-[600px] border border-outline-variant/30">
-                <!-- Visual Side -->
-                <div class="hidden lg:block relative overflow-hidden bg-primary-container">
-                    <img class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60"
-                        data-alt="A tranquil digital art piece featuring soft, layered waves of teal and light blue light moving gently like a slow ocean. The lighting is ethereal and diffused, creating a deep sense of calm and safety. Minimalist organic shapes float subtly in the background, reinforcing the brand's 'safe harbor' aesthetic with a modern, high-key light mode feeling."
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyraUOnvSzU9ZOsmiqlXZmK_zf1xKDE2a6NzgpVO2zyL8zeFknd288Ie0iX4IBMwnr3oVw7eD52mK0Qdhfri3DnhEva1Tl1s9qRVX-6Bgff1nrbutCqQ_t7D3fKTW0zcyUdTqRfTfWFuSmeFq7qvOECTiYdRgpV90QnHEQVgxls53WSIbBMHUmrEUQC6u0xYMDFHsQb-I2Cr_htM5phacq4TijE8WDcN7tgRCTvAk501b8P3eQD-rXdYNz9-viLnH62z7gcmKkNGw" />
-                    <div
-                        class="absolute inset-0 flex flex-col justify-end p-xl bg-gradient-to-t from-primary/80 to-transparent text-on-primary">
-                        <h2 class="font-display-lg text-display-lg mb-md">A lighter heart starts with a single word.
-                        </h2>
-                        <p class="font-body-lg text-body-lg max-w-md opacity-90">Join thousands of others in a
-                            non-judgmental space designed for your emotional well-being. Express freely, remain
-                            anonymous, find peace.</p>
+<body class="font-body-md text-on-background min-h-screen flex flex-col">
+    <div class="ambient-glow"></div>
+    <!-- Navigation Shell Suppressed as per Linear Transactional Rule -->
+    <main class="flex-grow flex items-center justify-center p-gutter sm:p-container-padding">
+        <div
+            class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 rounded-xl overflow-hidden shadow-2xl shadow-primary/10 glass-card">
+            <!-- Left Side: Calming Narrative -->
+            <div class="hidden md:flex flex-col justify-between p-12 bg-primary/5 relative overflow-hidden group">
+                <div class="z-10">
+                    <h1 class="font-display-lg text-display-lg text-primary mb-4">Unsaid Wall</h1>
+                    <p class="font-headline-md text-headline-md text-on-surface-variant leading-relaxed opacity-90">
+                        A sanctuary for thoughts that need a soft place to land.
+                    </p>
+                </div>
+                <div class="relative z-10 space-y-6 mt-12">
+                    <div class="flex items-start gap-4">
+                        <div class="p-2 rounded-lg bg-primary/10">
+                            <span class="material-symbols-outlined text-primary">verified_user</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-primary">Absolute Anonymity</h3>
+                            <p class="text-on-surface-variant text-sm">Your identity remains yours. We don't store
+                                personal profiles, just the words you choose to share.</p>
+                        </div>
                     </div>
                 </div>
-                <!-- Form Side -->
-                <div class="p-md md:p-xl flex flex-col justify-center">
-                    <div class="max-w-md mx-auto w-full">
-                        <div class="mb-xl text-center lg:text-left">
-                            <h1 class="font-headline-lg text-headline-lg text-primary mb-xs">Welcome Back</h1>
-                            <p class="text-on-surface-variant font-body-md">Step into your digital safe harbor.</p>
+                <!-- Atmospheric Image -->
+                <div class="absolute inset-0 z-0">
+                    <img class="w-full h-full object-cover opacity-20 mix-blend-overlay group-hover:scale-105 transition-transform duration-1000"
+                        data-alt="A serene and tranquil nature scene depicting a dense forest floor covered in soft green moss. Sunlight filters through the tall canopy of vibrant forest trees, creating ethereal light beams that illuminate a peaceful, misty atmosphere. The color palette is rich with deep emeralds and bright vibrant greens, evoking a sense of calm, safety, and renewal. This high-end landscape photography style emphasizes the quiet strength and protective energy of a thriving garden."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlmbuic_J0xLUQNX44axxVxJExA6wf00JpAvrfdnx6elN_g13C81NSqx4yL6kuxDNfFOFW_W-ov56tfG7glKBX5sqS8i-k79qEG1yvs0oCDC93wtvp1CJPIpGqfdnuQ7vUVrrfF0hOTsWLoExXnJp0tP_oTu4v2rQ3YdTzCZkHf27uEtP5xqQTc7Haewpqz-cbE2mHRAvm_kwamH-JXr_bza_iLkbPbo4ZIyWRBSnKbF0CuWx5dVxjwY9ESuF4xpY8c46GhrAfghGf">
+                </div>
+            </div>
+            <!-- Right Side: Auth Form -->
+            <div class="p-8 sm:p-12 bg-surface-container-lowest flex flex-col">
+                <style>
+                    /* Hide Register elements by default */
+                    .register-content {
+                        display: none;
+                    }
+
+                    /* When Register is checked, hide Login content and show Register content */
+                    #tab-register:checked~.form-wrapper .login-content {
+                        display: none;
+                    }
+
+                    #tab-register:checked~.form-wrapper .register-content {
+                        display: block;
+                    }
+
+                    /* Change Tab Styling when active */
+                    #tab-login:checked~.form-wrapper .label-login {
+                        color: var(--tw-text-on-surface);
+                        border-bottom: 2px solid var(--tw-border-primary);
+                    }
+
+                    #tab-register:checked~.form-wrapper .label-register {
+                        color: var(--tw-text-on-surface);
+                        border-bottom: 2px solid var(--tw-border-primary);
+                    }
+                </style>
+
+                <input type="radio" name="auth" id="tab-login" class="hidden" checked>
+                <input type="radio" name="auth" id="tab-register" class="hidden">
+
+                <div class="form-wrapper flex-grow space-y-8">
+
+                    <div class="flex items-center gap-8 mb-10 border-b border-outline-variant/10">
+                        <label for="tab-login"
+                            class="label-login cursor-pointer pb-4 font-body-md text-body-md transition-all text-on-surface-variant hover:text-primary">
+                            Login
+                        </label>
+                        <label for="tab-register"
+                            class="label-register cursor-pointer pb-4 font-body-md text-body-md transition-all text-on-surface-variant hover:text-primary">
+                            Register
+                        </label>
+                    </div>
+
+                    <div>
+                        <h2 class="login-content font-headline-md text-headline-md text-on-surface mb-2">Welcome Back
+                        </h2>
+                        <p class="login-content text-on-surface-variant text-sm">Verify your identity to enter your safe
+                            space.</p>
+
+                        <h2 class="register-content font-headline-md text-headline-md text-on-surface mb-2">Create
+                            Account</h2>
+                        <p class="register-content text-on-surface-variant text-sm">Enter your phone number to get
+                            started.</p>
+                    </div>
+
+                    <div class="space-y-4">
+
+                        <div class="group">
+                            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2 px-1">Phone
+                                Number</label>
+                            <div class="flex gap-2">
+                                <div class="relative min-w-[100px]">
+                                    <select
+                                        class="w-full h-12 rounded-lg border-primary/20 bg-surface focus:ring-primary focus:border-primary px-3 appearance-none">
+                                        <option>🇺🇸 +1</option>
+                                        <option>🇬🇧 +44</option>
+                                    </select>
+                                    <span
+                                        class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+                                </div>
+                                <input
+                                    class="flex-grow h-12 rounded-lg border-primary/20 bg-surface px-4 placeholder:text-outline-variant"
+                                    placeholder="000 000 0000" type="tel">
+                            </div>
                         </div>
-                        <!-- Tabs -->
-                        <div class="flex border-b border-outline-variant mb-xl">
-                            <button
-                                class="flex-1 pb-md font-label-md text-label-md text-primary border-b-2 border-primary transition-all"
-                                id="signInTab" onclick="switchTab('signin')">Sign In</button>
-                            <button
-                                class="flex-1 pb-md font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all"
-                                id="createAccountTab" onclick="switchTab('register')">Create Account</button>
+
+                        <div class="login-content group mt-4">
+                            <label
+                                class="block font-label-sm text-label-sm text-on-surface-variant mb-2 px-1">Password</label>
+                            <div class="relative">
+                                <input
+                                    class="w-full h-12 rounded-lg border-primary/20 bg-surface px-4 placeholder:text-outline-variant"
+                                    placeholder="Enter your password" type="password">
+                                <span
+                                    class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer">visibility</span>
+                            </div>
                         </div>
-                        <!-- Login Form -->
-                        <div id="signInForm">
-                            <form class="space-y-md" onsubmit="return false;">
-                                <div>
-                                    <label
-                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Anonymous
-                                        Identifier or Email</label>
-                                    <input
-                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
-                                        placeholder="e.g. BlueRiver42" type="text" />
-                                </div>
-                                <div>
-                                    <label
-                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Password</label>
-                                    <input
-                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
-                                        placeholder="••••••••" type="password" />
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <label class="flex items-center gap-xs cursor-pointer">
-                                        <input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary/20"
-                                            type="checkbox" />
-                                        <span class="font-caption text-caption text-on-surface-variant">Stay
-                                            anonymous</span>
-                                    </label>
-                                    <a class="font-caption text-caption text-primary hover:underline"
-                                        href="#">Forgot?</a>
-                                </div>
-                                <button
-                                    class="w-full py-3 bg-primary text-on-primary rounded-full font-label-md text-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
-                                    Enter The Wall
-                                </button>
-                            </form>
-                        </div>
-                        <!-- Registration Form (Hidden by default) -->
-                        <div class="hidden" id="registerForm">
-                            <form class="space-y-md" onsubmit="return false;">
-                                <div
-                                    class="p-sm bg-surface-container-low border border-primary/20 rounded-lg flex gap-sm mb-md">
-                                    <span class="material-symbols-outlined text-primary">verified_user</span>
-                                    <p class="font-caption text-caption text-on-surface-variant">
-                                        <strong class="text-primary">Anonymity First:</strong> You don't need to use
-                                        your real name. Choose a handle that feels right to you.
-                                    </p>
-                                </div>
-                                <div>
-                                    <label
-                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Choose a
-                                        Handle</label>
-                                    <input
-                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
-                                        placeholder="e.g. QuietForest" type="text" />
-                                </div>
-                                <div>
-                                    <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Email
-                                        (For recovery only)</label>
-                                    <input
-                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
-                                        placeholder="your@email.com" type="email" />
-                                </div>
-                                <div>
-                                    <label
-                                        class="block font-label-md text-label-md text-on-surface-variant mb-xs">Password</label>
-                                    <input
-                                        class="w-full px-md py-3 rounded-lg border border-outline-variant form-input font-body-md"
-                                        placeholder="••••••••" type="password" />
-                                </div>
-                                <button
-                                    class="w-full py-3 bg-primary text-on-primary rounded-full font-label-md text-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
-                                    Begin Your Journey
-                                </button>
-                            </form>
-                        </div>
-                        <p class="mt-xl text-center font-caption text-caption text-on-surface-variant px-md">
-                            Your data is encrypted. We never share your identity with third parties.
-                            <a class="text-primary underline" href="#">Privacy Policy</a>
+
+                        <button
+                            class="w-full h-12 bg-primary text-on-primary font-bold rounded-full hover:shadow-lg transition-all">
+                            <span class="login-content">Login</span>
+                            <span class="register-content">Register</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Safety Info Box -->
+                <div
+                    class="p-3 rounded-xl bg-primary-container/20 border border-primary/20 flex gap-3 items-center mt-6">
+                    <span class="material-symbols-outlined text-primary"
+                        style="font-variation-settings: 'FILL' 1;">security</span>
+                    <div>
+                        <h4 class="font-bold text-primary text-sm">Safety First</h4>
+                        <p class="text-on-surface-variant text-xs leading-tight mt-0.5">
+                            We use military-grade AES-256 encryption. Your phone number is only used for
+                            verification and is never shared, linked to your posts, or used for tracking.
                         </p>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
-    <!-- Footer -->
-    <footer
-        class="w-full py-lg mt-xl bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline">
-        <div
-            class="flex flex-col md:flex-row justify-between items-center gap-md px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
-            <div class="font-headline-md text-headline-md font-bold text-on-surface dark:text-inverse-on-surface">Unsaid
-                Wall</div>
-            <p class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant">© 2024 Unsaid
-                Wall. In partnership with Surat Psychology Club.</p>
-            <div class="flex gap-md">
-                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
-                    href="#">Privacy Policy</a>
-                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
-                    href="#">Terms of Service</a>
-                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
-                    href="#">Crisis Resources</a>
-                <a class="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors"
-                    href="#">Contact Us</a>
-            </div>
         </div>
-    </footer>
+    </main>
+    <!-- Success Feedback Overlay (Hidden by default) -->
+    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-24 transition-all duration-500 glass-card px-6 py-4 rounded-full flex items-center gap-3 z-[100] border-secondary/20"
+        id="toast">
+        <span class="material-symbols-outlined text-secondary">check_circle</span>
+        <span class="text-on-surface font-semibold">Verification code sent!</span>
+    </div>
     <script>
         function switchTab(type) {
-            const signInForm = document.getElementById('signInForm');
-            const registerForm = document.getElementById('registerForm');
-            const signInTab = document.getElementById('signInTab');
-            const createAccountTab = document.getElementById('createAccountTab');
-            const title = document.querySelector('h1');
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
 
-            if (type === 'signin') {
-                signInForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                signInTab.classList.add('text-primary', 'border-primary', 'border-b-2');
-                signInTab.classList.remove('text-on-surface-variant');
-                createAccountTab.classList.remove('text-primary', 'border-primary', 'border-b-2');
-                createAccountTab.classList.add('text-on-surface-variant');
-                title.textContent = 'Welcome Back';
+            if (type === 'login') {
+                loginTab.classList.add('auth-tab-active');
+                loginTab.classList.remove('text-on-surface-variant');
+                regTab.classList.remove('auth-tab-active');
+                regTab.classList.add('text-on-surface-variant');
+                title.innerText = "Welcome Back";
+                subtitle.innerText = "Verify your identity to enter your safe space.";
             } else {
-                signInForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                createAccountTab.classList.add('text-primary', 'border-primary', 'border-b-2');
-                createAccountTab.classList.remove('text-on-surface-variant');
-                signInTab.classList.remove('text-primary', 'border-primary', 'border-b-2');
-                signInTab.classList.add('text-on-surface-variant');
-                title.textContent = 'Start Anonymously';
+                regTab.classList.add('auth-tab-active');
+                regTab.classList.remove('text-on-surface-variant');
+                loginTab.classList.remove('auth-tab-active');
+                loginTab.classList.add('text-on-surface-variant');
+                title.innerText = "Start Your Journey";
+                subtitle.innerText = "Join our community of quiet strength and healing.";
             }
         }
 
-        // Lightweight atmospheric interaction
-        document.addEventListener('mousemove', (e) => {
-            const bg = document.querySelector('.breathing-bg');
-            const x = (e.clientX / window.innerWidth) * 100;
-            const y = (e.clientY / window.innerHeight) * 100;
-            bg.style.background = `radial-gradient(circle at ${x}% ${y}%, #b8ecf2 0%, transparent 70%)`;
+        // Demo interaction for "Send" button
+        document.querySelector('button.bg-primary').addEventListener('click', function () {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-24');
+            toast.classList.add('translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-24');
+                toast.classList.remove('translate-y-0');
+            }, 3000);
         });
     </script>
+
+
 </body>
 
 </html>
