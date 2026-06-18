@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>My Journal | Unsaid Wall</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400..700;1,400..700&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#59805e",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "inverse-primary": "#7df168",
+                        "on-surface-variant": "#3e6444",
+                        "surface-variant": "#b0ebb6",
+                        "surface-bright": "#dfffde",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface": "#dfffde",
+                        "on-primary": "#d3ffc2",
+                        "tertiary-dim": "#00595e",
+                        "tertiary": "#00666c",
+                        "secondary-fixed-dim": "#80eb97",
+                        "inverse-on-surface": "#7ea782",
+                        "error": "#b02500",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed": "#7df168",
+                        "on-error": "#ffefec",
+                        "surface-container": "#c1f5c5",
+                        "secondary-dim": "#005d29",
+                        "surface-container-highest": "#b0ebb6",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary": "#006a30",
+                        "surface-tint": "#006b00",
+                        "tertiary-container": "#05ebf9",
+                        "on-primary-fixed": "#004200",
+                        "error-container": "#f95630",
+                        "surface-dim": "#a4e3ac",
+                        "secondary-container": "#8ef9a4",
+                        "primary-fixed-dim": "#6fe25b",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-primary-fixed-variant": "#006300",
+                        "outline-variant": "#8eb792",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-background": "#10361a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#cefbff",
+                        "primary-dim": "#005d00",
+                        "on-secondary": "#ceffd1",
+                        "on-surface": "#10361a",
+                        "on-primary-container": "#005800",
+                        "on-error-container": "#520c00",
+                        "inverse-surface": "#001204",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-secondary-container": "#005f2a",
+                        "surface-container-high": "#b9f0be",
+                        "primary-container": "#7df168",
+                        "primary": "#006b00",
+                        "surface-container-low": "#cdfdd0",
+                        "error-dim": "#b92902"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Literata"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #dfffde;
+            color: #10361a;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 107, 0, 0.1);
+        }
+
+        .emotion-bar {
+            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-sm shadow-primary/5">
+        <div class="flex justify-between items-center px-container-padding py-unit w-full max-w-[1200px] mx-auto">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl" data-icon="spa">spa</span>
+                <h1 class="font-headline-md text-headline-md text-primary tracking-tight">Unsaid Wall</h1>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex gap-8 items-center">
+                    <span
+                        class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer font-medium">The
+                        Wall</span>
+                    <span class="text-primary font-bold px-4 py-1.5 bg-secondary-container rounded-full shadow-sm">My
+                        Journal</span>
+                    <span
+                        class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer font-medium">Coach</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="mt-24 pb-32 px-container-padding max-w-[1200px] mx-auto">
+        <!-- Hero & Primary Action -->
+        <div class="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
+            <section class="space-y-4 max-w-2xl">
+                <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary">Softly Landing, Alex.
+                </h2>
+                <p class="text-on-surface-variant text-lg leading-relaxed">
+                    This week, your garden of thoughts has seen a mix of sun and clouds. You've sat with <span
+                        class="font-bold text-primary">Quiet Sadness</span> three times, but your <span
+                        class="font-bold text-secondary">Calm</span> is growing back. Remember, every word you leave
+                    here is a seed for tomorrow's healing.
+                </p>
+            </section>
+            <div class="w-full lg:w-80 space-y-4 shrink-0">
+                <button
+                    class="w-full bg-primary text-white p-6 rounded-lg flex items-center justify-between group active:scale-[0.98] transition-all duration-200 text-left shadow-lg shadow-primary/20">
+                    <div class="space-y-1">
+                        <p class="font-bold text-lg">Start Private Entry</p>
+                        <p class="text-white/80 text-sm">Clear your mind now.</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+                    </div>
+                </button>
+                <div class="glass-card p-4 rounded-lg flex items-center gap-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined" data-icon="local_fire_department"
+                            style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary font-bold">5 Day Streak</p>
+                        <p class="text-on-surface-variant text-xs">Consistency is strength.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Dashboard Left: Stats & Pulse -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Weekly Emotion Frequency Bar Chart -->
+                    <section class="glass-card p-8 rounded-lg space-y-8">
+                        <div class="flex justify-between items-end">
+                            <h3 class="font-headline-md text-primary">Emotional Pulse</h3>
+                            <span class="text-label-sm text-on-surface-variant">Last 7 Days</span>
+                        </div>
+                        <div class="flex items-end justify-between h-48 gap-4 px-2">
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-tertiary-container rounded-t-full emotion-bar"
+                                    style="height: 65%;"></div>
+                                <span class="text-label-sm text-on-tertiary-container">Sad</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-secondary-container rounded-t-full emotion-bar"
+                                    style="height: 40%;"></div>
+                                <span class="text-label-sm text-on-secondary-container">Calm</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-error-container/30 rounded-t-full emotion-bar border border-error-container"
+                                    style="height: 85%;"></div>
+                                <span class="text-label-sm text-on-error-container">Anxious</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-primary-container rounded-t-full emotion-bar"
+                                    style="height: 25%;"></div>
+                                <span class="text-label-sm text-on-primary-container">Joy</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-surface-container-highest rounded-t-full emotion-bar"
+                                    style="height: 55%;"></div>
+                                <span class="text-label-sm text-on-surface-variant">Tired</span>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- Mood Snapshot Timeline (Expanded for Desktop) -->
+                    <section class="glass-card p-8 rounded-lg space-y-6">
+                        <h3 class="font-headline-md text-primary">7-Day Timeline</h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            <!-- Day 1 -->
+                            <div class="p-3 rounded-lg text-center space-y-2 bg-surface-container-low/50">
+                                <span class="text-[10px] uppercase font-bold text-outline">Mon 12</span>
+                                <div
+                                    class="w-10 h-10 bg-tertiary-container rounded-full mx-auto flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-on-tertiary-container text-sm"
+                                        data-icon="sentiment_dissatisfied">sentiment_dissatisfied</span>
+                                </div>
+                            </div>
+                            <!-- Day 2 -->
+                            <div class="p-3 rounded-lg text-center space-y-2 bg-error-container/5">
+                                <span class="text-[10px] uppercase font-bold text-outline">Tue 13</span>
+                                <div
+                                    class="w-10 h-10 bg-error-container/20 rounded-full mx-auto flex items-center justify-center border border-error-container">
+                                    <span class="material-symbols-outlined text-error text-sm"
+                                        data-icon="bolt">bolt</span>
+                                </div>
+                            </div>
+                            <!-- Day 3 -->
+                            <div class="p-3 rounded-lg text-center space-y-2 bg-secondary-container/20">
+                                <span class="text-[10px] uppercase font-bold text-outline">Wed 14</span>
+                                <div
+                                    class="w-10 h-10 bg-secondary-container rounded-full mx-auto flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-on-secondary-container text-sm"
+                                        data-icon="self_improvement">self_improvement</span>
+                                </div>
+                            </div>
+                            <!-- Day 4 -->
+                            <div class="p-3 rounded-lg text-center space-y-2 bg-primary-container/20">
+                                <span class="text-[10px] uppercase font-bold text-outline">Thu 15</span>
+                                <div
+                                    class="w-10 h-10 bg-primary-container rounded-full mx-auto flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-on-primary-container text-sm"
+                                        data-icon="sunny">sunny</span>
+                                </div>
+                            </div>
+                            <!-- Day 5 -->
+                            <div class="p-3 rounded-lg text-center space-y-2 bg-surface-container-highest/20">
+                                <span class="text-[10px] uppercase font-bold text-outline">Fri 16</span>
+                                <div
+                                    class="w-10 h-10 bg-surface-container-highest rounded-full mx-auto flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-sm"
+                                        data-icon="bed">bed</span>
+                                </div>
+                            </div>
+                            <div
+                                class="p-3 rounded-lg border-2 border-dashed border-outline-variant flex items-center justify-center opacity-40">
+                                <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <!-- Private Posts Feed (Expanded Layout) -->
+                <section class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-headline-md text-primary">Private Memories</h3>
+                        <div class="flex gap-4">
+                            <span
+                                class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors"
+                                data-icon="search">search</span>
+                            <span
+                                class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors"
+                                data-icon="filter_list">filter_list</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Post 1 -->
+                        <article
+                            class="glass-card p-8 rounded-lg relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-outline" data-icon="lock"
+                                        style="font-variation-settings: 'opsz' 20;">lock</span>
+                                    <time
+                                        class="text-label-sm text-outline uppercase tracking-wider font-semibold">March
+                                        15, 2024 • 11:42 PM</time>
+                                </div>
+                                <div
+                                    class="bg-tertiary-container text-on-tertiary-container px-4 py-1.5 rounded-full text-label-sm font-bold shadow-sm w-fit">
+                                    Quiet Sadness
+                                </div>
+                            </div>
+                            <p
+                                class="text-xl md:text-2xl text-on-surface leading-relaxed italic font-light font-body-md">
+                                "The city lights seem further away tonight. There's a peace in the silence that feels
+                                heavy, but maybe that weight is just me finally letting go of the day's expectations. I
+                                wonder if I'll feel lighter in the morning."
+                            </p>
+                            <div class="mt-8 flex gap-3">
+                                <span
+                                    class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-xs font-medium">#midnight</span>
+                                <span
+                                    class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-xs font-medium">#reflection</span>
+                                <span
+                                    class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-xs font-medium">#loneliness</span>
+                            </div>
+                        </article>
+                        <!-- Post 2 -->
+                        <article
+                            class="glass-card p-8 rounded-lg relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-outline" data-icon="lock"
+                                        style="font-variation-settings: 'opsz' 20;">lock</span>
+                                    <time
+                                        class="text-label-sm text-outline uppercase tracking-wider font-semibold">March
+                                        14, 2024 • 08:15 AM</time>
+                                </div>
+                                <div
+                                    class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full text-label-sm font-bold shadow-sm w-fit">
+                                    Calm
+                                </div>
+                            </div>
+                            <p class="text-xl md:text-2xl text-on-surface leading-relaxed font-body-md">
+                                I finally finished that book. The ending wasn't what I expected, but it left me feeling
+                                weirdly hopeful. I think I'm ready to try again today. It's a fresh start.
+                            </p>
+                        </article>
+                    </div>
+                    <button
+                        class="w-full py-6 text-primary font-bold hover:bg-primary/5 rounded-lg border border-primary/10 transition-all">
+                        Load Older Entries
+                    </button>
+                </section>
+            </div>
+            <!-- Dashboard Right Sidebar -->
+            <aside class="space-y-8">
+                <!-- Wellness Coach Insight -->
+                <section class="glass-card p-6 rounded-lg bg-primary-container/20 border-primary/10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary"
+                                data-icon="psychology">psychology</span>
+                        </div>
+                        <h4 class="font-bold text-primary">AI Coach Tip</h4>
+                    </div>
+                    <p class="text-on-surface-variant text-sm leading-relaxed mb-4">
+                        "I noticed your anxiety peaks mid-week. Consider scheduled 5-minute breathing breaks on
+                        Tuesdays."
+                    </p>
+                    <button class="text-primary text-sm font-bold flex items-center gap-2 hover:gap-3 transition-all">
+                        Start Session <span class="material-symbols-outlined text-sm"
+                            data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </section>
+            </aside>
+        </div>
+    </main>
+    <footer class="bg-surface-container-highest w-full pt-section-gap pb-container-padding mt-24">
+        <div
+            class="flex flex-col md:flex-row justify-between items-center px-container-padding max-w-[1200px] mx-auto gap-8">
+            <div class="space-y-2 text-center md:text-left">
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <span class="material-symbols-outlined text-primary" data-icon="spa">spa</span>
+                    <p class="font-headline-md text-headline-md text-primary">Unsaid Wall</p>
+                </div>
+                <p class="text-on-surface-variant text-sm max-w-xs">© 2024 Unsaid Wall. A safe space for your unsaid
+                    words.</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-8">
+                <div class="flex flex-col gap-2">
+                    <p class="font-bold text-primary text-sm uppercase tracking-widest">Platform</p>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">The
+                        Wall</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">Journal</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">AI
+                        Coach</a>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p class="font-bold text-primary text-sm uppercase tracking-widest">Support</p>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm font-bold underline"
+                        href="#">Crisis Support</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm"
+                        href="#">Volunteer</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">Privacy
+                        Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bottom Navigation Shell (Mobile Only) -->
+    <nav
+        class="md:hidden fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-xl rounded-t-2xl shadow-[0_-8px_30px_rgb(0,0,0,0.08)] flex justify-around items-center px-4 py-3 pb-safe z-50">
+        <div class="flex flex-col items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined" data-icon="layers">layers</span>
+            <span class="font-label-sm text-[10px]">Wall</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-5 py-1.5">
+            <span class="material-symbols-outlined" data-icon="edit_note"
+                style="font-variation-settings: 'FILL' 1;">edit_note</span>
+            <span class="font-label-sm text-[10px]">Journal</span>
+        </div>
+        <div class="flex flex-col items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+            <span class="font-label-sm text-[10px]">Coach</span>
+        </div>
+        <div class="flex flex-col items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined" data-icon="emergency">emergency</span>
+            <span class="font-label-sm text-[10px]">Alerts</span>
+        </div>
+    </nav>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.emotion-bar');
+            bars.forEach((bar, index) => {
+                const finalHeight = bar.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.height = finalHeight;
+                }, 200 + (index * 100));
+            });
+        });
+
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+            btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+</body>
+
+</html>
