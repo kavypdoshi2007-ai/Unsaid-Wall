@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Unsaid Wall | A Safe Space for Your Thoughts</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#8eb792",
+                        secondary: "#006a30",
+                        "inverse-surface": "#001204",
+                        "on-error-container": "#520c00",
+                        "surface-variant": "#b0ebb6",
+                        outline: "#59805e",
+                        "secondary-container": "#8ef9a4",
+                        "primary-fixed-dim": "#6fe25b",
+                        "inverse-on-surface": "#7ea782",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-tertiary-fixed": "#003d41",
+                        "surface-dim": "#a4e3ac",
+                        "surface-container-highest": "#b0ebb6",
+                        "on-surface-variant": "#3e6444",
+                        "on-primary": "#d3ffc2",
+                        "surface-container-low": "#cdfdd0",
+                        "on-surface": "#10361a",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "secondary-fixed-dim": "#80eb97",
+                        "primary-container": "#7df168",
+                        "on-primary-fixed-variant": "#006300",
+                        "on-primary-container": "#005800",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-bright": "#dfffde",
+                        "error-container": "#f95630",
+                        "on-primary-fixed": "#004200",
+                        "primary-fixed": "#7df168",
+                        "on-error": "#ffefec",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        primary: "#006b00",
+                        "on-tertiary-container": "#005257",
+                        background: "#dfffde",
+                        "inverse-primary": "#7df168",
+                        tertiary: "#00666c",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "on-background": "#10361a",
+                        "surface-container-high": "#b9f0be",
+                        surface: "#dfffde",
+                        "on-secondary": "#ceffd1",
+                        error: "#b02500",
+                        "surface-tint": "#006b00",
+                        "tertiary-fixed": "#05ebf9",
+                        "on-tertiary": "#cefbff",
+                        "primary-dim": "#005d00",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "secondary-dim": "#005d29"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        xs: "4px",
+                        xl: "80px",
+                        md: "24px",
+                        gutter: "24px",
+                        "margin-desktop": "auto",
+                        "max-width": "1140px",
+                        base: "8px",
+                        lg: "48px",
+                        sm: "12px"
+                    },
+                    fontFamily: {
+                        "headline-lg-mobile": ["Literata"],
+                        caption: ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Literata"],
+                        headline: ["Literata"],
+                        display: ["Literata"],
+                        body: ["Inter"],
+                        label: ["Inter"]
+                    },
+                    fontSize: {
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "600" }],
+                        caption: ["12px", { lineHeight: "16px", fontWeight: "400" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "500" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "600" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "500" }]
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-blur: md;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .wall-masonry {
+            column-count: 1;
+            column-gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .wall-masonry {
+                column-count: 2;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .wall-masonry {
+                column-count: 3;
+            }
+        }
+
+        .pulse-soft {
+            animation: pulse-soft 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% {
+                opacity: 0.1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+    <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+        <div class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+            <div class="font-headline-md text-headline-md font-bold text-primary">Unsaid Wall</div>
+            <div class="hidden md:flex items-center gap-lg">
+                <a class="text-primary font-semibold border-b-2 border-primary pb-1 font-body-md text-body-md" href="#">The Wall</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="Coach_Directory.html">Coaches</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="Resource Library.html">Resources</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="pt-16">
+        <section class="relative min-h-[921px] flex items-center overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <img class="w-full h-full object-cover opacity-40"
+                    data-alt="A tranquil landscape featuring soft rolling fog"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZAXVdw0YZ5rLl9QSc3SsLAnhcZ85X_j2z_ChHTgi6vRpYueYvGJibLMcrGfrwQ1eiYWVq9lpQmhH3gV4Ce_W_xD0UAC8AiudVQpaHE19xhiJGaKYrp1iTzzEWrmDPi_SD2yXO6WzQsWHSsAlTqHVNW7dyw8Fn0yMgCC2ZdMTDxNSvzoVg4uFlaRJSMk3w-YifPHMp05rLfY1cT7jcLsSCrtu1rXbvW7zRrwmUbgKMGnHGz5RzFxfsaO8owHGbt1XCLBKoC5R7Ydk">
+                <div class="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background"></div>
+            </div>
+            <div class="relative z-10 max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop text-center md:text-left grid md:grid-cols-2 gap-lg items-center">
+                <div class="space-y-md">
+                    <h1 class="font-display-lg text-display-lg text-on-surface leading-tight">
+                        Your thoughts deserve a <span class="text-primary italic">safe space.</span>
+                    </h1>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Share anonymously, gain emotional insights, and connect with expert coaches. You are not alone on this journey.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-base pt-sm">
+                        <button onclick="window.location.href='/login.html'"
+                            class="bg-primary text-on-primary px-lg py-4 rounded-full font-label-md text-label-md hover:shadow-lg transition-all active:scale-95">
+                            Join the Community
+                        </button>
+                        <button onclick="document.getElementById('wall-anchor').scrollIntoView({behavior: 'smooth'})"
+                            class="border-2 border-primary text-primary px-lg py-4 rounded-full font-label-md text-label-md hover:bg-primary/5 transition-colors">
+                            Explore The Wall
+                        </button>
+                    </div>
+                </div>
+                <div class="hidden md:block relative">
+                    <div class="glass-card p-lg rounded-xl relative overflow-hidden shadow-xl">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/10 rounded-full pulse-soft"></div>
+                        <div class="relative z-10 text-center space-y-md">
+                            <span class="material-symbols-outlined text-primary text-4xl">air</span>
+                            <h3 class="font-headline-md text-headline-md text-primary">Pause for a breath</h3>
+                            <p class="font-body-md text-body-md text-on-surface-variant italic">Take a moment to ground yourself before sharing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="wall-anchor" class="py-xl bg-surface-container-lowest">
+            <div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-lg gap-md">
+                    <div class="max-w-2xl">
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-base">The Anonymous Wall</h2>
+                        <p class="font-body-lg text-body-lg text-on-surface-variant">A collective journal of unspoken truths, shared without judgment or identity.</p>
+                    </div>
+                    <div class="flex gap-sm">
+                        <span class="flex items-center gap-xs px-md py-xs bg-secondary-container text-on-secondary-container rounded-full text-caption font-label-md">
+                            <span class="material-symbols-outlined text-sm">verified_user</span> Moderated
+                        </span>
+                        <span class="flex items-center gap-xs px-md py-xs bg-primary-fixed text-on-primary-fixed-variant rounded-full text-caption font-label-md">
+                            <span class="material-symbols-outlined text-sm">visibility_off</span> 100% Anonymous
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Live Dynamic Feed (Top 6 Posts with Reaction Counts) -->
+                <div id="posts-container" class="wall-masonry space-y-gutter">
+                    <div class="animate-pulse bg-white p-lg rounded-xl shadow-sm border border-outline-variant/20">
+                        <div class="h-4 bg-surface-container rounded w-1/4 mb-4"></div>
+                        <div class="h-3 bg-surface-container rounded w-full mb-2"></div>
+                        <div class="h-3 bg-surface-container rounded w-5/6"></div>
+                    </div>
+                </div>
+
+                <div class="mt-lg text-center">
+                    <button class="text-primary font-label-md hover:underline flex items-center gap-xs mx-auto">
+                        View more from the wall <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-xl bg-surface">
+            <div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-2 gap-lg items-center">
+                <div class="order-2 md:order-1">
+                    <div class="relative p-lg glass-card rounded-xl shadow-lg border-primary/10">
+                        <div class="space-y-md">
+                            <div class="flex items-center gap-sm">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary">psychology</span>
+                                </div>
+                                <h4 class="font-headline-md text-headline-md text-primary">Insight Report</h4>
+                            </div>
+                            <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                                <div class="h-full bg-primary w-[75%]"></div>
+                            </div>
+                            <div class="flex justify-between text-caption font-label-md text-on-surface-variant">
+                                <span class="">Emotional Resilience</span>
+                                <span class="">75% Stability</span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant italic border-l-4 border-primary/20 pl-md py-xs">
+                                "Your recent posts suggest a pattern of 'Reflection' followed by 'Growth'. You are navigating this phase with awareness."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-1 md:order-2 space-y-md">
+                    <span class="text-primary font-label-md tracking-wider uppercase">Emotional Intelligence</span>
+                    <h2 class="font-headline-lg text-headline-lg text-on-surface leading-tight">Understand your feelings through AI analysis.</h2>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Our private AI identifies patterns in your sharing, helping you name emotions you might be struggling to define. It's like a personal emotional mirror, reflecting your progress back to you.
+                    </p>
+                    <ul class="space-y-sm">
+                        <li class="flex items-start gap-sm">
+                            <span class="material-symbols-outlined text-primary">check_circle</span>
+                            <span class="font-body-md text-body-md text-on-surface">Detect subtle shifts in your mental well-being over time.</span>
+                        </li>
+                        <li class="flex items-start gap-sm">
+                            <span class="material-symbols-outlined text-primary">check_circle</span>
+                            <span class="font-body-md text-body-md text-on-surface">Privacy-first processing—your identity is never revealed.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Guided by Experts Section -->
+        <section class="py-xl bg-surface-container-low">
+            <div class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
+                <div class="text-center mb-lg">
+                    <div class="inline-flex items-center gap-xs px-md py-1 bg-white border border-outline-variant rounded-full text-caption font-label-md text-secondary mb-md">
+                        <span class="material-symbols-outlined text-sm">handshake</span> In partnership with Surat Psychology Club
+                    </div>
+                    <h2 class="font-headline-lg text-headline-lg text-on-surface">Guided by Experts</h2>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                        Sometimes, a listening ear needs to be a professional one. Connect with verified mental health experts for personalized support.
+                    </p>
+                </div>
+                
+                <!-- Dynamic Target Container for Top 3 Coaches -->
+                <div id="top-coaches-container" class="grid md:grid-cols-3 gap-gutter">
+                    <div class="col-span-full text-center py-12 text-on-surface-variant animate-pulse">
+                        Loading featured expert coaches...
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="w-full py-lg mt-xl bg-surface-container-low border-t border-outline-variant">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-md px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+            <div class="space-y-sm text-center md:text-left">
+                <div class="font-headline-md text-headline-md font-bold text-on-surface">Unsaid Wall</div>
+                <p class="font-caption text-caption text-on-surface-variant">© 2024 Unsaid Wall. In partnership with Surat Psychology Club.</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-md">
+                <a class="font-caption text-caption text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+                <a class="font-caption text-caption text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+                <a class="font-caption text-caption text-on-surface-variant hover:text-secondary transition-colors" href="#">Crisis Resources</a>
+                <a class="font-caption text-caption text-on-surface-variant hover:text-secondary transition-colors" href="#">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_POSTS_URL = 'http://localhost:3000/api/posts';
+        const API_COACHES_URL = 'http://localhost:3000/api/coaches';
+
+        const fallbackHeadshots = [
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuB47eql7E1shj7x9ZcoYJ4EDbMiU0U8VsGPGhAaNAsR93EX2paEufA_F87iNu5ZFGJetK4rmzd2j51eio8-RgbCuaptL3wsesmOTqE1XBJCcRcVQxmWFhzsg5S6TKACy-A3tHZdQxxWPzBdk4kxTQZ6B9YPBEiZDI15IUYTBS_holRsE0xZYwsiiBifrbOKas5Ac4sHUTPCyP5tk041LpROPdkth4M65FjqnIomVCadHZLLQ-YuAnojpTUnAZYaiCBJ68pEmfcF6UU",
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuCSy_McCKYdHPcknKXNO4oAeMbh0BAdf_R0fnUgLfRADzme3-jnYzh4BhzWnPxMCrzOQqj6Jm0vXs3xcbMZY5jYlleinvw8_3b0m2oern7YvtEIMeBDb5CJIlX_2DxmhKQxEsYxSWP3FrQwMYZ2uY5dH7GJnreNOWJR7ZyodJ_4pgIkEj2zh8dE9Fv6XDHu-2lhNuYSXdyTLpRDfR169s520Kf-ZrvITQSbGibR-VXaHUv6T60ppnWPsnNXLGTGA_j3gEW3QlG5bAc",
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuBV0nI7o881xWKdzUZ_oJcXknmph51nJFOMnVnFw1-YeTaxMX0CzTx8_Ktxp1mN8KW9phKbNof-R8juDw47uBfN8CXVcBwp-BB20cn4f3CJhT7UT8IMeCW-J_vXUyP30jgniqD_9UxgRTqP4Oq9sa0wVMCHsxsU4-6bXtv8QCFttJIZFsSORCrwfMRDGW7EVpXNgiO2312_4qaVG5J6YyW1Axy2n0lFev8lmfOX9Y9G61nnxS7z4vKEa9rCFBVSLJ9v9HK-9fmPOSM"
+        ];
+
+        // Reverse map for displaying human-readable emotion tags matching your app.js layout engine
+        const emotionDisplayMap = {
+            "ANXIOUS": "😰 Anxious",
+            "SAD": "😔 Sad",
+            "ANGRY": "😤 Angry",
+            "LONELY": "🫥 Lonely",
+            "OVERWHELMED": "😵 Overwhelmed",
+            "HOPEFUL": "🌱 Hopeful",
+            "NUMB": "😶 Numb",
+            "CONFUSED": "😕 Confused"
+        };
+
+        function formatRelativeTime(dateString) {
+            const now = new Date();
+            const postDate = new Date(dateString);
+            const deltaMs = now - postDate;
+            
+            const deltaSecs = Math.floor(deltaMs / 1000);
+            const deltaMins = Math.floor(deltaSecs / 60);
+            const deltaHours = Math.floor(deltaMins / 60);
+            const deltaDays = Math.floor(deltaHours / 24);
+
+            if (deltaSecs < 60) return 'Just now';
+            if (deltaMins < 60) return `${deltaMins}m ago`;
+            if (deltaHours < 24) return `${deltaHours}h ago`;
+            return `${deltaDays}d ago`;
+        }
+
+        // Fetches posts, takes the top 6, and dynamically calculates real reaction sums safely
+        // Safely replace the loadLiveFeed function in landing.html with this code:
+async function loadLiveFeed() {
+    const container = document.getElementById('posts-container');
+    try {
+        const response = await fetch(API_POSTS_URL, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Could not fetch posts.');
+        const posts = await response.json();
+        container.innerHTML = '';
+
+        if (!posts || posts.length === 0) {
+            container.innerHTML = `<div class="col-span-full text-center py-12 text-on-surface-variant font-body-lg italic">The wall is quiet right now. Be the first to leave a thought.</div>`;
+            return;
+        }
+
+        const recentPosts = posts.slice(0, 6);
+
+        recentPosts.forEach(post => {
+            const relativeTime = formatRelativeTime(post.created_at || post.createdAt || new Date());
+            const rawEmotion = post.emotion || 'REFLECTION';
+            const postTag = emotionDisplayMap[rawEmotion.toUpperCase()] || rawEmotion;
+            const postContent = post.content || '';
+            
+            // CORRECT CONVERSION MATCHING YOUR PRISMA RELATION ARRAY
+            let totalReactions = 0;
+            if (Array.isArray(post.reactions)) {
+                // Since post.reactions is a collection array of individual reaction records,
+                // its length represents the absolute total reaction count for this post.
+                totalReactions = post.reactions.length;
+            } else if (post.reactions && typeof post.reactions === 'object') {
+                // Fallback catch block in case your API transforms it into an aggregation object
+                totalReactions = Object.values(post.reactions).reduce((sum, count) => sum + (Number(count) || 0), 0);
+            }
+
+            container.innerHTML += `
+                <div class="break-inside-avoid bg-white p-lg rounded-xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex justify-between items-start mb-sm">
+                        <span class="px-sm py-1 bg-surface-container-low text-secondary rounded-full text-caption font-label-md capitalize">${postTag}</span>
+                        <span class="text-caption text-outline">${relativeTime}</span>
+                    </div>
+                    <p class="font-body-md text-body-md text-on-surface leading-relaxed mb-md whitespace-pre-line">"${postContent}"</p>
+                    <div class="flex items-center gap-sm text-outline hover:text-error cursor-pointer transition-colors w-fit">
+                        <span class="material-symbols-outlined text-md">favorite</span>
+                        <span class="text-caption">${totalReactions} support responses</span>
+                    </div>
+                </div>`;
+        });
+    } catch (error) {
+        console.error('Failed to sync front-end rendering arrays:', error);
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-error font-body-md">Unable to connect to the wall right now.</div>`;
+    }
+}
+
+        async function loadTopCoaches() {
+            const coachesContainer = document.getElementById('top-coaches-container');
+            try {
+                const response = await fetch(API_COACHES_URL, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Failed to retrieve coaches collection context.');
+                
+                const coaches = await response.json();
+                coachesContainer.innerHTML = '';
+
+                if (!coaches || coaches.length === 0) {
+                    coachesContainer.innerHTML = `<div class="col-span-full text-center py-12 text-on-surface-variant font-body-lg italic">No expert coaches are featured at this time.</div>`;
+                    return;
+                }
+
+                const topThree = coaches.slice(0, 3);
+
+                topThree.forEach((coach, index) => {
+                    const coachName = coach.name || 'Verified Expert';
+                    const coachBio = coach.bio || 'Professional consultant specializing in peer guidance solutions.';
+                    const dynamicTag = (coach.specializations && coach.specializations.length > 0) 
+                        ? coach.specializations[0] 
+                        : 'Mental Wellness';
+                    const profileImage = coach.profile_image || fallbackHeadshots[index % fallbackHeadshots.length];
+
+                    coachesContainer.innerHTML += `
+                        <div onclick="window.location.href='Coach_Directory.html'" class="bg-white p-lg rounded-xl text-center shadow-sm border border-transparent hover:border-primary/20 transition-all group cursor-pointer transform hover:-translate-y-1 duration-300">
+                            <div class="w-24 h-24 mx-auto mb-md rounded-full overflow-hidden border-4 border-surface-container">
+                                <img class="w-full h-full object-cover" data-alt="Professional headshot of ${coachName}" src="${profileImage}">
+                            </div>
+                            <h4 class="font-headline-md text-headline-md text-on-surface">${coachName}</h4>
+                            <p class="text-primary font-label-md mb-md capitalize">${dynamicTag}</p>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-lg line-clamp-3">${coachBio}</p>
+                        </div>`;
+                });
+            } catch (error) {
+                console.error('Failed to update landing page coaches module context:', error);
+                coachesContainer.innerHTML = `<div class="col-span-full text-center py-12 text-error font-body-md">Unable to display featured expert profiles.</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLiveFeed();
+            loadTopCoaches();
+        });
+    </script>
+</body>
+
+</html>

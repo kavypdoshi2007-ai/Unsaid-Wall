@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Coach Workspace | Unsaid Wall</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400..700;1,400..700&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006a30",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "outline-variant": "#8eb792",
+                        "on-background": "#10361a",
+                        "surface": "#dfffde",
+                        "primary-container": "#7df168",
+                        "surface-bright": "#dfffde",
+                        "on-primary-fixed-variant": "#006300",
+                        "inverse-primary": "#7df168",
+                        "error": "#b02500",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#80eb97",
+                        "on-tertiary": "#cefbff",
+                        "inverse-surface": "#001204",
+                        "surface-container-high": "#b9f0be",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-error-container": "#520c00",
+                        "surface-tint": "#006b00",
+                        "on-surface": "#10361a",
+                        "on-surface-variant": "#3e6444",
+                        "surface-container-low": "#cdfdd0",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-primary-fixed": "#004200",
+                        "inverse-on-surface": "#7ea782",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "on-secondary": "#ceffd1",
+                        "on-primary": "#d3ffc2",
+                        "surface-variant": "#b0ebb6",
+                        "primary": "#006b00",
+                        "secondary-container": "#8ef9a4",
+                        "primary-dim": "#005d00",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed-dim": "#6fe25b",
+                        "outline": "#59805e",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-primary-container": "#005800",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary": "#00666c",
+                        "surface-dim": "#a4e3ac",
+                        "primary-fixed": "#7df168",
+                        "error-container": "#f95630"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #dfffde;
+            color: #10361a;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .sidebar-active {
+            box-shadow: inset 4px 0 0 0 #006b00;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #8eb792;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Top Navigation Anchor (Desktop only shell) -->
+    <header
+        class="fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 z-50 flex items-center px-6 justify-between">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display-lg text-[24px] font-bold text-primary">Unsaid Wall</h1>
+            <span class="h-4 w-px bg-outline-variant/30"></span>
+            <div class="flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
+                <span class="material-symbols-outlined text-[18px] text-on-secondary-container">verified_user</span>
+                <span class="font-label-sm text-label-sm text-on-secondary-container">Practitioner Workspace</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div
+                class="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20">
+                <span id="availability-text" class="font-label-sm text-label-sm text-on-surface-variant">Available</span>
+                <button class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors"
+                    id="availabilityToggle" onclick="toggleAvailability()">
+                    <span
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"
+                        id="toggleCircle"></span>
+                </button>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="profile-name" class="font-label-sm text-label-sm text-on-surface font-bold hidden md:inline">Loading...</span>
+                <div
+                    class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center overflow-hidden ring-2 ring-primary/10">
+                    <img alt="Coach Profile Picture" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBfL93zvogk848jRg7EFYBwbzIIgpR0jYdwaG_U131VOHXqsBRnXyU6gObKATqAtEyKKN849eA-BXpCxcmrubrGdyF7iY8p5mTwMtbWQt0g1pwWsGLBMQFzJRwKCRZGt9QtlJR51o3Dbjvg1RW8izRE1VQF9aLkLmrAUWZaE56iqYcSLrFkOgVo9_itc3ANI6Nz5xRr7tZo14aw_K2tiJySUYg_NMMwSIy5FpfORiJZIo88uQQczeTqKVLKI-LOrqhiuJNGjAOGGBO">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16 min-h-screen">
+        <!-- Side Navigation Anchor -->
+        <nav
+            class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-surface-container flex flex-col py-6 space-y-2 z-40 border-r border-outline-variant/10">
+            <div class="px-6 mb-8">
+                <p class="font-headline-md text-headline-md text-secondary leading-tight">Coach Workspace</p>
+                <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Managing active journeys</p>
+            </div>
+            <!-- Main Nav Items -->
+            <a class="flex items-center gap-3 px-6 py-3 bg-secondary-container text-on-secondary-container rounded-xl mx-2 font-label-sm text-label-sm transition-all"
+                href="#">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Dashboard
+            </a>
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-variant mx-2 rounded-xl transition-all font-label-sm text-label-sm"
+                href="#">
+                <span class="material-symbols-outlined">forum</span> Client Wall
+            </a>
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-variant mx-2 rounded-xl transition-all font-label-sm text-label-sm"
+                href="#">
+                <span class="material-symbols-outlined">history_edu</span> Session Logs
+            </a>
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-variant mx-2 rounded-xl transition-all font-label-sm text-label-sm"
+                href="#">
+                <span class="material-symbols-outlined">leaderboard</span> Analytics
+            </a>
+            <a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-surface-variant mx-2 rounded-xl transition-all font-label-sm text-label-sm"
+                href="#">
+                <span class="material-symbols-outlined">settings</span> Settings
+            </a>
+            <div class="mt-auto pt-6 border-t border-outline-variant/10">
+                <button
+                    class="w-[calc(100%-32px)] mx-4 py-3 bg-primary text-on-primary rounded-full font-label-sm text-label-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95">
+                    <span class="material-symbols-outlined text-[20px]">add</span> Start Session
+                </button>
+                <div class="mt-6 flex flex-col gap-1">
+                    <a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors"
+                        href="#">
+                        <span class="material-symbols-outlined text-[20px]">help</span> Help Center
+                    </a>
+                    <button id="logoutBtn" class="flex items-center w-full text-left gap-3 px-6 py-2 text-error hover:opacity-80 font-label-sm text-label-sm transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">logout</span> Sign Out
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Canvas -->
+        <main class="ml-64 flex-1 p-8 grid grid-cols-12 gap-gutter max-w-[1440px]">
+            <!-- Welcome Header -->
+            <div class="col-span-12 mb-4">
+                <h2 class="font-display-lg text-display-lg text-on-surface">Welcome back, <span id="welcome-name">Practitioner</span></h2>
+                <p class="font-body-lg text-body-lg text-on-surface-variant">You have dynamic active sessions and client matching updates live in your feed.</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="col-span-3">
+                <div class="glass-card p-6 rounded-lg flex flex-col gap-2">
+                    <span class="material-symbols-outlined text-primary text-[32px]">calendar_today</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Pending Requests</span>
+                    <span id="stat-sessions-today" class="text-[32px] font-bold text-on-surface">...</span>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="glass-card p-6 rounded-lg flex flex-col gap-2">
+                    <span class="material-symbols-outlined text-tertiary text-[32px]">speed</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Live Rooms</span>
+                    <span id="stat-active-sessions" class="text-[32px] font-bold text-on-surface">...</span>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="glass-card p-6 rounded-lg flex flex-col gap-2">
+                    <span class="material-symbols-outlined text-secondary text-[32px]">group</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Sessions</span>
+                    <span id="stat-total-clients" class="text-[32px] font-bold text-on-surface">...</span>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="glass-card p-6 rounded-lg flex flex-col gap-2">
+                    <span class="material-symbols-outlined text-primary-fixed-dim text-[32px]">star</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Client Rating</span>
+                    <span id="stat-client-rating" class="text-[32px] font-bold text-on-surface">...</span>
+                </div>
+            </div>
+            
+
+            <!-- Main Feed Area -->
+            <div class="col-span-8 flex flex-col gap-6">
+                <div class="flex flex-col gap-4 mb-2">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-headline-md text-headline-md text-on-surface">Active Sessions</h3>
+                        <span class="flex items-center gap-2 text-primary font-label-sm text-label-sm">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                            Live Now
+                        </span>
+                    </div>
+                    <div id="active-sessions-container" class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 text-center py-6 text-on-surface-variant animate-pulse italic">
+                            Loading current ongoing workspaces...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <h3 class="font-headline-md text-headline-md text-on-surface">Flagged Wall Posts</h3>
+                    <button class="text-primary font-label-sm text-label-sm hover:underline">View All</button>
+                </div>
+
+                <!-- Static UI Content Demos (Retained) -->
+                <div class="glass-card p-6 rounded-lg border-l-4 border-error relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-[12px]">JS</div>
+                            <div>
+                                <p class="font-label-sm text-label-sm font-bold">Anonymous user #492</p>
+                                <p class="text-[12px] text-on-surface-variant">Flagged for: Severe Distress Patterns</p>
+                            </div>
+                        </div>
+                        <div class="bg-error/10 text-error px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">priority_high</span> High Risk
+                        </div>
+                    </div>
+                    <p class="font-body-md text-body-md text-on-surface leading-relaxed mb-6 italic">
+                        "I feel like I'm walking through a thick fog every day now. The quietness used to be peaceful, but now it just feels heavy. I'm not sure how much longer I can keep carrying this without someone noticing."
+                    </p>
+                    <div class="flex gap-3">
+                        <button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:shadow-lg transition-all">Reach Out Now</button>
+                        <button class="bg-surface-variant text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:bg-surface-container-high transition-all">Dismiss</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Widgets -->
+            <aside class="col-span-4 flex flex-col gap-6">
+                <div class="bg-surface-container-low rounded-lg p-6 shadow-sm border border-outline-variant/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-label-sm text-label-sm font-bold uppercase tracking-widest text-on-surface-variant">Incoming Request Queue</h4>
+                        <span class="material-symbols-outlined text-primary">pending_actions</span>
+                    </div>
+                    
+                    <div id="upcoming-sessions-container" class="space-y-4">
+                        <div class="text-center py-4 text-xs italic text-on-surface-variant animate-pulse">
+                            Parsing connection pipelines...
+                        </div>
+                    </div>
+                </div>
+                <!-- Decorative Ambient Quote Box -->
+                <div class="relative h-48 rounded-lg overflow-hidden bg-secondary-dim">
+                    <img class="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3Q0PN-XOumBbGS7Lz_nIVz6QgEw42SQAnP-nxPSga2RiHGsJ5Fsx7kar9UF-aF1abvakjzPArVARii9B6MTN_RPHwl2BFRZJhdrilqiaLa3Qufo6VGrKOYz0R2WLFZkmODHAu5vh2OGhSYdzDBLYLQepz8qptKoYW5GCiuHxLSGv9wOj4HMER3GBSATbO5nvBER44use1b-P4hrFA5YknO86SLU7MunJC3lqbiuK4QljscIUj9_Nr4bdMcNJAAMLp-CzPV9ozpeAt">
+                    <div class="absolute inset-0 bg-gradient-to-t from-secondary-dim/80 to-transparent p-6 flex flex-col justify-end">
+                        <p class="text-white font-headline-md text-[18px] italic leading-tight">"Growth is a quiet process."</p>
+                        <p class="text-secondary-fixed text-[12px] mt-1">Remember to take 5 minutes today.</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Micro-interactions Script Module Pipeline -->
+    <script>
+        // Centralized configuration tracking running microservice target base endpoint
+        const BACKEND_URL = 'http://localhost:3000/api';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const fetchHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            });
+
+            // Trigger data fetching channels concurrently
+            loadCoachIdentityAndProfile(fetchHeaders);
+            loadDynamicSessionQueues(fetchHeaders);
+        });
+
+        // Resolve Profile Metrics & Identity context
+        async function loadCoachIdentityAndProfile(headers) {
+            try {
+                // Modified to call secure single identity checker context /me
+                const response = await fetch(`${BACKEND_URL}/coaches/me`, { method: 'GET', headers });
+                if (!response.ok) throw new Error('Unassigned identity profile reference structure.');
+                
+                const activeCoachProfile = await response.json();
+                
+                if (activeCoachProfile) {
+                    document.getElementById('profile-name').innerText = activeCoachProfile.name || 'Coach Account';
+                    document.getElementById('welcome-name').innerText = activeCoachProfile.name || 'Practitioner';
+                    document.getElementById('stat-client-rating').innerText = activeCoachProfile.rating ? parseFloat(activeCoachProfile.rating).toFixed(1) : '0.0';
+                    document.getElementById('stat-total-clients').innerText = activeCoachProfile.sessions_count || '0';
+                    
+                    syncAvailabilityToggleState(activeCoachProfile.availability);
+                }
+            } catch (err) {
+                console.error('Identity parsing mapping dropped:', err);
+                document.getElementById('profile-name').innerText = "Active Coach";
+            }
+        }
+
+       async function loadDynamicSessionQueues(headers) {
+    try {
+        // Fetch sessions array from backend
+        const response = await fetch(`${BACKEND_URL}/sessions`, { method: 'GET', headers });
+        if (!response.ok) throw new Error('Session tracking extraction failure.');
+        
+        const sessions = await response.json();
+
+        // 1. ALTERNATIVE COUNTING METHOD: Filter arrays instantly to find matches
+        const activeSessions = sessions.filter(session => session.status === 'active');
+        const pendingSessions = sessions.filter(session => session.status === 'pending');
+
+        // Get numbers immediately using array lengths
+        const activeCount = activeSessions.length;
+        const pendingCount = pendingSessions.length;
+
+        // Query element targets safely
+        const activeContainer = document.getElementById('active-sessions-container');
+        const upcomingContainer = document.getElementById('upcoming-sessions-container');
+        const statActive = document.getElementById('stat-active-sessions');
+        const statPending = document.getElementById('stat-sessions-today');
+        
+        // Update the metric panel numbers directly using lengths
+        if (statActive) statActive.innerText = activeCount;
+        if (statPending) statPending.innerText = pendingCount;
+
+        // Reset UI wrappers to empty safely before appending fresh data
+        if (activeContainer) activeContainer.innerHTML = '';
+        if (upcomingContainer) upcomingContainer.innerHTML = '';
+
+        // 2. RENDER ACTIVE SESSIONS
+        if (activeCount > 0 && activeContainer) {
+            activeSessions.forEach(session => {
+                const displayName = (session.user && session.user.display_name_pool && session.user.display_name_pool.length > 0) 
+                    ? session.user.display_name_pool[0] 
+                    : 'Anonymous Client';
+                const initials = displayName.substring(0, 2).toUpperCase();
+
+                activeContainer.innerHTML += `
+                    <div class="glass-card p-4 rounded-lg border border-primary/20 flex items-center justify-between group hover:bg-white/30 transition-all">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-on-primary-container relative shrink-0">
+                                ${initials}
+                                <div class="w-2.5 h-2.5 bg-primary rounded-full absolute bottom-0 right-0 border-2 border-white active-session-indicator"></div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-label-sm text-label-sm font-bold text-on-surface truncate">${displayName}</p>
+                                <p class="text-[12px] text-on-surface-variant flex items-center gap-1 mt-0.5">
+                                    <span class="material-symbols-outlined text-[14px]">forum</span> Secure Chat Room
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="window.location.href='/Coach_Chat.html?session_id=${session.id}'" class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-sm text-label-sm font-bold hover:shadow-lg transition-all active:scale-95 shrink-0 ml-2">
+                            Join Session
+                        </button>
+                    </div>`;
+            });
+        } else if (activeContainer) {
+            // Render Fallback if array length is 0
+            activeContainer.innerHTML = `
+                <div class="col-span-2 w-full p-6 rounded-lg border border-dashed border-outline-variant/40 flex flex-col items-center justify-center text-on-surface-variant italic py-8 text-center">
+                    No ongoing live consultation connections active right now.
+                </div>`;
+        }
+        
+
+        // 3. RENDER PENDING REQUESTS
+        if (pendingCount > 0 && upcomingContainer) {
+            pendingSessions.forEach(session => {
+                const displayName = (session.user && session.user.display_name_pool && session.user.display_name_pool.length > 0) 
+                    ? session.user.display_name_pool[0] 
+                    : 'Anonymous Client';
+                const timestamp = session.started_at ? new Date(session.started_at) : new Date();
+                const displayDay = timestamp.getDate();
+                
+                // FIX: Changed 'SHORT' to 'short' to prevent Date.prototype.toLocaleString RangeError crashes
+                const displayMonth = timestamp.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+                
+                upcomingContainer.innerHTML += `
+                    <div class="flex items-center gap-4 group p-2 hover:bg-surface-container-high rounded-lg transition-colors">
+                        <div class="w-12 h-12 rounded-lg bg-primary-container flex flex-col items-center justify-center text-on-primary-container font-bold shrink-0">
+                            <span class="text-[10px] uppercase leading-tight">${displayMonth}</span>
+                            <span class="text-[18px] leading-none font-extrabold">${displayDay}</span>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <p class="font-label-sm text-label-sm font-bold text-on-surface truncate">${displayName}</p>
+                            <p class="text-[12px] text-on-surface-variant truncate">${session.context_message || 'No context message attached.'}</p>
+                        </div>
+                        <button onclick="acceptIncomingSession('${session.id}', '${displayName}')" class="material-symbols-outlined text-[24px] text-primary p-1 hover:bg-white/60 rounded-full transition-colors shrink-0" title="Accept Request">
+                            check_circle
+                        </button>
+                    </div>`;
+            });
+        } else if (upcomingContainer) {
+            upcomingContainer.innerHTML = `
+                <p class="text-on-surface-variant italic text-sm text-center py-6">No pending booking requests in your queue.</p>`;
+        }
+
+    } catch (err) {
+        console.error('Session metrics loop crashed:', err);
+    }
+}
+
+// Helper workspaces routes
+// Locate and replace this exact helper function inside Coach_Dashboard.html
+function routeToSecureChatWorkspace(sessionId) {
+    window.location.href = `/Coach_Chat.html?session_id=${sessionId}`;
+}
+        // Action Handler: Accept Session Booking Link Connection Pipeline
+        async function executeStatusTransition(sessionId, nextStatusState) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${BACKEND_URL}/sessions/${sessionId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: nextStatusState })
+                });
+
+                if (!response.ok) throw new Error('Could not transform status lifecycle.');
+                window.location.reload();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function syncAvailabilityToggleState(status) {
+            const btn = document.getElementById('availabilityToggle');
+            const circle = document.getElementById('toggleCircle');
+            const txt = document.getElementById('availability-text');
+
+            if (status === 'busy' || status === 'away') {
+                btn.classList.remove('bg-primary');
+                btn.classList.add('bg-on-surface-variant');
+                circle.classList.remove('translate-x-6');
+                circle.classList.add('translate-x-1');
+                if(txt) txt.innerText = 'Busy';
+            } else {
+                btn.classList.remove('bg-on-surface-variant');
+                btn.classList.add('bg-primary');
+                circle.classList.remove('translate-x-1');
+                circle.classList.add('translate-x-6');
+                if(txt) txt.innerText = 'Available';
+            }
+        }
+
+        async function toggleAvailability() {
+            const btn = document.getElementById('availabilityToggle');
+            const token = localStorage.getItem('token');
+            const isCurrentlyAvailable = btn.classList.contains('bg-primary');
+            const targetStatus = isCurrentlyAvailable ? 'busy' : 'available';
+            
+            syncAvailabilityToggleState(targetStatus);
+
+            try {
+                await fetch(`${BACKEND_URL}/coaches/availability`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ availability: targetStatus })
+                });
+            } catch (err) {
+                console.error("Failed to sync status change with server storage:", err);
+            }
+        }
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/workspace/js/coachDashboard.js"></script>
+</body>
+
+</html>

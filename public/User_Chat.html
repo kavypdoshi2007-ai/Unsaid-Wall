@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="light" lang="en" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>My Sessions | Unsaid Wall</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006a30",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "outline-variant": "#8eb792",
+                        "on-background": "#10361a",
+                        "surface": "#dfffde",
+                        "primary-container": "#7df168",
+                        "surface-bright": "#dfffde",
+                        "on-primary-fixed-variant": "#006300",
+                        "inverse-primary": "#7df168",
+                        "error": "#b02500",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#80eb97",
+                        "on-tertiary": "#cefbff",
+                        "inverse-surface": "#001204",
+                        "surface-container-high": "#b9f0be",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-error-container": "#520c00",
+                        "surface-tint": "#006b00",
+                        "on-surface": "#10361a",
+                        "on-surface-variant": "#3e6444",
+                        "surface-container-low": "#cdfdd0",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-primary-fixed": "#004200",
+                        "inverse-on-surface": "#7ea782",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "on-secondary": "#ceffd1",
+                        "on-primary": "#d3ffc2",
+                        "surface-variant": "#b0ebb6",
+                        "primary": "#006b00",
+                        "secondary-container": "#8ef9a4",
+                        "primary-dim": "#005d00",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed-dim": "#6fe25b",
+                        "outline": "#59805e",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-primary-container": "#005800",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary": "#00666c",
+                        "surface-dim": "#a4e3ac",
+                        "primary-fixed": "#7df168",
+                        "error-container": "#f95630"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #dfffde;
+            overflow: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 107, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 107, 0, 0.2);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="font-body-md text-on-surface">
+    <div id="dynamic-nav"></div>
+    
+    <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm shadow-primary/5">
+        <div class="flex justify-between items-center px-container-padding h-16 max-w-7xl mx-auto">
+            <div class="flex items-center gap-8">
+                <span class="font-display-lg text-[28px] font-bold text-primary">Unsaid Wall</span>
+                <div class="hidden md:flex items-center gap-6">
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Wall</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Journal</a>
+                    <a class="text-primary font-bold border-b-2 border-primary pb-1" href="#">Coaches</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Resources</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 rounded-full hover:bg-primary/5 transition-colors">
+                    <span class="material-symbols-outlined text-on-surface-variant">search</span>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">
+                    JD
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16 h-screen flex overflow-hidden">
+        <aside class="w-80 bg-surface-container-low border-r border-outline-variant/10 flex flex-col">
+            <div class="p-6">
+                <h2 class="font-headline-md text-xl text-primary mb-4">My Sessions</h2>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-sm">search</span>
+                    <input class="w-full bg-surface-container-lowest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search coaches..." type="text">
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-2 chat-scroll">
+                <div class="mt-2 mb-1 px-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">Active Now</div>
+                <button class="w-full text-left p-3 rounded-2xl bg-secondary-container/40 border border-secondary/10 flex gap-3 transition-all active:scale-95">
+                    <div class="relative flex-shrink-0">
+                        <img alt="Dr. Sarah Jenkins" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCorQ15gulwOYvTSqEp9Q0xIlAPMjmN7APHIYDmetWpQ5WlQ-dPW3tH-uPRo6Y7TxAvtniXlvJrE3LAuI6ZOJc_ISzDW75Ne0x0yJyJYNaPq3tHSmfIOFrcM-jJVKw9V6-wnXkKiaThmtp7dsoLKQta44ceIbXMALfx4BHkeo77j2Glem4Mvu1nGzNzBnXN3fRcR4IMm6uLninQ0zYl39fzZgfvkGtudEfrsaNnizkrii6U0MhszRBqxfK3YMGpvfZrBup53tnOqkB">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-secondary border-2 border-surface-container-low rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-sm truncate">Dr. Sarah Jenkins</span>
+                            <span class="text-[10px] text-secondary font-bold">LIVE</span>
+                        </div>
+                        <p class="text-xs text-on-surface-variant truncate">"I'm here when you're ready..."</p>
+                    </div>
+                </button>
+                <div class="mt-6 mb-1 px-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">Pending Approval</div>
+                <button class="w-full text-left p-3 rounded-2xl hover:bg-surface-variant/30 flex gap-3 transition-all">
+                    <div class="relative flex-shrink-0">
+                        <img alt="Marcus Thorne" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgfts2sJsJD1QvPHJHfT_gxPtaaT95epsEqt7gdicoLfKhr6RmpJUhKzYu0E_q6PoSdimVwQpJc7X979DGvESlg68bQoYfO1l0a6824iOBd025678QasW3d2z4ta03FHId6-6SBux0J3zCHT_Iu47BAkX_IeVqlDR0f7T1MNG3Tm9ks6ncdwSIHx3N1KgIwfUVL8xAGVDIZqrUDvPAc5pVv3t7m8nvTHbBlJo6d0x6ISUClj5_jghEbKi1DXg36_hNDU0QdsWr558L">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-on-surface-variant/40 border-2 border-surface-container-low rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-sm truncate">Marcus Thorne</span>
+                            <span class="text-[10px] text-on-surface-variant font-medium">Waitlist</span>
+                        </div>
+                        <p class="text-xs text-on-surface-variant truncate">Applied Oct 24 • Grief & Loss</p>
+                    </div>
+                </button>
+                <div class="mt-6 mb-1 px-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">Session History</div>
+                <div class="space-y-1">
+                    <button class="w-full text-left p-3 rounded-2xl hover:bg-surface-variant/30 flex gap-3 transition-all grayscale opacity-70 hover:grayscale-0 hover:opacity-100">
+                        <img alt="Elena Rodriguez" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzNyxcRPi4I1t7Lqs_GK7AIyigbgLZoFL7tktH40p7hKTnyARavF7dtmstyaRik-XK_saF_0R1D6Zk8OYPf3p-LJodaFgQDlfj3fzXhFShQxfYPYcVR9s5qwppqkGgA1KBL4LuyeBZCsuh_meOdZb3n9qnv09Xx3tIfhdOvssjS_TovCw3wiYwav5VSzvCqhPuqjhnPTa-Sk-ftpwmTq21XnKwJKTSkh0X9249PRsXnzmrKZkCkamy0OsFQQuqAb9y6neILf0JajvX">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <span class="font-semibold text-sm truncate">Elena Rodriguez</span>
+                                <span class="text-[10px] text-on-surface-variant">Oct 12</span>
+                            </div>
+                            <p class="text-xs text-on-surface-variant truncate">12 Sessions completed</p>
+                        </div>
+                    </button>
+                    <button class="w-full text-left p-3 rounded-2xl hover:bg-surface-variant/30 flex gap-3 transition-all grayscale opacity-70 hover:grayscale-0 hover:opacity-100">
+                        <img alt="David Park" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEEz4deUHwKD5ObNKI4kxJyazs0L89RwKXhV-jdlhuVyCS3mvJxGlSK9o2r29avZCN4Na5DR4NSW6m6QtgUCqtN3ymd5xwqyuKleCt4Z2NpnGe0yZL2zffKDdU88-RpV4XI0b-G4NDKLWYaOE5U_lHdgnUjDm3XR3ZPtA-o9NM0XLZOQ2VU56f0bELNQpRmSBJIQI5HdMRon5tyzkbpOE_9PmmuoFD8p3yUc3wl0xET96tfRvx9FxkDo1wGp5r2QQQcph78oZsPXf0">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <span class="font-semibold text-sm truncate">David Park</span>
+                                <span class="text-[10px] text-on-surface-variant">Sep 28</span>
+                            </div>
+                            <p class="text-xs text-on-surface-variant truncate">1 Session completed</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 border-t border-outline-variant/10"></div>
+        </aside>
+
+        <section class="flex-1 flex flex-col bg-surface-container-lowest relative overflow-hidden">
+            <header class="h-16 px-6 border-b border-outline-variant/10 flex items-center justify-between bg-white/40 backdrop-blur-md">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-secondary">verified_user</span>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight">Secure Session</h3>
+                        <p class="text-[10px] text-on-surface-variant flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse"></span>
+                            Encrypted & Private
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="px-6 py-2 text-xs font-bold bg-primary text-on-primary hover:scale-105 active:scale-95 rounded-full transition-all shadow-md">Start Session</button>
+                    <button class="px-4 py-2 text-xs font-bold text-on-surface-variant hover:bg-surface-variant/30 rounded-full transition-colors">Rate Session</button>
+                    <button class="px-4 py-2 text-xs font-bold bg-error/10 text-error hover:bg-error hover:text-white rounded-full transition-all">End Session</button>
+                </div>
+            </header>
+
+            <div class="flex-1 flex overflow-hidden">
+                <div class="flex-1 flex flex-col relative">
+                    <div id="chatContainer" class="flex-1 overflow-y-auto p-8 space-y-6 chat-scroll">
+                        </div>
+
+                    <div class="p-6 bg-white/40 backdrop-blur-xl border-t border-outline-variant/10">
+                        <div class="flex items-center gap-3 bg-surface-container-lowest border border-primary/20 rounded-2xl p-2 pr-4 shadow-inner">
+                            <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">sentiment_satisfied</span>
+                            </button>
+                            <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">add_circle</span>
+                            </button>
+                            <input id="messageInput" class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2" placeholder="Share what's on your mind..." type="text">
+                            <button id="sendBtn" class="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                                <span class="material-symbols-outlined">send</span>
+                            </button>
+                        </div>
+                        <p class="text-center text-[10px] text-on-surface-variant/60 mt-3 italic">
+                            A space for quiet strength. Take your time.
+                        </p>
+                    </div>
+                </div>
+
+                <aside class="w-80 border-l border-outline-variant/10 bg-surface-container-lowest p-6 hidden lg:block overflow-y-auto chat-scroll">
+                    <div class="glass-card rounded-3xl p-6 mb-6 text-center">
+                        <div class="relative inline-block mb-4">
+                            <img id="coachCardAvatar" alt="Coach Profile Picture" class="w-24 h-24 rounded-full object-cover mx-auto ring-4 ring-secondary/10" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256">
+                            <div class="absolute -bottom-1 -right-1 bg-secondary text-on-secondary p-1 rounded-full border-2 border-white">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            </div>
+                        </div>
+                        <h4 id="coachCardName" class="font-headline-md text-lg text-primary">Loading Coach Profile...</h4>
+                        <p id="coachCardRole" class="text-xs text-on-surface-variant mb-4">Professional Wellness Guide</p>
+                        
+                        <div class="flex justify-center gap-2 mb-4">
+                            <span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-lg uppercase tracking-tight">CBT</span>
+                            <span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-lg uppercase tracking-tight">Mindfulness</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div class="bg-surface-container-low p-2 rounded-xl">
+                                <span class="block font-bold text-secondary">98%</span>
+                                <span class="text-on-surface-variant/60">Match</span>
+                            </div>
+                            <div class="bg-surface-container-low p-2 rounded-xl">
+                                <span class="block font-bold text-secondary">150+</span>
+                                <span class="text-on-surface-variant/60">Hours</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <h5 class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Current Focus</h5>
+                            <p class="text-xs text-on-surface leading-relaxed">
+                                Working on emotional regulation through breathing techniques and cognitive reframing.
+                            </p>
+                        </div>
+                        <div>
+                            <h5 class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Shared Resources</h5>
+                            <ul class="space-y-2">
+                                <li class="flex items-center gap-2 p-2 rounded-xl hover:bg-surface-variant/20 transition-colors cursor-pointer border border-outline-variant/10">
+                                    <span class="material-symbols-outlined text-primary text-lg">description</span>
+                                    <span class="text-xs truncate">Tuesday_Reflection.pdf</span>
+                                </li>
+                                <li class="flex items-center gap-2 p-2 rounded-xl hover:bg-surface-variant/20 transition-colors cursor-pointer border border-outline-variant/10">
+                                    <span class="material-symbols-outlined text-primary text-lg">audiotrack</span>
+                                    <span class="text-xs truncate">Guided_Breathing.mp3</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="w-full py-2 text-xs font-bold text-secondary border border-secondary/20 rounded-xl hover:bg-secondary/5 transition-colors">
+                            View All History
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/workspace/js/chat.js"></script>
+</body>
+
+</html>

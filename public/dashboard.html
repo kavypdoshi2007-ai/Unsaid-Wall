@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style="">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quiet Strength | Community Wall</title>
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#d3ffc2",
+                        "surface-container": "#c1f5c5",
+                        "outline-variant": "#8eb792",
+                        "on-tertiary-container": "#005257",
+                        "error-dim": "#b92902",
+                        "on-background": "#10361a",
+                        "inverse-on-surface": "#7ea782",
+                        "primary-fixed-dim": "#6fe25b",
+                        "on-error": "#ffefec",
+                        "on-primary-fixed-variant": "#006300",
+                        "secondary-fixed": "#8ef9a4",
+                        "inverse-surface": "#001204",
+                        "surface-variant": "#b0ebb6",
+                        "surface-tint": "#006b00",
+                        "primary-container": "#7df168",
+                        "inverse-primary": "#7df168",
+                        "on-secondary-container": "#005f2a",
+                        "background": "#dfffde",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary-dim": "#00595e",
+                        "surface-dim": "#a4e3ac",
+                        "on-secondary-fixed": "#004a1f",
+                        "secondary-container": "#8ef9a4",
+                        "on-primary-fixed": "#004200",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-tertiary": "#cefbff",
+                        "on-primary-container": "#005800",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#10361a",
+                        "tertiary": "#00666c",
+                        "primary": "#006b00",
+                        "outline": "#59805e",
+                        "surface": "#dfffde",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "error": "#b02500",
+                        "on-secondary": "#ceffd1",
+                        "surface-bright": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "secondary": "#006a30",
+                        "on-error-container": "#520c00",
+                        "tertiary-fixed": "#05ebf9",
+                        "surface-container-low": "#cdfdd0",
+                        "secondary-fixed-dim": "#80eb97",
+                        "primary-dim": "#005d00",
+                        "primary-fixed": "#7df168",
+                        "on-surface-variant": "#3e6444",
+                        "error-container": "#f95630",
+                        "tertiary-container": "#05ebf9",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-high": "#b9f0be"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "section-gap": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes popBounce {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.25); }
+        100% { transform: scale(1); }
+    }
+    .reaction-active-pop {
+        animation: popBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .backdrop-blur-xl {
+            backdrop-filter: blur(24px);
+        }
+
+        .unsaid-card {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .unsaid-card:active {
+            transform: scale(0.99);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-active {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .goog-te-gadget,
+        .google-input-automation-menu,
+        .goog-menu {
+            z-index: 200 !important;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24 overflow-x-hidden">
+    <div id="dynamic-nav"></div>
+    <!-- Top AppBar -->
+    <header
+        class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-[0_4px_20px_rgba(5,139,3,0.05)]">
+        <div class="flex justify-between items-center px-container-padding h-16 w-full max-w-screen-xl mx-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full border-2 border-emerald-400 bg-emerald-50 flex items-center justify-center text-emerald-700 shadow-inner group cursor-pointer hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
+    <span class="material-symbols-outlined text-[24px] font-light transform group-hover:scale-110 transition-transform">cruelty_free</span>
+</div>
+                <span class="font-headline-md text-[20px] font-bold text-primary">Unsaid Wall</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button
+                    class="material-symbols-outlined text-primary cursor-pointer active:scale-95 transition-transform"
+                    data-icon="notifications">notifications</button>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content Canvas -->
+    <main class="pt-20 px-container-padding max-w-[720px] mx-auto space-y-6">
+        <!-- Welcome Section -->
+        <section class="py-4">
+            <h1 class="font-headline-md text-headline-md text-primary-dim leading-tight">Welcome back.</h1>
+            <p class="font-body-md text-on-surface-variant mt-1">The garden is quiet today. Feel free to share or just
+                sit.</p>
+        </section>
+        <!-- Feed List -->
+        <div class="space-y-6 pb-12">
+            <!-- Your Post Card -->
+            <article
+                class="unsaid-card rounded-lg p-6 relative overflow-hidden border-l-4 border-l-primary shadow-[0_4px_20px_rgba(5,139,3,0.05)]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="bg-primary-container text-on-primary-container font-label-sm text-label-sm px-3 py-1 rounded-full">Your
+                            Post</span>
+                        <span
+                            class="bg-surface-variant text-on-surface-variant font-label-sm text-[10px] px-2 py-0.5 rounded-full">🌱
+                            Hopeful</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-outline">2h ago</span>
+                </div>
+                <p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-6 italic">
+                    "I finally managed to take a deep breath today without feeling that immediate weight on my chest. It
+                    was just for a second, but it felt like a win."
+                </p>
+                <div class="flex items-center gap-4 border-t border-outline-variant/10 pt-4">
+                    <div class="flex flex-col gap-3 w-full">
+                        <div class="flex flex-wrap gap-2 items-center"><button
+                                class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-headline-md text-[12px] flex items-center gap-1.5 active:scale-110 transition-transform">🌱
+                                <span class="font-headline-md">12</span></button><button
+                                class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-headline-md text-[12px] flex items-center gap-1.5 active:scale-110 transition-transform">🫥
+                                <span class="font-headline-md">3</span></button><button
+                                class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-headline-md text-[12px] flex items-center gap-1.5 active:scale-110 transition-transform">😶
+                                <span class="font-headline-md">1</span></button><button
+                                class="px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-headline-md text-[12px] flex items-center gap-1.5 active:scale-110 transition-transform">😰
+                                <span class="font-headline-md">0</span></button></div>
+                        <div
+                            class="flex items-center gap-2 p-1.5 bg-surface-container-low/60 backdrop-blur-sm rounded-full border border-outline-variant/20 w-fit">
+                            <button
+                                class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-90 transition-transform"><span
+                                    class="material-symbols-outlined text-[18px]">add</span></button>
+                            <div class="flex gap-1 px-1"><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😰</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😔</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😤</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🫥</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😵</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🌱</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😶</button><button
+                                    class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            <!-- Coach Response Card -->
+            <article class="unsaid-card rounded-lg p-6 shadow-[0_4px_20px_rgba(5,139,3,0.05)]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant">Anonymous User</span>
+                        <span
+                            class="bg-surface-variant text-on-surface-variant font-label-sm text-[10px] px-2 py-0.5 rounded-full">😵
+                            Overwhelmed</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-outline">4h ago</span>
+                </div>
+                <p class="font-body-md text-body-md text-on-surface mb-6">
+                    Sometimes I feel like I'm moving through molasses. Everything takes so much energy, and I'm not sure
+                    if I'm even going the right way.
+                </p>
+                <!-- Response Area -->
+                <div class="bg-surface-container-low rounded-lg p-5 mt-4 border border-outline-variant/5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary" data-icon="verified"
+                                style='font-variation-settings: "FILL" 1;'>verified</span>
+                            <span class="font-label-sm text-label-sm font-bold text-secondary">Dr. Sarah Jenkins</span>
+                            <span
+                                class="bg-secondary-container text-on-secondary-container text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold">Coach</span>
+                        </div>
+                        <button
+                            class="bg-secondary text-on-secondary text-[11px] font-bold px-3 py-1 rounded-full active:scale-95 transition-all">Request
+                            Session</button>
+                    </div>
+                    <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed italic">
+                        "That feeling of molasses is a very real response to mental exhaustion. It's not a lack of
+                        direction, it's your body's way of asking for a slower pace. Give yourself permission to move
+                        slowly today."
+                    </p>
+                </div>
+                <div class="flex items-center gap-6 mt-6">
+                    <div
+                        class="flex items-center gap-2 p-1.5 bg-surface-container-low/60 backdrop-blur-sm rounded-full border border-outline-variant/20 w-fit">
+                        <button
+                            class="w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center active:scale-90 transition-transform"><span
+                                class="material-symbols-outlined text-[18px]">add</span></button>
+                        <div class="flex gap-1 px-1"><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😰</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😔</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😤</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🫥</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😵</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🌱</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😶</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😕</button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            <!-- Regular Community Post -->
+            <article class="unsaid-card rounded-lg p-6 shadow-[0_4px_20px_rgba(5,139,3,0.05)]">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container text-[12px] font-bold">
+                        M</div>
+                    <div>
+                        <p class="font-label-sm text-label-sm text-on-surface">Quiet Leaf</p>
+                        <p class="text-[10px] text-outline">Just now</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-tertiary text-on-tertiary font-label-sm text-[10px] px-2 py-0.5 rounded-full">🌱
+                            Hopeful</span>
+                    </div>
+                </div>
+                <p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                    Found a small garden in the city today. The sound of the wind through the leaves reminded me that
+                    everything is temporary, even this feeling.
+                </p>
+                <div class="mt-4 rounded-xl overflow-hidden h-40">
+                    <img alt="Tranquil morning dew" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZh35cwRiZKAFJSfCYwj-Se9l1PSsKgJwCQU4-ZnTrrXE4HTS7Ps_YTWkrlXajYfkr_3XPAzrjKnqRe0KyCnsYvIyZfQ9P9TQ3fRHgXgE3LMH0xrxbEbPTyHhTGsyN4364HKJ83o6zdAiT9IoP6C7c7D27AKPBMEzD9N3aLowNkTaZcEDsBK3sy1ixopZHY6kE0XTBYucMvIjhWizAs-3jCAVR-oWyMeYUupANfDdZiTjz5PJt7MqXmOgN8y2SA28gwyisC91Hjl-Q" />
+                </div>
+                <div class="flex items-center gap-6 mt-6">
+                    <div
+                        class="flex items-center gap-2 p-1.5 bg-surface-container-low/60 backdrop-blur-sm rounded-full border border-outline-variant/20 w-fit">
+                        <button
+                            class="w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center active:scale-90 transition-transform"><span
+                                class="material-symbols-outlined text-[18px]">add</span></button>
+                        <div class="flex gap-1 px-1"><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😰</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😔</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😤</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🫥</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😵</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🌱</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😶</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😕</button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            <!-- Another Community Post -->
+            <article class="unsaid-card rounded-lg p-6 shadow-[0_4px_20px_rgba(5,139,3,0.05)]">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[12px] font-bold">
+                        A</div>
+                    <div>
+                        <p class="font-label-sm text-label-sm text-on-surface">Anonymous</p>
+                        <p class="text-[10px] text-outline">10m ago</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-tertiary text-on-tertiary font-label-sm text-[10px] px-2 py-0.5 rounded-full">😰
+                            Anxious</span>
+                    </div>
+                </div>
+                <p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                    The silence is too loud tonight. Just wishing for someone to sit with me.
+                </p>
+                <div class="flex items-center gap-6 mt-6">
+                    <div
+                        class="flex items-center gap-2 p-1.5 bg-surface-container-low/60 backdrop-blur-sm rounded-full border border-outline-variant/20 w-fit">
+                        <button
+                            class="w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center active:scale-90 transition-transform"><span
+                                class="material-symbols-outlined text-[18px]">add</span></button>
+                        <div class="flex gap-1 px-1"><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😰</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😔</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😤</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🫥</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😵</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">🌱</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😶</button><button
+                                class="hover:scale-125 active:scale-95 transition-transform duration-200 text-[18px] p-1">😕</button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+    <!-- Floating Action Button -->
+     <div id="support-action-container" class="text-center mt-4">
+    <button class="bg-[#006a30] text-white font-bold px-6 py-3 rounded-xl hover:shadow-lg transition-all active:scale-95" onclick="startChat()">
+        Connect with a Support Specialist
+    </button>
+    </div>
+    <button
+        class="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-primary text-on-primary shadow-xl flex items-center justify-center active:scale-90 transition-all duration-200 z-50 hover:brightness-110"
+        onclick="toggleComposer()">
+        <span class="material-symbols-outlined" data-icon="add">add</span>
+    </button>
+    <!-- Post Composer Modal (Bottom Sheet style) -->
+    <div class="fixed inset-0 bg-on-surface/20 backdrop-blur-sm z-[100] transition-transform duration-500 ease-out flex flex-col translate-y-full"
+        id="postComposer">
+        <div
+            class="mt-auto w-full max-w-[720px] mx-auto glass-panel rounded-t-lg shadow-2xl relative overflow-hidden border-t border-outline-variant/20">
+            <!-- Handle -->
+            <div class="w-12 h-1.5 bg-outline-variant/40 rounded-full mx-auto my-4 cursor-pointer"
+                onclick="toggleComposer()"></div>
+            <!-- Content Container -->
+            <div class="px-container-padding pb-10 space-y-6">
+                <!-- Header & Language Selector -->
+                <div class="flex items-center justify-between">
+                    <h2 class="font-headline-md text-headline-md text-on-surface">New Expression</h2>
+                    <div class="flex bg-surface-container-low p-1 rounded-full border border-outline-variant/30"><button
+                            class="px-3 py-1 rounded-full text-label-sm bg-primary text-on-primary transition-all duration-300"
+                            id="lang-en" onclick="setLanguage('en')">EN</button><button
+                            class="px-3 py-1 rounded-full text-label-sm text-on-surface-variant hover:bg-surface-variant/50 transition-all duration-300"
+                            id="lang-hi" onclick="setLanguage('hi')">HI</button><button
+                            class="px-3 py-1 rounded-full text-label-sm text-on-surface-variant hover:bg-surface-variant/50 transition-all duration-300"
+                            id="lang-gu" onclick="setLanguage('gu')">GU</button></div>
+                </div>
+                <!-- Emotion Selection Area -->
+                <div class="space-y-3">
+                    <span class="text-label-sm uppercase tracking-wider text-on-surface-variant/70 block">Select your
+                        vibe</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('😰 Anxious')">
+                            <span class="">😰</span><span class="text-label-sm">Anxious</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('😔 Sad')">
+                            <span class="">😔</span><span class="text-label-sm">Sad</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('😤 Angry')">
+                            <span class="">😤</span><span class="text-label-sm">Angry</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('🫥 Lonely')">
+                            <span class="">🫥</span><span class="text-label-sm">Lonely</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95 border-primary ring-1 ring-primary/20 bg-primary-container/10"
+                            onclick="selectEmotion('😵 Overwhelmed')">
+                            <span class="">😵</span><span class="text-label-sm">Overwhelmed</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2"
+                            id="selected-emotion-btn" onclick="selectEmotion('🌱 Hopeful')">
+                            <span class="">🌱</span><span class="text-label-sm">Hopeful</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('😶 Numb')">
+                            <span class="">😶</span><span class="text-label-sm">Numb</span>
+                        </button>
+                        <button
+                            class="px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center gap-2 hover:bg-primary-container/20 transition-colors active:scale-95"
+                            onclick="selectEmotion('😕 Confused')">
+                            <span class="">😕</span><span class="text-label-sm">Confused</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Real-time Emotion Preview Area -->
+                <div
+                    class="relative h-20 rounded-lg bg-surface-container-lowest/40 flex items-center justify-center overflow-hidden border border-outline-variant/20 group">
+                    <div
+                        class="absolute w-32 h-32 bg-primary-fixed-dim rounded-full -top-10 -left-10 blur-3xl opacity-40 animate-pulse">
+                    </div>
+                    <div class="absolute w-32 h-32 bg-tertiary-fixed-dim rounded-full -bottom-10 -right-10 blur-3xl opacity-40 animate-pulse"
+                        style="animation-delay: 1s;"></div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <div class="font-headline-md text-primary flex items-center gap-2" id="vibe-preview">
+                            <span class="text-2xl" id="vibe-emoji">😵</span>
+                            <span class="" id="vibe-label">Overwhelmed</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Textarea Section -->
+                <div class="relative">
+                    <textarea
+                        class="w-full h-40 p-5 bg-surface-container-lowest/60 border border-outline-variant/30 rounded-lg font-body-lg text-on-surface focus:ring-4 focus:ring-primary-container/30 focus:border-primary outline-none resize-none transition-all duration-300 placeholder:text-on-surface-variant/50"
+                        id="postTextarea" lang="en" maxlength="280" oninput="updateCharCount(this)"
+                        placeholder="Type your thoughts here... no judgment, just space."></textarea>
+                    <div class="absolute bottom-4 right-4 flex items-center gap-4">
+                        <div class="text-label-sm text-on-surface-variant/70" id="charCount">0 / 280</div>
+                        <button class="p-2 rounded-full hover:bg-surface-variant transition-colors text-primary">
+                        </button>
+                    </div>
+                </div>
+                <!-- Action Button -->
+                <div class="space-y-4">
+                    <button
+                        class="w-full h-14 bg-primary text-on-primary font-label-sm text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
+                        onclick="toggleComposer()">
+                        <span class="">Post Expression</span>
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                    <p class="text-center text-label-sm text-on-surface-variant">
+                        Posting anonymously as <span class="font-bold text-secondary">QuietGrowth_82</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bottom Navigation -->
+    <nav
+        class="fixed bottom-0 left-0 w-full bg-surface/80 backdrop-blur-xl flex justify-around items-center px-4 py-3 pb-safe z-50 border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(5,139,3,0.05)]">
+        <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-200"
+            href="#">
+            <span class="material-symbols-outlined nav-active" data-icon="forum"
+                style='font-variation-settings: "FILL" 1;'>forum</span>
+            <span class="font-label-sm text-label-sm">Wall</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="book_5">book_5</span>
+            <span class="font-label-sm text-label-sm">Journal</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+            <span class="font-label-sm text-label-sm">Coaches</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-200"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="import_contacts">import_contacts</span>
+            <span class="font-label-sm text-label-sm">Resources</span>
+        </a>
+    </nav>
+    <script>
+        function toggleComposer() {
+            const composer = document.getElementById('postComposer');
+            if (composer.classList.contains('translate-y-full')) {
+                composer.classList.remove('translate-y-full');
+                composer.classList.add('translate-y-0');
+                document.getElementById('postTextarea').focus();
+            } else {
+                composer.classList.remove('translate-y-0');
+                composer.classList.add('translate-y-full');
+            }
+        }
+
+        function selectEmotion(emotionStr) {
+            const emoji = emotionStr.split(' ')[0];
+            const label = emotionStr.split(' ')[1];
+            document.getElementById('vibe-emoji').innerText = emoji;
+            document.getElementById('vibe-label').innerText = label;
+
+            // Update selection UI (simplified for demo)
+            const buttons = document.querySelectorAll('.flex.flex-wrap.gap-2 button');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-primary', 'ring-1', 'ring-primary/20', 'bg-primary-container/10');
+                if (btn.innerText.includes(label)) {
+                    btn.classList.add('border-primary', 'ring-1', 'ring-primary/20', 'bg-primary-container/10');
+                }
+            });
+        }
+
+        function updateCharCount(textarea) {
+            const count = textarea.value.length;
+            document.getElementById('charCount').innerText = `${count} / 280`;
+        }
+
+        function toggleReaction(btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const countSpan = btn.querySelector('span:not(.material-symbols-outlined)');
+            if (!countSpan) return;
+            const currentText = countSpan.innerText;
+            const match = currentText.match(/\d+/);
+            const currentCount = match ? parseInt(match[0]) : 0;
+
+            const isFilled = icon.style.fontVariationSettings.includes("'FILL' 1");
+
+            if (isFilled) {
+                icon.style.fontVariationSettings = "'FILL' 0";
+                btn.classList.remove('text-primary');
+                btn.classList.add('text-on-surface-variant');
+                countSpan.innerText = currentText.replace(/\d+/, currentCount - 1);
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                btn.classList.remove('text-on-surface-variant');
+                btn.classList.add('text-primary');
+                countSpan.innerText = currentText.replace(/\d+/, currentCount + 1);
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+            } else {
+                header.classList.remove('shadow-md');
+            }
+        });
+
+        document.getElementById('postComposer').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('postComposer')) {
+                toggleComposer();
+            }
+        });
+    </script>
+    <!-- Load Google Transliteration API -->
+    <script src="https://www.google.com/jsapi?key=partner-pub-4933939632832598"></script>
+
+    <script>
+        // Keep track of our current active language and control object
+        let currentLang = 'en';
+        let transliterationControl = null;
+
+        // 2. Wrap the initialization in a safety check to ensure the loader exists
+        if (typeof google !== 'undefined' && google.load) {
+            google.load("elements", "1", {
+                packages: "transliteration"
+            });
+            google.setOnLoadCallback(onLoad);
+        } else {
+            console.error("Failed to load Google JSAPI framework.");
+        }
+
+        function onLoad() {
+            // Verify the nested package initialized properly before creating instances
+            if (!google.elements || !google.elements.transliteration) {
+                console.error("Transliteration library failed to build inside google.elements pipeline.");
+                return;
+            }
+
+            const options = {
+                sourceLanguage: google.elements.transliteration.LanguageCode.ENGLISH,
+                destinationLanguage: [google.elements.transliteration.LanguageCode.HINDI, google.elements.transliteration.LanguageCode.GUJARATI],
+                shortcutKey: { 'alt': true },
+                transliterationEnabled: true
+            };
+
+            // Initialize control and bind it to your textarea ID
+            transliterationControl = new google.elements.transliteration.TransliterationControl(options);
+            transliterationControl.makeTransliteratable(['postTextarea']);
+
+            // Start with English disabled (native keyboard typing)
+            transliterationControl.disableTransliteration();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const textarea = document.getElementById('postTextarea');
+            if (!textarea) return;
+
+            // Update button visual styles safely
+            ['en', 'hi', 'gu'].forEach(l => {
+                const btn = document.getElementById(`lang-${l}`);
+                if (btn) {
+                    if (l === lang) {
+                        btn.className = "px-3 py-1 rounded-full text-label-sm bg-primary text-on-primary transition-all duration-300";
+                    } else {
+                        btn.className = "px-3 py-1 rounded-full text-label-sm text-on-surface-variant hover:bg-surface-variant/50 transition-all duration-300";
+                    }
+                }
+            });
+
+            // Toggle typing behavior based on language choice
+            if (!transliterationControl) return;
+
+            if (lang === 'en') {
+                transliterationControl.disableTransliteration();
+                textarea.placeholder = "Type your thoughts here... no judgment, just space.";
+                textarea.setAttribute('lang', 'en');
+            } else if (lang === 'hi') {
+                transliterationControl.enableTransliteration();
+                transliterationControl.setLanguagePair(
+                    google.elements.transliteration.LanguageCode.ENGLISH,
+                    google.elements.transliteration.LanguageCode.HINDI
+                );
+                textarea.placeholder = "अपने विचार यहाँ टाइप करें... कोई निर्णय नहीं, बस जगह।";
+                textarea.setAttribute('lang', 'hi');
+            } else if (lang === 'gu') {
+                transliterationControl.enableTransliteration();
+                transliterationControl.setLanguagePair(
+                    google.elements.transliteration.LanguageCode.ENGLISH,
+                    google.elements.transliteration.LanguageCode.GUJARATI
+                );
+                textarea.placeholder = "તમારા વિચારો અહીં ટાઇપ કરો... કોઈ ન્યાય નહીં, માત્ર જગ્યા.";
+                textarea.setAttribute('lang', 'gu');
+            }
+
+            // Refocus on textarea for a fluid user experience
+            textarea.focus();
+        }
+    </script>
+    <script src="app.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/workspace/js/userDashboard.js"></script>
+</body>
+
+</html>
