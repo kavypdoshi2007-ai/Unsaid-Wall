@@ -3,7 +3,7 @@ const prisma = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto'); 
-const twilio = require('twilio');
+//const twilio = require('twilio');
 
 // Fetching your secret signature string from runtime environment variables
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -12,13 +12,16 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioClient = new twilio(accountSid, authToken);
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
+//const accountSid = process.env.TWILIO_ACCOUNT_SID;
+//const authToken = process.env.TWILIO_AUTH_TOKEN;
+//const twilioClient = new twilio(accountSid, authToken);
+//const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
 const userController = {
-  // CREATE (With Secure Password Hashing)
+  // ==========================================
+  // COMMENTED OUT: OTP TWO-STEP REGISTRATION
+  // ==========================================
+  /*
   // 1. New Two-Step Registration Part A: Requesting the SMS OTP
   async requestPhoneRegisterOtp(req, res, next) {
     try {
@@ -45,24 +48,23 @@ const userController = {
       const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // Valid for 5 minutes
 
       // Store in temporary staging table
-      // Store or update temporary staging table using valid Prisma Upsert properties
-    await prisma.phoneOtpVerification.upsert({
-      where: { 
-        phone_number: phone_number 
-      },
-      update: {
-        password_hash: encryptedPassword,
-        otp_code: otp,
-        expires_at: expirationTime,
-        created_at: new Date() // Reset creation time to refresh the 5-minute window
-      },
-      create: {
-        phone_number,
-        password_hash: encryptedPassword,
-        otp_code: otp,
-        expires_at: expirationTime
-      }
-    });
+      await prisma.phoneOtpVerification.upsert({
+        where: { 
+          phone_number: phone_number 
+        },
+        update: {
+          password_hash: encryptedPassword,
+          otp_code: otp,
+          expires_at: expirationTime,
+          created_at: new Date() // Reset creation time to refresh the 5-minute window
+        },
+        create: {
+          phone_number,
+          password_hash: encryptedPassword,
+          otp_code: otp,
+          expires_at: expirationTime
+        }
+      });
 
       // Send the code using either Twilio Dev Phone (Console Simulator) number or live SMS lines
       await twilioClient.messages.create({
@@ -123,6 +125,54 @@ const userController = {
       const { password_hash: _, ...userResponseData } = user;
       return res.status(201).json({
         message: "Account successfully verified and created!",
+        user: userResponseData
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+  */
+
+  // ==========================================
+  // NEW: SINGLE-STEP REGISTRATION
+  // ==========================================
+  async registerUser(req, res, next) {
+    try {
+      const { phone_number , display_name_pool, role } = req.body;
+      const password = req.body.password || "user@1234";
+
+      // Validate required fields
+      if (!phone_number || !password) {
+        return res.status(400).json({ error: "Phone number and password are required." });
+      }
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { phone_number }
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ error: "An account with this phone number already exists." });
+      }
+
+      // Hash the plain text password securely
+      const encryptedPassword = await bcrypt.hash(password, 10);
+
+      // Create user immediately in the main production table
+      const user = await prisma.user.create({
+        data: {
+          phone_number,
+          password_hash: encryptedPassword,
+          display_name_pool: display_name_pool || [],
+          role: role || "user"
+        }
+      });
+
+      // Strip password hash from response object
+      const { password_hash: _, ...userResponseData } = user;
+
+      return res.status(201).json({
+        message: "Account successfully created!",
         user: userResponseData
       });
     } catch (error) {

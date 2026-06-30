@@ -1,10 +1,10 @@
 // src/server.js
+require('dotenv').config();
 const cors = require('cors');
 const path = require('path');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-require('dotenv').config();
 const prisma = require('./config/db');
 const apiRoutes = require('./routes/index');
 const jwt = require('jsonwebtoken');
@@ -14,6 +14,7 @@ const app = express();
 const server = http.createServer(app);
 
 let classifier;
+const activeTimers = {}; // ⏱️ Keeps track of timeouts for active sessions
 async function initializeCrisisModel() {
   try {
     console.log("⏳ Loading Verified ONNX Lightweight Core...");
@@ -93,6 +94,49 @@ io.use((socket, next) => {
 // Attach the socket instance directly to the global express app object
 // This permits your HTTP controllers to access `req.app.get('io')` seamlessly
 app.set('io', io);
+app.set('startSessionTimer', startSessionTimer);
+
+function startSessionTimer(sessionId, io) {
+  // Clear any existing timer for this session to avoid duplicate intervals
+  if (activeTimers[sessionId]) {
+    clearTimeout(activeTimers[sessionId].warningTimeout);
+    clearTimeout(activeTimers[sessionId].expirationTimeout);
+  }
+
+  // 1. Set Warning Timeout (19 minutes = 1,140,000 ms)
+  // (For quick testing, change 19 * 60 * 1000 to 10 * 1000 for a 10-second warning)
+  const warningDelay = 19 * 60 * 1000; 
+  
+  const warningTimeout = setTimeout(() => {
+    console.log(`⚠️ Sending 1-minute warning to session: ${sessionId}`);
+    
+    // Notify only the coach or everyone in the session room
+    io.to(sessionId).emit('timer_warning', {
+      sessionId: sessionId,
+      message: "1 minute remaining. Do you want to extend the session?"
+    });
+
+    // 2. Set Expiration Timeout (1 minute later = 60,000 ms)
+    const expirationTimeout = setTimeout(async () => {
+      console.log(`🛑 Session ${sessionId} time expired.`);
+      
+      // Auto-close session in Database
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { status: 'completed', ended_at: new Date() }
+      });
+      
+      io.to(sessionId).emit('session_ended', { sessionId, reason: 'time_expired' });
+      delete activeTimers[sessionId];
+    }, 1 * 60 * 1000);
+
+    activeTimers[sessionId].expirationTimeout = expirationTimeout;
+
+  }, warningDelay);
+
+  // Store references so we can clear/reset them later
+  activeTimers[sessionId] = { warningTimeout };
+}
 
 io.on('connection', (socket) => {
 
@@ -116,6 +160,25 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('extend_session_time', ({ sessionId }) => {
+      // Security Check: Only allow if the timer exists and hasn't fully expired yet
+      if (activeTimers[sessionId]) {
+        console.log(`🔄 Resetting timer for session: ${sessionId}`);
+        
+        // Clear the pending termination timeout
+        clearTimeout(activeTimers[sessionId].expirationTimeout);
+        
+        // Restart the 20-minute cycle completely
+        startSessionTimer(sessionId, io);
+        
+        // Inform the frontend that the clock has reset successfully
+        io.to(sessionId).emit('timer_extended', { 
+          sessionId, 
+          message: "Session extended by 20 minutes." 
+        });
+      }
+    });
+    
   socket.on('disconnect', () => {
   });
 });

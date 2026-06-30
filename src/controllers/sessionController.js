@@ -133,11 +133,24 @@ const sessionController = {
       
       // Release the coach profile resource state back to available
       await prisma.coach.update({
-        where: { id: coachProfile.id },
-        data: { 
-          availability: 'available',
-          ...(status === 'completed' && { sessions_count: { increment: 1 } })
-        }
+    where: {
+        id: "930d5e56-3fb2-43b0-b9a4-9791b55af224"
+    },
+    data: {
+        availability: "available",
+        sessions_count: { increment: 1 },
+        
+        // ⚡ Nested relational mutation block
+        coach_sessions: {
+                  update: {
+                      where: { id: id }, // Target the current session id
+                      data: {
+                          status: "completed",
+                          ended_at: new Date()
+                      }
+                  }
+              }
+          }
       });
     }
 
