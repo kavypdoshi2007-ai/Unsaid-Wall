@@ -11,11 +11,14 @@ const reactionController = {
       if (!post_id || !user_id || !reaction_type) {
         return res.status(400).json({ error: "post_id, user_id, and reaction_type are required fields." });
       }
+       
 
       // Check if this specific user already reacted to this specific post
-      const existingReaction = await prisma.reaction.findUnique({
+      const existingReaction = await prisma.reaction.findFirst({
         where: {
-          post_id_user_id: { post_id, user_id } // Uses Prisma's composite unique constraint
+          post_id: post_id,
+          user_id: user_id,
+          reaction_type: reaction_type // HEAR_YOU, NOT_ALONE, STRENGTH, WILL_PASS
         }
       });
 

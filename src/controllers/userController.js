@@ -139,11 +139,18 @@ const userController = {
   async registerUser(req, res, next) {
     try {
       const { phone_number , display_name_pool, role } = req.body;
-      const password = req.body.password || "user@1234";
-
+      const password = req.body.password ;
+      
       // Validate required fields
       if (!phone_number || !password) {
         return res.status(400).json({ error: "Phone number and password are required." });
+      }
+
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phone_number || !phoneRegex.test(phone_number)) {
+        return res.status(400).json({ 
+          error: "Validation Error: Phone number must be exactly 10 digits and contain only numbers." 
+        });
       }
 
       // Check if user already exists

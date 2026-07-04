@@ -8,7 +8,9 @@ const postController = require('../controllers/postController');
 // Anyone (including guests) can view posts
 router.get('/', authorize(['guest', 'user', 'coach', 'admin']), postController.getFeed);
 
-// Only registered 'user' accounts can create posts
+router.get('/username', authMiddleware, authorize(['user']), postController.getPreviewUsername);
 router.post('/', authMiddleware, authorize(['user']), postController.createPost);
+
+router.post('/:postId/comments', authMiddleware, authorize(['coach']), postController.addComment);
 
 module.exports = router;
