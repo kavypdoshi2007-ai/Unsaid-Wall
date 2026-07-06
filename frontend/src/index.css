@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  /* --- 1. CORE COLORS --- */
+  --color-primary: #006b00;
+  --color-on-primary: #d3ffc2;
+  --color-primary-container: #7df168;
+  --color-on-primary-container: #005800;
+  --color-primary-fixed: #7df168;
+  --color-primary-fixed-dim: #6fe25b;
+  --color-primary-dim: #005d00;
+
+  --color-secondary: #006a30;
+  --color-on-secondary: #ceffd1;
+  --color-secondary-container: #8ef9a4;
+  --color-on-secondary-container: #005f2a;
+
+  --color-tertiary: #00666c;
+  --color-on-tertiary: #cefbff;
+  --color-tertiary-container: #05ebf9;
+  --color-on-tertiary-container: #005257;
+
+  --color-error: #b02500;
+  --color-on-error: #ffefec;
+  --color-error-container: #f95630;
+  --color-on-error-container: #520c00;
+
+  /* --- 2. SURFACES & BACKGROUNDS --- */
+  --color-background: #dfffde;
+  --color-on-background: #10361a;
+
+  --color-surface: #dfffde;
+  --color-on-surface: #10361a;
+  --color-surface-variant: #b0ebb6;
+  --color-on-surface-variant: #3e6444;
+
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #cdfdd0;
+  --color-surface-container: #c1f5c5;
+  --color-surface-container-high: #b9f0be;
+
+  /* --- 3. SPACING & LAYOUT --- */
+  --spacing-xs: 4px;
+  --spacing-sm: 12px;
+  --spacing-base: 8px;
+  --spacing-md: 24px;
+  --spacing-lg: 48px;
+  --spacing-xl: 80px;
+  --spacing-gutter: 24px;
+
+  /* ADDED: The missing layout constraints to fix the edges */
+  --spacing-margin-mobile: 20px;
+  --spacing-margin-desktop: 48px;
+  --spacing-max-width: 1140px;
+
+  /* --- 4. TYPOGRAPHY --- */
+  --text-display-lg: 3rem;
+  --text-headline-lg: 2rem;
+  --text-headline-md: 1.5rem;
+  --text-body-lg: 1.125rem;
+  --text-body-md: 1rem;
+  --text-label-md: 0.875rem;
+  --text-caption: 0.75rem;
+
+  --font-headline: 'Literata', serif;
+  --font-display: 'Literata', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Inter', sans-serif;
+}
+
+/* Global Adjustments */
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
+
+/* Custom Design Styles */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Animation Setup */
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+.pulse-soft {
+  animation: pulse-soft 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
