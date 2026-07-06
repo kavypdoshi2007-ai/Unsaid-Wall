@@ -13,4 +13,6 @@ router.post('/', authMiddleware, authorize(['user']), postController.createPost)
 
 router.post('/:postId/comments', authMiddleware, authorize(['coach']), postController.addComment);
 
+router.patch('/:postId/visibility', authMiddleware, authorize(['admin']), postController.updatePostVisibility);
+
 module.exports = router;

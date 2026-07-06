@@ -45,7 +45,7 @@ const postController = {
   async getPreviewUsername(req, res, next) {
     try {
       const generatedName = generateUniqueDisplayName();
-      return res.status(200).json({ username: generatedName });
+      return res.status(200).json({ display_name: generatedName });
     } catch (error) {
       next(error);
     }
@@ -352,7 +352,47 @@ const postController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
+  
+  async updatePostVisibility(req, res, next) {
+    try {
+      const { postId } = req.params;
+      const { is_hidden } = req.body;
+
+      // Validate input
+      if (typeof is_hidden !== 'boolean') {
+        return res.status(400).json({ error: "is_hidden field is required and must be a boolean." });
+      }
+
+      // Check if post exists
+      const postExists = await prisma.post.findUnique({ where: { id: postId } });
+      if (!postExists) {
+        return res.status(404).json({ error: "Post not found." });
+      }
+
+      // Update post visibility
+      const updatedPost = await prisma.post.update({
+        where: { id: postId },
+        data: { is_hidden }
+      });
+
+      // Emit tracking adjustments via Socket.io Server Context so admin boards update in real-time
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('admin_metrics_update', {
+          action: 'POST_VISIBILITY_CHANGED',
+          post: { id: updatedPost.id, emotion: updatedPost.emotion, is_hidden: updatedPost.is_hidden }
+        });
+      }
+
+      return res.status(200).json({
+        message: `Post has been successfully ${updatedPost.is_hidden ? 'hidden' : 'unhidden'}.`,
+        post: updatedPost
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = postController;

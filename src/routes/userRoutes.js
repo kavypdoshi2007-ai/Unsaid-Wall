@@ -14,4 +14,9 @@ router.delete('/:id', userController.deleteUser);
 router.post('/login', userController.loginUser);
 router.post('/register', userController.registerUser);
 
+router.get('/me', authMiddleware, (req, res, next) => {
+    req.params.id = req.user.id; 
+    userController.getUserById(req, res, next);
+});
+
 module.exports = router;
