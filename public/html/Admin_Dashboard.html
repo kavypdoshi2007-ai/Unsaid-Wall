@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Unsaid Wall | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Literata:opsz,wght@7..72,400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006a30",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "outline-variant": "#8eb792",
+                        "on-background": "#10361a",
+                        "surface": "#dfffde",
+                        "primary-container": "#7df168",
+                        "surface-bright": "#dfffde",
+                        "on-primary-fixed-variant": "#006300",
+                        "inverse-primary": "#7df168",
+                        "error": "#b02500",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#80eb97",
+                        "on-tertiary": "#cefbff",
+                        "inverse-surface": "#001204",
+                        "surface-container-high": "#b9f0be",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-error-container": "#520c00",
+                        "surface-tint": "#006b00",
+                        "on-surface": "#10361a",
+                        "on-surface-variant": "#3e6444",
+                        "surface-container-low": "#cdfdd0",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-primary-fixed": "#004200",
+                        "inverse-on-surface": "#7ea782",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "on-secondary": "#ceffd1",
+                        "on-primary": "#d3ffc2",
+                        "surface-variant": "#b0ebb6",
+                        "primary": "#006b00",
+                        "secondary-container": "#8ef9a4",
+                        "primary-dim": "#005d00",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed-dim": "#6fe25b",
+                        "outline": "#59805e",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-primary-container": "#005800",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary": "#00666c",
+                        "surface-dim": "#a4e3ac",
+                        "primary-fixed": "#7df168",
+                        "error-container": "#f95630"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .crisis-glow {
+            box-shadow: 0 0 20px rgba(176, 37, 0, 0.15);
+        }
+        body {
+            background: radial-gradient(circle at 0% 0%, #cdfdd0 0%, #dfffde 100%);
+            min-height: 100vh;
+        }
+        .vibe-bar {
+            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+
+<body class="font-body-md text-on-surface antialiased overflow-x-hidden">
+    <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container dark:bg-surface-container-low flex flex-col py-4 space-y-2 z-50 shadow-md shadow-primary/5 pt-12">
+        <div class="px-6 py-6 mb-4">
+            <h1 class="font-headline-md text-headline-md text-secondary">Admin Space</h1>
+            <p id="journey-counter" class="text-on-surface-variant font-label-sm text-label-sm">Loading journeys...</p>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <a class="bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-xl mx-2 flex items-center px-4 py-3 transition-all duration-300 ease-in-out" href="#">
+                <span class="material-symbols-outlined mr-3">dashboard</span>
+                <span class="font-label-sm text-label-sm">Dashboard</span>
+            </a>
+            <a class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant mx-2 flex items-center px-4 py-3 transition-all duration-300 ease-in-out" href="#">
+                <span class="material-symbols-outlined mr-3">forum</span>
+                <span class="font-label-sm text-label-sm">Client Wall</span>
+            </a>
+        </nav>
+        <div class="pt-4 border-t border-outline-variant/10">
+            <a onclick="logout()" class="text-on-surface-variant hover:bg-surface-variant mx-2 flex items-center px-4 py-3 rounded-xl transition-all cursor-pointer">
+                <span class="material-symbols-outlined mr-3">logout</span>
+                <span class="font-label-sm text-label-sm">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="ml-64 pt-20 px-container-padding pb-section-gap">
+        <header class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="font-display-lg text-display-lg text-primary">Platform Overview</h2>
+                <p class="text-on-surface-variant font-body-md mt-2">Real-time health monitoring & administrative control.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="openBroadcastModal()" class="bg-primary text-on-primary px-6 py-3 rounded-full flex items-center gap-2 font-bold transition-all hover:brightness-110 active:scale-95">
+                    <span class="material-symbols-outlined">campaign</span>
+                    Broadcast Tool
+                </button>
+            </div>
+        </header>
+
+        <!-- Metrics Cards Container Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-12">
+            <!-- Existing Active Sessions Card -->
+            <div class="glass-panel bg-surface-container-lowest/80 p-6 rounded-lg border border-outline-variant/10 shadow-sm shadow-primary/5">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">Active Sessions</span>
+                    <span class="material-symbols-outlined text-primary">groups</span>
+                </div>
+                <div id="active-sessions-count" class="text-4xl font-bold text-primary">...</div>
+            </div>
+
+            <!-- New Total Post Count Card -->
+            <div class="glass-panel bg-surface-container-lowest/80 p-6 rounded-lg border border-outline-variant/10 shadow-sm shadow-primary/5">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">Total Wall Posts</span>
+                    <span class="material-symbols-outlined text-secondary">forum</span>
+                </div>
+                <div id="total-posts-count" class="text-4xl font-bold text-secondary">...</div>
+            </div>
+
+            <!-- New Emotion Insights Pipe Card (Spans 2 Columns for easier pipe visibility) -->
+            <div class="lg:col-span-2 glass-panel bg-surface-container-lowest/80 p-6 rounded-lg border border-outline-variant/10 shadow-sm shadow-primary/5">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">Emotion Insights Breakdown</span>
+                    <span class="material-symbols-outlined text-tertiary">analytics</span>
+                </div>
+                
+                <!-- The Segmented Pipe Layout Container -->
+                <div class="w-full bg-gray-200 dark:bg-gray-700 h-6 rounded-full overflow-hidden flex my-3" id="emotion-pipe-bar">
+                    <!-- Dynamic multi-colored segments get rendered natively here by JS -->
+                    <div class="text-xs text-center text-gray-500 w-full leading-6 italic bg-gray-100">Analyzing expressions...</div>
+                </div>
+
+                <!-- Custom dynamic text legend layout indicators -->
+                <div id="emotion-pipe-legend" class="flex flex-wrap gap-x-4 gap-y-1 text-xs font-label-sm mt-1"></div>
+            </div>
+        </div>
+
+        <section class="mb-12">
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-6">Live System Announcements</h3>
+            <div id="announcements-container" class="space-y-4 max-w-5xl">
+                </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+            <section class="glass-panel bg-surface-container-lowest/80 p-8 rounded-lg border border-outline-variant/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-headline-md text-headline-md">Registered & Pending Coaches</h3>
+                </div>
+                <div id="coaches-list" class="space-y-6">
+                    </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="broadcast-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+            <h3 class="text-xl font-bold mb-4 text-primary">Create System Announcement</h3>
+            <form id="broadcast-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                    <textarea id="announcement-content" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20" rows="3" placeholder="Enter announcement system details..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Optional Reference Link</label>
+                    <input type="url" id="announcement-link" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20" placeholder="https://example.com">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="announcement-pinned" class="rounded border-gray-300 text-primary focus:ring-primary">
+                    <label class="ml-2 text-sm text-gray-700">Pin to top of feed</label>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeBroadcastModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-md text-sm font-medium hover:brightness-110">Publish Broadcast</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://diminish-waving-shore.ngrok-free.dev/api'; 
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+        
+        let adminSocket = null;
+
+        // Assigned styling configurations for mapped post expressions
+        const EMOTION_COLOR_MAP = {
+            'SAD': { bg: 'bg-blue-500', text: 'text-blue-600' },
+            'ANGRY': { bg: 'bg-red-500', text: 'text-red-600' },
+            'HAPPY': { bg: 'bg-yellow-400', text: 'text-yellow-600' },
+            'ANXIOUS': { bg: 'bg-purple-500', text: 'text-purple-600' },
+            'LONELY': { bg: 'bg-indigo-600', text: 'text-indigo-600' },
+            'HOPEFUL': { bg: 'bg-emerald-500', text: 'text-emerald-600' },
+            'SAFE': { bg: 'bg-green-500', text: 'text-green-600' },
+            'NUMB': { bg: 'bg-red-400', text: 'text-gray-500' },
+            'DEFAULT': { bg: 'bg-gray-400', text: 'text-gray-500' }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Session expired or unauthorized access. Redirecting to login.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            fetchActiveSessions();
+            fetchAnnouncements();
+            fetchCoaches();
+            fetchPostEmotionMetrics(); // Initial fetch tracking execution
+
+            initializeAdminWebSocket(token);
+        });
+
+        function initializeAdminWebSocket(token) {
+            if (typeof io !== 'undefined') {
+                adminSocket = io({ auth: { token: token } });
+
+                adminSocket.on('admin_crisis_alert', (data) => {
+                    showAdminCrisisNotification(data);
+                    // Dynamically refresh tracking counts when alert metrics drop in real-time
+                    fetchPostEmotionMetrics();
+                });
+            }
+        }
+
+        // NEW METHOD: Fetches public wall data and constructs the dynamic segmented visual indicator pipe
+        async function fetchPostEmotionMetrics() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/posts/`, {
+                    method: 'GET',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error('Could not pull posts data streams');
+                
+                const posts = await response.json();
+                
+                // 1. Update total metrics counter card element
+                document.getElementById('total-posts-count').innerText = posts.length;
+
+                if (!posts || posts.length === 0) {
+                    document.getElementById('emotion-pipe-bar').innerHTML = `<div class="text-xs text-center text-gray-500 w-full leading-6 italic bg-gray-100">No expressions cataloged.</div>`;
+                    document.getElementById('emotion-pipe-legend').innerHTML = '';
+                    return;
+                }
+
+                // 2. Reduce array down into categorical frequency map counters
+                const emotionCounts = {};
+                posts.forEach(post => {
+                    const emo = post.emotion ? post.emotion.toUpperCase() : 'DEFAULT';
+                    emotionCounts[emo] = (emotionCounts[emo] || 0) + 1;
+                });
+
+                // 3. Clear existing components to avoid redundant appended configurations
+                const pipeBar = document.getElementById('emotion-pipe-bar');
+                const legendBox = document.getElementById('emotion-pipe-legend');
+                pipeBar.innerHTML = '';
+                legendBox.innerHTML = '';
+
+                // 4. Construct structural visualization blocks sequentially
+                Object.keys(emotionCounts).forEach(emoKey => {
+                    const rawCount = emotionCounts[emoKey];
+                    const percentage = ((rawCount / posts.length) * 100).toFixed(1);
+                    const designTheme = EMOTION_COLOR_MAP[emoKey] || EMOTION_COLOR_MAP['DEFAULT'];
+
+                    // Append dynamic section inside the pipe tracker container element
+                    const segment = document.createElement('div');
+                    segment.className = `${designTheme.bg} h-full transition-all duration-500 relative group`;
+                    segment.style.width = `${percentage}%`;
+                    segment.title = `${emoKey}: ${rawCount} (${percentage}%)`;
+                    pipeBar.appendChild(segment);
+
+                    // Append dynamic indicator item directly into the grid footer summary element
+                    const legendItem = document.createElement('div');
+                    legendItem.className = "flex items-center gap-1.5";
+                    legendItem.innerHTML = `
+                        <span class="w-2.5 h-2.5 rounded-full ${designTheme.bg}"></span>
+                        <span class="text-on-surface-variant font-medium uppercase">${emoKey}</span>
+                        <span class="text-gray-400">(${percentage}%)</span>
+                    `;
+                    legendBox.appendChild(legendItem);
+                });
+
+            } catch (err) {
+                console.error("Metrics visualization workflow tracking failure: ", err);
+                document.getElementById('total-posts-count').innerText = 'Err';
+            }
+        }
+
+        function showAdminCrisisNotification(data) {
+            const notificationToast = document.createElement('div');
+            notificationToast.className = "fixed top-5 right-5 bg-error text-white p-6 rounded-lg shadow-xl border-2 border-white max-w-sm z-[9999] animate-bounce crisis-glow";
+            notificationToast.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-3xl">warning</span>
+                    <div>
+                        <h4 class="font-bold text-lg">CRITICAL INCIDENT ALERT</h4>
+                        <p class="text-xs opacity-90 mt-1 mb-2">A user has typed content flagged as a dynamic crisis risk level.</p>
+                        <div class="bg-black/20 p-2 rounded text-sm italic font-serif mb-2">
+                            "${data.content}"
+                        </div>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="bg-white text-error font-bold px-3 py-1 rounded text-xs">
+                            Acknowledge Alert
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notificationToast);
+
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = context.createOscillator();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, context.currentTime);
+                osc.connect(context.destination);
+                osc.start();
+                osc.stop(context.currentTime + 0.3);
+            } catch (e) { console.log("Audio alert blocked by browser media permissions policy"); }
+        }
+
+        async function fetchActiveSessions() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/sessions`, {
+                    method: 'GET',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error('Failed to capture metrics');
+                
+                const sessions = await response.json();
+                document.getElementById('active-sessions-count').innerText = sessions.length;
+                document.getElementById('journey-counter').innerText = `Managing ${sessions.length} active journeys`;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('active-sessions-count').innerText = 'Err';
+            }
+        }
+
+        async function fetchAnnouncements() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/announcements`, {
+                    method: 'GET',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error('Could not pull updates.');
+                
+                const announcements = await response.json();
+                const container = document.getElementById('announcements-container');
+                container.innerHTML = '';
+
+                if(announcements.length === 0) {
+                    container.innerHTML = `<p class="text-on-surface-variant text-sm italic">No system broadcasts found.</p>`;
+                    return;
+                }
+
+                announcements.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = `glass-panel bg-surface-container-lowest/90 p-6 rounded-lg border-l-4 ${item.is_pinned ? 'border-primary shadow-md' : 'border-secondary/40'} flex items-start justify-between`;
+                    el.innerHTML = `
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 rounded-full ${item.is_pinned ? 'bg-primary-container text-on-primary-container' : 'bg-secondary-container'} flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined">${item.is_pinned ? 'push_pin' : 'campaign'}</span>
+                            </div>
+                            <div>
+                                <p class="text-on-surface font-medium">${escapeHTML(item.content)}</p>
+                                ${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" class="text-xs text-primary underline mt-1 block">Reference Link</a>` : ''}
+                            </div>
+                        </div>
+                        <button onclick="deleteAnnouncement('${item.id}')" class="text-error hover:bg-error-container/20 p-2 rounded-full transition-colors">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    `;
+                    container.appendChild(el);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        const modal = document.getElementById('broadcast-modal');
+        function openBroadcastModal() { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        function closeBroadcastModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+        document.getElementById('broadcast-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                content: document.getElementById('announcement-content').value,
+                link: document.getElementById('announcement-link').value || null,
+                is_pinned: document.getElementById('announcement-pinned').checked
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/announcements`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    closeBroadcastModal();
+                    document.getElementById('broadcast-form').reset();
+                    fetchAnnouncements();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error || 'Unable to broadcast message'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network connection error transmitting statement payload.');
+            }
+        });
+
+        async function deleteAnnouncement(id) {
+            if(!confirm('Are you certain you wish to delete this announcement?')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/announcements/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                if(response.ok) {
+                    fetchAnnouncements();
+                } else {
+                    alert('Failed to erase targeted item resource.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchCoaches() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/coaches`, {
+                    method: 'GET',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error('Could not pull coaches directory data.');
+                
+                const coaches = await response.json();
+                const listContainer = document.getElementById('coaches-list');
+                listContainer.innerHTML = '';
+
+                coaches.forEach(coach => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between group p-2 hover:bg-surface-variant/30 rounded-xl transition-colors";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold">
+                                ${escapeHTML(coach.name ? coach.name.charAt(0) : 'C')}
+                            </div>
+                            <div>
+                                <div class="font-bold">${escapeHTML(coach.name || 'Professional Coach')}</div>
+                                <div class="text-xs text-on-surface-variant">${escapeHTML(coach.specialty || 'Mental Health Expert')}</div>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function initializeAdminWebSocket(token) {
+            if (typeof io !== 'undefined') {
+                adminSocket = io({ auth: { token: token } });
+
+                adminSocket.on('admin_crisis_alert', (data) => {
+                    showAdminCrisisNotification(data);
+                    fetchPostEmotionMetrics();
+                });
+
+                // Add this specific listener to catch normal and concerning post events live!
+                adminSocket.on('admin_metrics_update', (data) => {
+                    fetchPostEmotionMetrics();
+                });
+            }
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>

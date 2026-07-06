@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html class="light" lang="en" style="">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Coach Workspace | Unsaid Wall</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006a30",
+                        "on-tertiary-container": "#005257",
+                        "background": "#dfffde",
+                        "secondary-dim": "#005d29",
+                        "outline-variant": "#8eb792",
+                        "on-background": "#10361a",
+                        "surface": "#dfffde",
+                        "primary-container": "#7df168",
+                        "surface-bright": "#dfffde",
+                        "on-primary-fixed-variant": "#006300",
+                        "inverse-primary": "#7df168",
+                        "error": "#b02500",
+                        "tertiary-container": "#05ebf9",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#80eb97",
+                        "on-tertiary": "#cefbff",
+                        "inverse-surface": "#001204",
+                        "surface-container-high": "#b9f0be",
+                        "on-secondary-fixed": "#004a1f",
+                        "surface-container": "#c1f5c5",
+                        "secondary-fixed": "#8ef9a4",
+                        "on-error-container": "#520c00",
+                        "surface-tint": "#006b00",
+                        "on-surface": "#10361a",
+                        "on-surface-variant": "#3e6444",
+                        "surface-container-low": "#cdfdd0",
+                        "tertiary-fixed-dim": "#00dbe8",
+                        "on-primary-fixed": "#004200",
+                        "inverse-on-surface": "#7ea782",
+                        "error-dim": "#b92902",
+                        "tertiary-dim": "#00595e",
+                        "on-secondary": "#ceffd1",
+                        "on-primary": "#d3ffc2",
+                        "surface-variant": "#b0ebb6",
+                        "primary": "#006b00",
+                        "secondary-container": "#8ef9a4",
+                        "primary-dim": "#005d00",
+                        "on-secondary-container": "#005f2a",
+                        "tertiary-fixed": "#05ebf9",
+                        "primary-fixed-dim": "#6fe25b",
+                        "outline": "#59805e",
+                        "on-tertiary-fixed": "#003d41",
+                        "on-tertiary-fixed-variant": "#005c62",
+                        "on-primary-container": "#005800",
+                        "on-error": "#ffefec",
+                        "on-secondary-fixed-variant": "#006a30",
+                        "surface-container-highest": "#b0ebb6",
+                        "tertiary": "#00666c",
+                        "surface-dim": "#a4e3ac",
+                        "primary-fixed": "#7df168",
+                        "error-container": "#f95630"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Literata"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Literata"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "500" }],
+                        "label-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(223, 255, 222, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(142, 183, 146, 0.2);
+        }
+
+        .message-bubble-user {
+            background: rgba(142, 249, 164, 0.4);
+            border-radius: 1.5rem 1.5rem 1.5rem 0.25rem;
+        }
+
+        .message-bubble-coach {
+            background: #006b00;
+            color: #d3ffc2;
+            border-radius: 1.5rem 1.5rem 0.25rem 1.5rem;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #8eb792;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+    <div id="dynamic-nav"></div>
+    <!-- SideNavBar (Authority: JSON) -->
+    <aside
+        class="fixed left-0 top-0 h-full w-64 bg-surface-container dark:bg-surface-container-low flex flex-col py-4 space-y-2 shadow-md shadow-primary/5 z-50">
+        <div class="px-6 mb-8">
+            <h1 class="font-headline-md text-headline-md text-secondary">Coach Workspace</h1>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">Managing 12 active journeys</p>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <a class="flex items-center gap-3 py-3 px-4 mx-2 text-on-surface-variant hover:bg-surface-variant transition-all duration-300 ease-in-out group"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span class="font-label-sm">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 py-3 px-4 bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-xl mx-2 transition-all duration-300 ease-in-out"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">forum</span>
+                <span class="font-label-sm">Client Wall</span>
+            </a>
+            <a class="flex items-center gap-3 py-3 px-4 mx-2 text-on-surface-variant hover:bg-surface-variant transition-all duration-300 ease-in-out"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">history_edu</span>
+                <span class="font-label-sm">Session Logs</span>
+            </a>
+            <a class="flex items-center gap-3 py-3 px-4 mx-2 text-on-surface-variant hover:bg-surface-variant transition-all duration-300 ease-in-out"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">leaderboard</span>
+                <span class="font-label-sm">Analytics</span>
+            </a>
+            <a class="flex items-center gap-3 py-3 px-4 mx-2 text-on-surface-variant hover:bg-surface-variant transition-all duration-300 ease-in-out"
+                href="#">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span class="font-label-sm">Settings</span>
+            </a>
+        </nav>
+        <div class="px-4 py-4 space-y-2 mt-auto">
+            <button
+                class="w-full bg-primary text-on-primary py-3 rounded-full font-bold active:scale-95 transition-transform flex justify-center items-center gap-2">
+                <span class="material-symbols-outlined">add_circle</span>
+                Start Session
+            </button>
+            <div class="pt-4 space-y-1 border-t border-outline-variant/20">
+                <a class="flex items-center gap-3 py-2 px-4 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all"
+                    href="#">
+                    <span class="material-symbols-outlined text-[20px]">help</span>
+                    <span class="font-label-sm">Help Center</span>
+                </a>
+                <a class="flex items-center gap-3 py-2 px-4 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all"
+                    href="#">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-label-sm">Sign Out</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    <!-- Main Content Grid -->
+    <main class="ml-64 flex-1 h-screen grid-cols-12 gap-0 overflow-hidden relative flex">
+        <!-- Left Panel: User History (Anonymized) -->
+        <section
+            class="border-r border-outline-variant/20 flex flex-col h-full bg-surface-container-low/50 overflow-y-auto w-64">
+            <div class="p-6">
+                <h2 class="font-headline-md text-headline-md text-secondary mb-1">User #8291</h2>
+                <span
+                    class="inline-block px-3 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-[12px] font-bold uppercase tracking-wider mb-6">Emotive
+                    Baseline: Anxious</span>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-on-surface text-sm uppercase tracking-widest mb-4">Recent Emotion
+                            History</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 glass-card rounded-2xl shadow-sm">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error">
+                                    <span class="material-symbols-outlined">sentiment_very_dissatisfied</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-bold text-sm">High Stress</p>
+                                        <span class="text-[11px] text-on-surface-variant">2h ago</span>
+                                    </div>
+                                    <div class="w-full bg-surface-container-highest h-1 rounded-full mt-1">
+                                        <div class="bg-error w-4/5 h-full rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 glass-card rounded-2xl shadow-sm">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+                                    <span class="material-symbols-outlined">waves</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-bold text-sm">Quiet Clarity</p>
+                                        <span class="text-[11px] text-on-surface-variant">Yesterday</span>
+                                    </div>
+                                    <div class="w-full bg-surface-container-highest h-1 rounded-full mt-1">
+                                        <div class="bg-tertiary w-1/3 h-full rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-on-surface text-sm uppercase tracking-widest mb-4">Past Session
+                            Highlights</h3>
+                        <div class="p-4 glass-card rounded-2xl space-y-4 border-l-4 border-primary">
+                            <p class="text-sm italic text-on-surface-variant leading-relaxed">"User mentioned feeling
+                                overwhelmed by workplace transitions. Responded well to deep breathing exercises in
+                                session #4."</p>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm text-primary">bookmark</span>
+                                <span class="text-xs font-semibold text-primary">Key Growth Metric: Emotional
+                                    Literacy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative rounded-2xl overflow-hidden aspect-square">
+                        <img alt="Serene Nature" class="object-cover w-full h-full opacity-60"
+                            data-alt="A macro photograph of lush green moss and tiny dew drops catching the morning light in a dense, primeval forest. The composition is intimate and calming, utilizing a shallow depth of field to create a soft, ethereal background. The lighting is filtered and gentle, emphasizing the vibrant, life-affirming greens of the design system."
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCia8d2bDapGEb3OzgN7ZPxuYqIAT9yD-82lFzPGHEcoGqrP7zoQwI5CCsCxZr2qcqSiuYsn76WVoOxmIPElCqMxaBfktoqEyvItJRMAhH1I0itgaVlNPq1pzI764ESQ1Dc7KxBai8faDQvo-ZhYGsE1jriXdRpdrCKiJpXTXywAWpWgKj4If5Wcc1reREFxauKdAoOoocw7H6Fm68RYwsgvI7hgsTRJZMh54jKf_62X_ACgqZ4VxsYU4JdGEk7xkxIbCXXF0brNdZD">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-background to-transparent flex flex-col justify-end p-4">
+                            <p class="text-xs font-bold text-on-surface-variant">Session Atmosphere</p>
+                            <p class="font-headline-md text-sm italic">"Calm morning in the garden"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Center: Chat Conversation -->
+        <section class="flex flex-col h-full bg-white/40 flex-1">
+            <!-- Chat Header -->
+            <div
+                class="h-16 flex items-center justify-between px-8 bg-surface-container-low/80 backdrop-blur-md border-b border-outline-variant/10 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                    <span id="session-timer" class="font-bold text-on-surface">Active Session: 20:00 remaining</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        class="px-4 py-2 rounded-full text-error font-semibold hover:bg-error/10 transition-colors text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">emergency_home</span>
+                        Escalate to Admin
+                    </button>
+                    <button id="endSessionBtn" class="px-4 py-2 rounded-full bg-error text-on-error font-semibold hover:opacity-90 transition-opacity text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">stop_circle</span>
+                        End Session
+                    </button>
+                </div>
+            </div>
+            <!-- Messages Area -->
+            <div id="chatContainer" class="flex-1 overflow-y-auto p-8 space-y-6">
+                <div class="flex flex-col items-center mb-8">
+                    <span class="px-4 py-1 bg-surface-variant text-on-surface-variant rounded-full text-xs font-bold">14 October 2024</span>
+                </div>
+                <!-- REMOVE ALL RAW PRE-RENDERED PLACEHOLDER MESSAGES HERE -->
+            </div>
+            <!-- 2. Locate the Input Area and map the textarea & action button elements -->
+                <div class="p-6 bg-surface-container-low/50 border-t border-outline-variant/10 shrink-0">
+                    <div class="relative flex items-center">
+                        <!-- Add id="messageInput" to this text field -->
+                        <textarea id="messageInput"
+                            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-2xl py-4 pl-6 pr-32 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none font-body-md"
+                            placeholder="Message User #8291..." rows="1"></textarea>
+                            
+                        <div class="absolute right-4 flex items-center gap-2">
+                            <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">sentiment_satisfied</span>
+                            </button>
+                            <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">attach_file</span>
+                            </button>
+                            <!-- Add id="sendBtn" to this submission trigger -->
+                            <button id="sendBtn"
+                                class="bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-transform">
+                                <span class="material-symbols-outlined">send</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 px-2">
+                        <p class="text-[11px] text-on-surface-variant italic">Press Cmd+Enter to send. Chat is end-to-end encrypted.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Right Panel: Resource & Notes -->
+        <section
+            class="border-l border-outline-variant/20 flex flex-col h-full bg-surface-container-low/50 overflow-y-auto w-64">
+            <div class="p-6 h-full flex flex-col">
+                <!-- Resource Sharing Section -->
+                <div class="mb-8">
+                    <h3
+                        class="font-bold text-on-surface text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-secondary text-[20px]">auto_stories</span>
+                        Resource Sharing
+                    </h3>
+                    <div class="space-y-3">
+                        <button
+                            class="w-full flex items-center gap-3 p-3 glass-card rounded-2xl hover:border-primary/40 transition-all text-left">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+                                <span class="material-symbols-outlined">mindfulness</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold">Nature Walk Meditation</p>
+                                <p class="text-[10px] text-on-surface-variant">Audio • 12 mins</p>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-primary">chevron_right</span>
+                        </button>
+                        <button
+                            class="w-full flex items-center gap-3 p-3 glass-card rounded-2xl hover:border-primary/40 transition-all text-left">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                                <span class="material-symbols-outlined">description</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold">Understanding Anxiety</p>
+                                <p class="text-[10px] text-on-surface-variant">Article • 5 mins read</p>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-primary">chevron_right</span>
+                        </button>
+                    </div>
+                    <button
+                        class="w-full mt-4 py-2 border border-dashed border-outline-variant/50 rounded-xl text-xs font-bold text-on-surface-variant hover:bg-surface-variant/20 transition-all">
+                        Browse Library
+                    </button>
+                </div>
+                <!-- Private Notes Section -->
+                   <div class="glass-card rounded-3xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h5 class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Private Notes</h5>
+                        </div>
+                        <textarea id="coachNotesArea" 
+                                    autocomplete="off" 
+                                    autofill="off"
+                                class="w-full h-32 bg-surface-container-low/50 border border-outline-variant/20 rounded-none p-3 text-xs focus:ring-1 focus:ring-primary focus:border-primary resize-none placeholder:text-on-surface-variant/40" 
+                                placeholder="Record summary observations, treatment outcomes, or session review milestones here..."></textarea>
+                        
+                        <button id="saveNotesBtn" class="w-full mt-3 py-2 text-xs font-bold text-white bg-primary rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">save</span>
+                            Save Review Notes
+                        </button>
+                    </div>
+                        <div class="p-4 bg-primary/10 rounded-2xl border border-primary/20">
+                            <h4 class="text-[10px] font-bold text-primary uppercase mb-2">Previous Insight</h4>
+                            <p id="previousInsightText" class="text-xs leading-relaxed text-on-surface italic">
+                                "Loading previous notes and clinical insights..."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Crisis Ribbon (Authority: Style Guidance) -->
+
+    <!-- Interactivity Script -->
+    <script>
+                    // Micro-interaction for text area focus
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(ta => {
+            ta.addEventListener('focus', () => {
+                ta.parentElement.classList.add('ring-2', 'ring-primary/20');
+            });
+            ta.addEventListener('blur', () => {
+                ta.parentElement.classList.remove('ring-2', 'ring-primary/20');
+            });
+        });
+
+        // Simple scroll to bottom on load
+        window.onload = () => {
+            const chatContainer = document.querySelector('.overflow-y-auto.p-8');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/workspace/js/chat.js"></script>
+</body>
+
+</html>
