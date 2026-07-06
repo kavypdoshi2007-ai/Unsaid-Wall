@@ -48,9 +48,13 @@ export default function UserWall() {
         if (!token || !currentUserId) return;
 
         // Establish the socket connection passing the JWT auth credentials
-        const socket = io(BACKEND_URL.replace('/api', ''), {
-            auth: { token }
-        });
+        const socket = io('https://diminish-waving-shore.ngrok-free.dev', {
+            transports: ['websocket'], // 🚀 CRITICAL: Forces WebSocket only, bypassing CORS polling
+            upgrade: false,
+            auth: {
+                token: localStorage.getItem('token') // Or wherever you pull your token from
+            }
+            });
 
         // Listen for the exact moment a coach clicks "Accept"
         socket.on(`session_accepted_${currentUserId}`, (data) => {
@@ -128,13 +132,15 @@ export default function UserWall() {
         setIsComposerOpen(true);
         setPreviewUsername('Generating anonymous identity...');
         try {
-            const response = await fetch(`${BACKEND_URL}/posts/preview-username`, {
+            const response = await fetch(`${BACKEND_URL}/posts/username`, {
                 method: 'GET',
-                headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+                headers: { 
+                    'Authorization': token ? `Bearer ${token}` : '',
+                     'ngrok-skip-browser-warning': 'true' }
             });
             if (response.ok) {
                 const data = await response.json();
-                setPreviewUsername(data.username);
+                setPreviewUsername(data.display_name);
             } else {
                 setPreviewUsername('AnonymousUser#00');
             }

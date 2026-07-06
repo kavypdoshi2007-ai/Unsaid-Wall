@@ -52,7 +52,10 @@ export default function LandingPage() {
             try {
                 const response = await fetch(API_POSTS_URL, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' 
+                    }
                 });
                 if (!response.ok) throw new Error('Could not fetch posts.');
                 const posts = await response.json();
@@ -68,7 +71,10 @@ export default function LandingPage() {
             try {
                 const response = await fetch(API_COACHES_URL, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
                 });
                 if (!response.ok) throw new Error('Failed to retrieve coaches context.');
                 const coaches = await response.json();

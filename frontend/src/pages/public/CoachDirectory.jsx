@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Filter, ChevronDown, Sparkles, Smile, BookOpen, Shield, Lock, UserCheck, AlertCircle } from 'lucide-react';
+import { API_ENDPOINTS } from '../../config/api'; 
 
 export default function CoachDirectory() {
+    const [coaches, setCoaches] = useState([]); 
+    const [isLoading, setIsLoading] = useState(true);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [modalAction, setModalAction] = useState('request'); // <-- NEW: Tracks which button was clicked
+    const [modalAction, setModalAction] = useState('request'); 
 
     const navigate = useNavigate();
+    const token = localStorage.getItem('token'); 
 
     // Filter States
     const [activeLanguage, setActiveLanguage] = useState('EN');
@@ -13,29 +18,102 @@ export default function CoachDirectory() {
     const [activeSpecs, setActiveSpecs] = useState([]);
     const [isAllSpecs, setIsAllSpecs] = useState(true);
 
+    // 1. FETCH DIRECTORY DATA
+    useEffect(() => {
+        setIsLoading(true);
+        fetch(API_ENDPOINTS.COACHES.GET_ALL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+            }
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to load directory items");
+                return res.json();
+            })
+            .then((data) => {
+                const coachData = Array.isArray(data) ? data : (data.coaches || []);
+                setCoaches(coachData);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error("Error capturing live coach nodes:", err);
+                setIsLoading(false);
+            });
+    }, [token]);
+
+    // 2. DISPATCH LIVE HANDSHAKE SESSION CREATION REQUEST
+    const handleSessionRequest = async (coachId) => {
+        if (!token) {
+            setModalAction('request');
+            setIsLoginModalOpen(true);
+            return;
+        }
+
+        try {
+            const response = await fetch(API_ENDPOINTS.SESSIONS.CREATE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ coach_id: coachId })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Workspace requested successfully! Redirecting to sessions dashboard...");
+                navigate('/my-sessions'); 
+            } else {
+                alert(result.error || "Could not complete session booking handshake.");
+            }
+        } catch (err) {
+            console.error("Session creation mutation exception caught:", err);
+            alert("Network pipeline exception dropped your request. Try again.");
+        }
+    };
+
     const handleSpecChange = (spec) => {
         if (spec === 'ALL') {
             setIsAllSpecs(true);
             setActiveSpecs([]);
         } else {
             setIsAllSpecs(false);
-            setActiveSpecs(prev =>
-                prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
-            );
+            setActiveSpecs(prev => {
+                const nextSpecs = prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec];
+                if (nextSpecs.length === 0) setIsAllSpecs(true);
+                return nextSpecs;
+            });
         }
     };
 
-    // Helper to determine if a card should be visible based on filters
-    const matchesFilters = (cardStatus, cardSpecs, cardLang) => {
-        const hasLang = cardLang.includes(activeLanguage);
+    // 🌟 FIXED: Bulletproof case-insensitive filter matching logic
+    const matchesFilters = (coach) => {
+        // 1. Language Check
+        const normalizedLangs = (coach.languages || []).map(lang => lang.toUpperCase());
+        const hasLang = normalizedLangs.some(lang => lang.includes(activeLanguage.toUpperCase()));
+        
+        // 2. Specialization Check
         let hasSpec = true;
         if (!isAllSpecs && activeSpecs.length > 0) {
-            hasSpec = activeSpecs.some(spec => cardSpecs.includes(spec));
+            const cardSpecs = (coach.specializations || []).map(s => s.toUpperCase());
+            // Matches if any active spec search string is a substring of what's inside the database array
+            hasSpec = activeSpecs.some(filterSpec => 
+                cardSpecs.some(dbSpec => dbSpec.includes(filterSpec.toUpperCase()))
+            );
         }
+
+        // 3. Availability Check
+        const dbStatus = (coach.availability || 'away').toLowerCase();
         let hasAvailability = true;
-        if (activeAvailability === 'Online Now' && cardStatus !== 'ONLINE') {
+        if (activeAvailability === 'Online Now' && dbStatus !== 'available') {
             hasAvailability = false;
         }
+
         return hasLang && hasSpec && hasAvailability;
     };
 
@@ -62,12 +140,17 @@ export default function CoachDirectory() {
 
             <main className="max-w-screen-xl mx-auto px-container-padding py-12">
                 <div className="flex flex-col lg:flex-row gap-12">
+                    
                     {/* Sidebar Filters */}
                     <aside className="w-full lg:w-72 flex-shrink-0">
                         <div className="sidebar-sticky">
                             <div className="glass-card p-6 rounded-lg border border-outline-variant/20 flex flex-col gap-8">
                                 <div>
-                                    <h2 className="font-headline-md text-xl mb-6 text-on-surface">Filters</h2>
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <Filter className="w-5 h-5 text-primary" />
+                                        <h2 className="font-headline-md text-xl text-on-surface">Filters</h2>
+                                    </div>
+
                                     {/* Specialization */}
                                     <div className="mb-6">
                                         <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Specialization</label>
@@ -90,6 +173,7 @@ export default function CoachDirectory() {
                                             </label>
                                         </div>
                                     </div>
+
                                     {/* Language */}
                                     <div className="mb-6">
                                         <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Language</label>
@@ -110,18 +194,22 @@ export default function CoachDirectory() {
                                             })}
                                         </div>
                                     </div>
+
                                     {/* Availability */}
                                     <div className="mb-6">
                                         <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Availability</label>
-                                        <select
-                                            value={activeAvailability}
-                                            onChange={(e) => setActiveAvailability(e.target.value)}
-                                            className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:outline-none appearance-none text-sm">
-                                            <option>Anytime</option>
-                                            <option>Available Today</option>
-                                            <option>Available this Week</option>
-                                            <option>Online Now</option>
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                value={activeAvailability}
+                                                onChange={(e) => setActiveAvailability(e.target.value)}
+                                                className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:outline-none appearance-none text-sm pr-10">
+                                                <option value="Anytime">Anytime</option>
+                                                <option value="Available Today">Available Today</option>
+                                                <option value="Available this Week">Available this Week</option>
+                                                <option value="Online Now">Online Now</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -137,110 +225,85 @@ export default function CoachDirectory() {
 
                         {/* Coach Cards Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                            {isLoading ? (
+                                <div className="col-span-full text-center py-32 text-on-surface-variant font-body-md flex flex-col items-center gap-3">
+                                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Syncing verified connections securely...</span>
+                                </div>
+                            ) : coaches.filter(matchesFilters).length === 0 ? (
+                                <div className="col-span-full text-center py-24 text-on-surface-variant font-body-md bg-surface-container-low rounded-lg border-2 border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-8">
+                                    <AlertCircle className="text-outline w-12 h-12 mb-4" />
+                                    <h3 className="font-headline-sm font-bold mb-1 text-on-surface">No matches found</h3>
+                                    <p className="text-sm max-w-sm">No specialists match your selected criteria right now. Try adjusting your filter parameters or timeline options.</p>
+                                </div>
+                            ) : (
+                                coaches.filter(matchesFilters).map((coach) => {
+                                    const isAvailable = coach.availability === 'available';
+                                    return (
+                                        <div key={coach.id} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="relative">
+                                                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                                        <img 
+                                                            alt={coach.name || coach.user?.display_name || "Coach Avatar"} 
+                                                            className="w-full h-full object-cover" 
+                                                            src={coach.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256"} 
+                                                        />
+                                                    </div>
+                                                    <div className={`absolute bottom-1 right-1 w-5 h-5 border-2 border-white rounded-full ${isAvailable ? 'bg-primary' : 'bg-outline-variant'}`} title={coach.availability}></div>
+                                                </div>
+                                                <span className={`px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase ${isAvailable ? 'bg-primary/10 text-primary' : 'bg-on-surface-variant/10 text-on-surface-variant'}`}>
+                                                    {coach.availability || 'away'}
+                                                </span>
+                                            </div>
 
-                            {/* Coach Card 1 */}
-                            <div style={{ display: matchesFilters('ONLINE', ['CBT', 'TRAUMA'], 'EN HI') ? 'flex' : 'none' }} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-                                            <img alt="Coach Arpita" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBns-EHfmOC98EYaRZsWv4gn02aqqeYMQQYB2jr5bdqBkGkU2CWu_yligAiPO5Fbt-EioBzhsdcHRfiPSVTDTm5F58pSBsA8fnvgiwo-j8pXPpt5tsUvH0TI8JC3w9AKJnuQIBz-dbaVvUtEXCLyVZt_xrBss0GWG_EkYAxSwBScLjvDwvj3Ye1O1rUqRAzj5amPHqSxxX70QofP0XkvQdbF_Jc2xmOy6Vs5rclSbWgQKtByu_wYO6IealOvwSIvelNLYT0VMvBRGvc" />
-                                        </div>
-                                        <div className="absolute bottom-1 right-1 w-5 h-5 bg-primary border-2 border-white rounded-full" title="Online"></div>
-                                    </div>
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase">Online</span>
-                                </div>
-                                <div className="mb-4">
-                                    <h3 className="font-headline-md text-xl mb-1 text-on-surface">Arpita Sharma</h3>
-                                    <p className="text-on-surface-variant font-body-md text-sm mb-4">Senior Trauma & CBT Specialist</p>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">CBT</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Trauma</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">EN / HI</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto flex flex-col gap-3">
-                                    <button onClick={() => { setModalAction('request'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer">Request Session</button>
-                                    <button onClick={() => { setModalAction('profile'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer">View Profile</button>
-                                </div>
-                            </div>
+                                            <div className="mb-4">
+                                                <h3 className="font-headline-md text-xl mb-1 text-on-surface">
+                                                    {coach.name || coach.user?.display_name || "Specialist"}
+                                                </h3>
+                                                <p className="text-on-surface-variant font-body-md text-sm mb-4 line-clamp-1">
+                                                    {coach.specializations && coach.specializations.length > 0 ? coach.specializations.join(" • ") : "Support Specialist"}
+                                                </p>
+                                                <div className="flex flex-wrap gap-2 mb-6">
+                                                    {(coach.specializations || []).map((spec, idx) => (
+                                                        <span key={idx} className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
+                                                            {spec}
+                                                        </span>
+                                                    ))}
+                                                    <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
+                                                        {(coach.languages || ['EN']).join(' / ').toUpperCase()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-on-surface-variant text-sm line-clamp-3 leading-relaxed">
+                                                    {coach.bio || "Vetted psychological assistance agent verified under structural safety policies."}
+                                                </p>
+                                            </div>
 
-                            {/* Coach Card 2 */}
-                            <div style={{ display: matchesFilters('AWAY', ['ANXIETY'], 'EN GU') ? 'flex' : 'none' }} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-                                            <img alt="Coach Rohan" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiVdeFe8xquq-k8E1VXlG9rOh6Ocg1KsUICSRn30VaKCjOFKr4ETv0p10Smw0Nb0FHqLc8XSJ1Ky7gvx0mDQlWiPralBk7Kcv8i2Vo6NbMLawl4-hyYLAF3Pv0F1LD-WMaKYRlGsCLT4Rwzb9UDkiW7yMZ1AfwFzB-R-pUCx8AQ_3JsVYCewlJEhMUZiKbjoy0K9Xnjlbog49kgi5M6KSuUsmoURW1fyzuJ75T7bwtH3qHQMRSp44x-RaVT4mh3K_ya-pzVe8jXNu7" />
+                                            <div className="mt-auto flex flex-col gap-3">
+                                                <button 
+                                                    onClick={() => handleSessionRequest(coach.id)} 
+                                                    className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
+                                                >
+                                                    Request Session
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        if (!token) {
+                                                            setModalAction('profile');
+                                                            setIsLoginModalOpen(true);
+                                                        } else {
+                                                            navigate(`/coach/${coach.id}`);
+                                                        }
+                                                    }} 
+                                                    className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer"
+                                                >
+                                                    View Profile
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="absolute bottom-1 right-1 w-5 h-5 bg-outline-variant border-2 border-white rounded-full" title="Away"></div>
-                                    </div>
-                                    <span className="bg-on-surface-variant/10 text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase">Away</span>
-                                </div>
-                                <div className="mb-4">
-                                    <h3 className="font-headline-md text-xl mb-1 text-on-surface">Rohan Mehta</h3>
-                                    <p className="text-on-surface-variant font-body-md text-sm mb-4">Mindfulness & Anxiety Specialist</p>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Anxiety</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Mindfulness</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">EN / GU</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto flex flex-col gap-3">
-                                    <button onClick={() => { setModalAction('request'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer">Request Session</button>
-                                    <button onClick={() => { setModalAction('profile'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer">View Profile</button>
-                                </div>
-                            </div>
-
-                            {/* Coach Card 3 */}
-                            <div style={{ display: matchesFilters('ONLINE', [], 'EN') ? 'flex' : 'none' }} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-                                            <img alt="Coach Sarah" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVFbw5f0Xd0xlsGKFbJZC5Bspf1o-VolH49isG4c0TKaWIFQm-hGEzHaZUvE2WGAmY9oKEAWCErm-s7qocsL872qF6gsT4onYTm54Tjww7A_r_gqI-z_6aNEF4s-NsEoWT9WlrqiEFGNz71W2FmnaLJV6mHf6uSwJVdHnpdpxZsGmD5vflAL3bfPsKduy96lfyAazRZt9FkJykq7uiCv53UDDSnz1UDPGbiyHt0z48BYHx5hErfRzSjzI7v8zBbWcw8PWXRJ6n0NMV" />
-                                        </div>
-                                        <div className="absolute bottom-1 right-1 w-5 h-5 bg-primary border-2 border-white rounded-full" title="Online"></div>
-                                    </div>
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase">Online</span>
-                                </div>
-                                <div className="mb-4">
-                                    <h3 className="font-headline-md text-xl mb-1 text-on-surface">Dr. Sarah Jenkins</h3>
-                                    <p className="text-on-surface-variant font-body-md text-sm mb-4">Grief & Relationship Counselor</p>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Relationships</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Grief</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">EN</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto flex flex-col gap-3">
-                                    <button onClick={() => { setModalAction('request'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer">Request Session</button>
-                                    <button onClick={() => { setModalAction('profile'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer">View Profile</button>
-                                </div>
-                            </div>
-
-                            {/* Coach Card 4 */}
-                            <div style={{ display: matchesFilters('AWAY', [], 'EN') ? 'flex' : 'none' }} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-                                            <img alt="Coach Michael" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA00BQwFDLXxhk_46ogGT17c-26HJ9zE5GJJsE94OKDcTCw6AM3-Hqv86Y3BJ-5EA6zu7S2AYhslpF4-3OnsCzYudnleUrD9om60mFvfNPU3qyLMap2yuJMp1YtQ8L0IIhOtNDGHq25XgTnnhewssZ1bSE8bdafU6Q1xhu0gcm7sNYf6YX8ELioMaaEnsKoWQPJcGqIdLHfABoNvsHSlUzFKEWBWU4qvQYzDqwyy4NMcgUxqqat2BEqEtltabLOscBZly5Alp-0EJK" />
-                                        </div>
-                                        <div className="absolute bottom-1 right-1 w-5 h-5 bg-outline-variant border-2 border-white rounded-full" title="Away"></div>
-                                    </div>
-                                    <span className="bg-on-surface-variant/10 text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase">Away</span>
-                                </div>
-                                <div className="mb-4">
-                                    <h3 className="font-headline-md text-xl mb-1 text-on-surface">Michael Chen</h3>
-                                    <p className="text-on-surface-variant font-body-md text-sm mb-4">Adolescent & School Counselor</p>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Teens</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">Academic Stress</span>
-                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">EN</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto flex flex-col gap-3">
-                                    <button onClick={() => { setModalAction('request'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer">Request Session</button>
-                                    <button onClick={() => { setModalAction('profile'); setIsLoginModalOpen(true); }} className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer">View Profile</button>
-                                </div>
-                            </div>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
                 </div>
@@ -249,15 +312,15 @@ export default function CoachDirectory() {
             {/* Bottom Navigation Bar (Mobile) */}
             <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 lg:hidden shadow-[0_-4px_20px_-2px_rgba(118,138,126,0.05)]">
                 <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1">auto_awesome</span>
+                    <Sparkles className="w-5 h-5 mb-1" />
                     <span className="font-label-sm text-[10px] font-semibold">Wall</span>
                 </button>
                 <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-110 cursor-pointer">
-                    <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                    <Smile className="w-5 h-5 mb-1" />
                     <span className="font-label-sm text-[10px] font-semibold">Coaches</span>
                 </button>
                 <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1">library_books</span>
+                    <BookOpen className="w-5 h-5 mb-1" />
                     <span className="font-label-sm text-[10px] font-semibold">Resources</span>
                 </button>
             </nav>
@@ -268,9 +331,7 @@ export default function CoachDirectory() {
                     <div className="glass-card w-full max-w-[400px] p-8 rounded-2xl shadow-2xl transition-all duration-300 transform flex flex-col text-center">
 
                         <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                            <span className="material-symbols-outlined text-3xl">
-                                {modalAction === 'request' ? 'lock' : 'account_circle'}
-                            </span>
+                            {modalAction === 'request' ? <Lock className="w-7 h-7" /> : <UserCheck className="w-7 h-7" />}
                         </div>
 
                         <h3 className="font-headline-md text-2xl font-bold text-on-surface mb-3">

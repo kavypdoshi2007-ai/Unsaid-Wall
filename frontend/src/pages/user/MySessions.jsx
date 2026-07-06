@@ -23,6 +23,8 @@ export default function MySessions() {
     const endOfMessagesRef = useRef(null);
     const token = localStorage.getItem('token');
 
+    
+
     // 1. DISCOVER ACTIVE USER SESSIONS ON ENGINE BOOT
     useEffect(() => {
         if (!token) {
@@ -76,13 +78,17 @@ export default function MySessions() {
         if (!token || !activeSessionId) return;
 
         // Establish connection matching the backend root parameters
-        socketRef.current = io({ auth: { token } });
+        socketRef.current = io('https://diminish-waving-shore.ngrok-free.dev', { 
+            transports: ['websocket'],
+            auth: { token } 
+        });
 
         // Notify server rooms about connection channel assignment
         socketRef.current.emit('join_session', { sessionId: activeSessionId });
 
         // Listen for real-time incoming messaging updates
-        socketRef.current.on('new_incoming_message', (msg) => {
+        socketRef.current.on('receive_message', (msg) => {
+            console.log("Real-time message received:", msg);
             setMessages((prev) => [...prev, msg]);
         });
 
@@ -336,20 +342,32 @@ export default function MySessions() {
                     </div>
 
                     {/* Message Composition Area */}
-                    <form onSubmit={sendMessage} className="p-6 bg-white/40 backdrop-blur-xl border-t border-outline-variant/10 shrink-0 pb-[90px] md:pb-6">
-                        <div className="flex items-center gap-3 bg-surface-container-lowest border border-primary/20 rounded-2xl p-2 pr-4 shadow-inner">
-                            <input
-                                disabled={!activeSessionId}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 px-4 outline-none text-on-surface disabled:opacity-50"
-                                placeholder={activeSessionId ? "Share what's on your mind..." : "Waiting for channel verification options..."}
-                            />
-                            <button type="submit" disabled={!activeSessionId} className="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer disabled:opacity-50">
-                                <span className="material-symbols-outlined">send</span>
-                            </button>
-                        </div>
-                    </form>
+                <form onSubmit={sendMessage} className="p-6 bg-white/40 backdrop-blur-xl border-t border-outline-variant/10 shrink-0 pb-[90px] md:pb-6">
+                    <div className="flex items-center gap-3 bg-surface-container-lowest border border-primary/20 rounded-2xl p-2 pr-4 shadow-inner">
+                        <input
+                            // ✅ FIX: Disable input if session doesn't exist OR if it isn't explicitly active
+                            disabled={!activeSessionId || activeSession?.status !== 'active'}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 px-4 outline-none text-on-surface disabled:opacity-50"
+                            placeholder={
+                                !activeSessionId 
+                                    ? "Waiting for channel verification options..." 
+                                    : activeSession?.status !== 'active'
+                                        ? `This session is ${activeSession?.status || 'closed'}.`
+                                        : "Share what's on your mind..."
+                            }
+                        />
+                        <button 
+                            type="submit" 
+                            // ✅ FIX: Disable the submit button matching the new guard logic
+                            disabled={!activeSessionId || activeSession?.status !== 'active'} 
+                            className="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                </form>
                 </section>
 
                 {/* Profile Meta Sidebar */}
