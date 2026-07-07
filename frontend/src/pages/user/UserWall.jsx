@@ -300,7 +300,7 @@ export default function UserWall() {
                     <div className="hidden md:flex items-center gap-6">
                         <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-primary">Wall</button>
                         <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-outline">Journal</button>
-                        <button onClick={() => navigate('/coach-profile')} className="font-label-sm font-semibold text-outline">Coaches</button>
+                        <button onClick={() => navigate('/coach-directory')} className="font-label-sm font-semibold text-outline">Coaches</button>
                         <button onClick={() => navigate('/my-sessions')} className="font-label-sm font-semibold text-outline">Sessions</button>
                         <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline">Resources</button>
                     </div>

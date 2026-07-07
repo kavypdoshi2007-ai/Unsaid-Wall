@@ -44,6 +44,7 @@ export default function App() {
         {/* COACH ROUTES */}
         <Route path="/coach-dashboard" element={<CoachDashboard />} />
         <Route path="/coach-chat" element={<CoachChat />} />
+        <Route path="/coaches/:id" element={<CoachProfile />} />
 
         {/* ADMIN ROUTES */}
         <Route path="/admin-dashboard" element={<AdminDashboard />} />

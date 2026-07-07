@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
     // 4. Coach Profiles & Interactive Requests
     COACHES: {
         GET_ALL: `${BACKEND_URL}/coaches`,
+        GET_BY_ID: (id) => `${BACKEND_URL}/coaches/${id}`,
         CREATE_PROFILE: `${BACKEND_URL}/coaches`,
         GET_MY_PROFILE: `${BACKEND_URL}/coaches/me`,
         REQUEST_SESSION: `${BACKEND_URL}/coaches/request-session`

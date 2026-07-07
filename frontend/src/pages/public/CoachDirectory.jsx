@@ -286,15 +286,9 @@ export default function CoachDirectory() {
                                                 >
                                                     Request Session
                                                 </button>
+                                                {/* Connected with dynamic profile routing link rules */}
                                                 <button 
-                                                    onClick={() => {
-                                                        if (!token) {
-                                                            setModalAction('profile');
-                                                            setIsLoginModalOpen(true);
-                                                        } else {
-                                                            navigate(`/coach/${coach.id}`);
-                                                        }
-                                                    }} 
+                                                    onClick={() => navigate(`/coaches/${coach.id}`)} 
                                                     className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer"
                                                 >
                                                     View Profile
