@@ -1,54 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../../config/api'; // Central configuration endpoints[cite: 6]
 
 export default function PrivateJournal() {
     const navigate = useNavigate();
     const [entryText, setEntryText] = useState('');
-    const [savedEntries, setSavedEntries] = useState([]);
+    const [selectedEmotion, setSelectedEmotion] = useState('calm'); 
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 1. Load saved entries from the browser's local storage when the page opens
-    useEffect(() => {
-        const storedEntries = JSON.parse(localStorage.getItem('unsaid_private_journals')) || [];
-        setSavedEntries(storedEntries);
-    }, []);
+    const TOKEN_KEY = 'token';
 
-    // 2. Handle saving the new entry
-    const handleSave = () => {
-        if (!entryText.trim()) return; // Don't save empty entries
+    // --- Cryptographic JWT ID Extractor Helper ---
+    function getActiveUserId() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token || token === "null" || token === "undefined") return null;
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(window.atob(base64));
+            return payload.id || payload.userId || payload.user_id;
+        } catch (e) {
+            console.error("Failed to safely parse incoming JWT authentication segments:", e);
+            return null;
+        }
+    }
 
-        const newEntry = {
-            id: Date.now(),
-            text: entryText,
-            date: new Date().toLocaleDateString('en-US', {
-                weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            })
+    // --- Auth Headers Helper ---
+    function getAuthHeaders() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return null;
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
         };
+    }
 
-        const updatedEntries = [newEntry, ...savedEntries];
+    // --- Handle saving the new entry to Database ---
+    const handleSave = async () => {
+        if (!entryText.trim()) return;
 
-        // Update the screen
-        setSavedEntries(updatedEntries);
+        const headers = getAuthHeaders();
+        const userId = getActiveUserId();
 
-        // Save privately to the browser
-        localStorage.setItem('unsaid_private_journals', JSON.stringify(updatedEntries));
+        if (!headers || !userId) {
+            alert("Authentication Error: Invalid or expired session token. Please log back in.");
+            return;
+        }
 
-        // Clear the text box
-        setEntryText('');
+        setIsSubmitting(true);
+
+        try {
+            // Uses your central API endpoints map architecture directly[cite: 6]
+            const targetUrl = API_ENDPOINTS.JOURNAL.CREATE(userId);
+
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    emotion: selectedEmotion, 
+                    intensity: 'med',
+                    note: entryText.trim() 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server tracking returned error status: ${response.status}`);
+            }
+
+            // Route user directly back to dashboard layout to view updated feed metrics
+            navigate('/emotion-journal');
+        } catch (err) {
+            console.error("Error submitting entry to database:", err);
+            alert(`Failed to save entry securely: ${err.message}`);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div className="bg-background text-on-surface min-h-screen pb-24">
-
-            {/* CLEANED HEADER: With Resources Added */}
+            {/* HEADER */}
             <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
                 <div className="flex justify-between items-center px-container-padding h-16 w-full max-w-7xl mx-auto">
-                    {/* Left: Logo */}
                     <div onClick={() => navigate('/user-wall')} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                         <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
                         <span className="font-headline-md text-[20px] font-bold text-primary tracking-tight">Unsaid Wall</span>
                     </div>
 
-                    {/* Right: Nav Links ONLY */}
                     <div className="hidden md:flex items-center gap-6">
                         <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
                         <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Journal</button>
@@ -58,12 +97,29 @@ export default function PrivateJournal() {
                     </div>
                 </div>
             </header>
+
             <main className="pt-24 px-container-padding max-w-[720px] mx-auto space-y-8">
-                {/* Composer Section */}
                 <section className="space-y-4">
                     <div>
                         <h2 className="text-2xl font-bold text-on-surface">Clear your mind.</h2>
                         <p className="text-on-surface-variant mt-1">This space is entirely yours. Nothing written here is shared or monitored.</p>
+                    </div>
+
+                    {/* Emotion Picker Selection Layout */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-outline">What is your baseline emotional posture?</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['sad', 'calm', 'anxious', 'joy', 'tired'].map((emo) => (
+                                <button
+                                    key={emo}
+                                    type="button"
+                                    onClick={() => setSelectedEmotion(emo)}
+                                    className={`px-4 py-2 text-xs font-bold rounded-full capitalize border transition-all ${selectedEmotion === emo ? 'bg-primary text-white border-primary' : 'bg-white text-on-surface-variant border-outline-variant/30'}`}
+                                >
+                                    {emo}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="glass-card p-4 rounded-xl border border-primary/20 bg-white/60">
@@ -81,42 +137,17 @@ export default function PrivateJournal() {
                             </span>
                             <button
                                 onClick={handleSave}
-                                disabled={!entryText.trim()}
+                                disabled={!entryText.trim() || isSubmitting}
                                 className="px-6 py-2.5 bg-primary text-white font-bold rounded-full shadow-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer">
-                                <span>Save Journal</span>
+                                <span>{isSubmitting ? 'Syncing...' : 'Save Journal'}</span>
                                 <span className="material-symbols-outlined text-sm">bookmark</span>
                             </button>
                         </div>
                     </div>
                 </section>
-
-                {/* Previous Entries Feed */}
-                <section className="space-y-6 pt-8">
-                    <h3 className="font-headline-md text-lg text-outline">Past Entries</h3>
-
-                    {savedEntries.length === 0 ? (
-                        <p className="text-on-surface-variant italic text-center py-10 bg-surface-container-lowest rounded-xl border border-outline-variant/20">
-                            Your private journal is currently empty.
-                        </p>
-                    ) : (
-                        <div className="space-y-4">
-                            {savedEntries.map((entry) => (
-                                <article key={entry.id} className="bg-white/80 p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-                                    <div className="flex items-center gap-2 mb-4 text-on-surface-variant">
-                                        <span className="material-symbols-outlined text-sm">schedule</span>
-                                        <span className="text-xs font-bold uppercase tracking-wider">{entry.date}</span>
-                                    </div>
-                                    <p className="text-on-surface whitespace-pre-wrap leading-relaxed">
-                                        {entry.text}
-                                    </p>
-                                </article>
-                            ))}
-                        </div>
-                    )}
-                </section>
             </main>
 
-            {/* Bottom Navigation Bar (MOBILE ONLY) - Now with 5 items */}
+            {/* Mobile Bottom Bar navigation UI component */}
             <div className="fixed bottom-0 left-0 w-full md:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
                 <button onClick={() => navigate('/user-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
                     <span className="material-symbols-outlined mb-1 text-xl">auto_awesome</span>
