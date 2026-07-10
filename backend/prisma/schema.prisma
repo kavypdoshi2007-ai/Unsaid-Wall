@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PhoneOtpVerification {
+  id                String   @id @default(uuid()) @db.Uuid
+  phone_number      String   @unique
+  password_hash     String
+  display_name_pool String[]
+  otp_code          String
+  expires_at        DateTime
+  created_at        DateTime @default(now())
+}
+
+model User {
+  id                String           @id @default(uuid()) @db.Uuid
+  phone_number      String           @unique
+  password_hash     String
+  display_name_pool String[]
+  role              UserRole         @default(user)
+  is_verified       Boolean          @default(false)
+  is_banned         Boolean          @default(false)
+  created_at        DateTime         @default(now())
+  announcements     Announcement[]
+  coach_profile     Coach?
+  comments          Comment[]
+  journal_entries   EmotionJournal[]
+  messages_sent     Message[]
+  posts             Post[]
+  reactions         Reaction[]
+  resources_created Resource[]
+  user_sessions     Session[]        @relation("UserSessions")
+}
+
+model Post {
+  id            String          @id @default(uuid()) @db.Uuid
+  user_id       String          @db.Uuid
+  content       String          @db.VarChar(280)
+  display_name  String
+  emotion       EmotionType
+  intensity     IntensityLevel
+  language      LanguageCode
+  is_flagged    Boolean         @default(false)
+  flag_level    FlagLevel       @default(safe)
+  is_hidden     Boolean         @default(false)
+  created_at    DateTime        @default(now())
+  comments      Comment[]
+  journal_entry EmotionJournal?
+  user          User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reactions     Reaction[]
+}
+
+model Reaction {
+  id            String       @id @default(uuid()) @db.Uuid
+  post_id       String       @db.Uuid
+  user_id       String       @db.Uuid
+  reaction_type ReactionType
+  post          Post         @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+}
+
+model Coach {
+  id              String             @id @default(uuid()) @db.Uuid
+  user_id         String             @unique @db.Uuid
+  bio             String             @db.VarChar(200)
+  specializations String[]
+  languages       String[]
+  availability    AvailabilityStatus @default(available)
+  rating          Decimal            @default(0.0) @db.Decimal(3, 2)
+  sessions_count  Int                @default(0)
+  invite_token    String?
+  name            String?
+  user            User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  coach_sessions  Session[]          @relation("CoachSessions")
+}
+
+model Session {
+  id              String        @id @default(uuid()) @db.Uuid
+  user_id         String        @db.Uuid
+  coach_id        String?       @db.Uuid
+  status          SessionStatus @default(pending)
+  context_message String?
+  rating          Int?
+  coach_notes     String?       @default("")
+  started_at      DateTime      @default(now())
+  ended_at        DateTime?
+  messages        Message[]
+  coach           Coach?        @relation("CoachSessions", fields: [coach_id], references: [id], onDelete: Cascade)
+  user            User          @relation("UserSessions", fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id           String      @id @default(uuid()) @db.Uuid
+  session_id   String      @db.Uuid
+  sender_id    String      @db.Uuid
+  content      String
+  message_type MessageType @default(text)
+  created_at   DateTime    @default(now())
+  sender       User        @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  session      Session     @relation(fields: [session_id], references: [id], onDelete: Cascade)
+}
+
+model EmotionJournal {
+  id         String         @id @default(uuid()) @db.Uuid
+  user_id    String         @db.Uuid
+  emotion    EmotionType
+  intensity  IntensityLevel
+  post_id    String?        @unique @db.Uuid
+  note       String?
+  created_at DateTime       @default(now())
+  post       Post?          @relation(fields: [post_id], references: [id])
+  user       User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id         String    @id @default(uuid()) @db.Uuid
+  admin_id   String    @db.Uuid
+  content    String
+  link       String?
+  is_pinned  Boolean   @default(false)
+  expires_at DateTime?
+  created_at DateTime  @default(now())
+  admin      User      @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+}
+
+model Resource {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  type        String
+  url         String?
+  content     String?
+  category    String
+  is_pinned   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  creator_id  String   @db.Uuid
+  creator     User     @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  content    String   @db.VarChar(500)
+  created_at DateTime @default(now())
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  user
+  coach
+  admin
+}
+
+enum EmotionType {
+  ANXIOUS
+  SAD
+  ANGRY
+  LONELY
+  OVERWHELMED
+  HOPEFUL
+  NUMB
+  CONFUSED
+}
+
+enum IntensityLevel {
+  low
+  med
+  high
+}
+
+enum LanguageCode {
+  en
+  hi
+  gu
+}
+
+enum FlagLevel {
+  safe
+  concerning
+  crisis
+}
+
+enum ReactionType {
+  HEAR_YOU
+  NOT_ALONE
+  STRENGTH
+  WILL_PASS
+}
+
+enum SessionStatus {
+  pending
+  active
+  completed
+  declined
+}
+
+enum AvailabilityStatus {
+  available
+  busy
+  away
+}
+
+enum MessageType {
+  text
+  resource
+}
