@@ -157,9 +157,9 @@ export default function CoachChat() {
                             const metaData = await metaRes.json();
                             setSessionMeta(metaData);
                             
-                            if (metaData.reviewNotes || metaData.notes) {
-                                setPrivateNotes(metaData.reviewNotes || metaData.notes);
-                                setLastSavedNote(metaData.reviewNotes || metaData.notes); 
+                            if (metaData.coach_notes) {
+                                setPrivateNotes(metaData.coach_notes);
+                                setLastSavedNote(metaData.coach_notes);
                             }
 
                             // PASS THE METADATA HERE to get the User ID dynamically from the DB
@@ -456,7 +456,9 @@ export default function CoachChat() {
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between items-center">
-                                                <p className="font-bold text-sm">{latestPost?.emotion || "High Stress"}</p>
+                                                <p className="font-bold text-sm">
+                                                    {latestPost?.emotion || latestPost?.sentiment || "High Stress"}
+                                                </p>
                                                 <span className="text-[11px] text-on-surface-variant">Emotion</span>
                                             </div>
                                         </div>
@@ -468,7 +470,9 @@ export default function CoachChat() {
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between items-center">
-                                                <p className="font-bold text-sm">Intensity: {latestPost?.intensity ? `${latestPost.intensity}%` : "80%"}</p>
+                                                <p className="font-bold text-sm">
+                                                    Intensity: {latestPost?.intensity || latestPost?.score || "80%"}
+                                                </p>
                                                 <span className="text-[11px] text-on-surface-variant">Level</span>
                                             </div>
                                             <div className="w-full bg-surface-container-highest h-1 rounded-full mt-1">
@@ -688,14 +692,14 @@ export default function CoachChat() {
                                             disabled={!sessionId}
                                             className="px-3 py-1 bg-primary text-on-primary text-xs font-bold rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                                         >
-                                            Save Note
+                                            {lastSavedNote ? 'Update Note' : 'Add Note'}
                                         </button>
                                     </div>
                                 </div>
                                 <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
                                     <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Previous Insight</h4>
                                     <p className="text-xs leading-relaxed text-on-surface italic">
-                                        {lastSavedNote ? `"${lastSavedNote}"` : `"No insights saved yet. Type a note above and press Save Note."`}
+                                        {lastSavedNote ? `"${lastSavedNote}"` : `"No insights saved yet. Type a note above and press Add Note."`}
                                     </p>
                                 </div>
                             </div>
