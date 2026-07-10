@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     // 2. Expression Posts (Wall Timeline)
     POSTS: {
         GET_FEED: `${BACKEND_URL}/posts`, // Accessible by guest, user, coach, admin
+        GET_MOD_QUEUE: `${BACKEND_URL}/posts/moderation-queue`,
         PREVIEW_USERNAME: `${BACKEND_URL}/posts/username`, // Get dynamic name on-the-fly
         CREATE: `${BACKEND_URL}/posts`,
         ADD_COMMENT: (postId) => `${BACKEND_URL}/posts/${postId}/comments` // For coaches only

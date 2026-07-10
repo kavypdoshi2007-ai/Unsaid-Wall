@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, ChevronDown, Sparkles, Smile, BookOpen, Shield, Lock, UserCheck, AlertCircle } from 'lucide-react';
-import { API_ENDPOINTS } from '../../config/api'; 
+import { Filter, ChevronDown, Lock, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import { API_ENDPOINTS } from '../../config/api';
 
 export default function CoachDirectory() {
-    const [coaches, setCoaches] = useState([]); 
+    const [coaches, setCoaches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [modalAction, setModalAction] = useState('request'); 
+    const [modalAction, setModalAction] = useState('request');
+
+    // 🌟 Controls switching between the Grid and the Profile view
+    const [selectedCoach, setSelectedCoach] = useState(null);
 
     const navigate = useNavigate();
-    const token = localStorage.getItem('token'); 
 
     // Filter States
     const [activeLanguage, setActiveLanguage] = useState('EN');
@@ -25,8 +27,7 @@ export default function CoachDirectory() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true',
-                ...(token && { 'Authorization': `Bearer ${token}` })
+                'ngrok-skip-browser-warning': 'true'
             }
         })
             .then((res) => {
@@ -42,40 +43,7 @@ export default function CoachDirectory() {
                 console.error("Error capturing live coach nodes:", err);
                 setIsLoading(false);
             });
-    }, [token]);
-
-    // 2. DISPATCH LIVE HANDSHAKE SESSION CREATION REQUEST
-    const handleSessionRequest = async (coachId) => {
-        if (!token) {
-            setModalAction('request');
-            setIsLoginModalOpen(true);
-            return;
-        }
-
-        try {
-            const response = await fetch(API_ENDPOINTS.SESSIONS.CREATE, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: JSON.stringify({ coach_id: coachId })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert("Workspace requested successfully! Redirecting to sessions dashboard...");
-                navigate('/my-sessions'); 
-            } else {
-                alert(result.error || "Could not complete session booking handshake.");
-            }
-        } catch (err) {
-            console.error("Session creation mutation exception caught:", err);
-            alert("Network pipeline exception dropped your request. Try again.");
-        }
-    };
+    }, []);
 
     const handleSpecChange = (spec) => {
         if (spec === 'ALL') {
@@ -91,23 +59,18 @@ export default function CoachDirectory() {
         }
     };
 
-    // 🌟 FIXED: Bulletproof case-insensitive filter matching logic
     const matchesFilters = (coach) => {
-        // 1. Language Check
         const normalizedLangs = (coach.languages || []).map(lang => lang.toUpperCase());
         const hasLang = normalizedLangs.some(lang => lang.includes(activeLanguage.toUpperCase()));
-        
-        // 2. Specialization Check
+
         let hasSpec = true;
         if (!isAllSpecs && activeSpecs.length > 0) {
             const cardSpecs = (coach.specializations || []).map(s => s.toUpperCase());
-            // Matches if any active spec search string is a substring of what's inside the database array
-            hasSpec = activeSpecs.some(filterSpec => 
+            hasSpec = activeSpecs.some(filterSpec =>
                 cardSpecs.some(dbSpec => dbSpec.includes(filterSpec.toUpperCase()))
             );
         }
 
-        // 3. Availability Check
         const dbStatus = (coach.availability || 'away').toLowerCase();
         let hasAvailability = true;
         if (activeAvailability === 'Online Now' && dbStatus !== 'available') {
@@ -118,234 +81,344 @@ export default function CoachDirectory() {
     };
 
     return (
-        <div className="bg-background text-on-surface antialiased custom-scrollbar">
-            {/* Top Navigation Header */}
-            <header className="bg-surface/80 backdrop-blur-xl docked full-width top-0 sticky z-40 shadow-[0_4px_20px_-2px_rgba(118,138,126,0.08)]">
-                <nav className="flex justify-between items-center w-full px-container-padding py-4 max-w-screen-xl mx-auto">
-                    <div className="flex items-center gap-8">
-                        <span onClick={() => navigate('/')} className="font-display-lg-mobile text-display-lg-mobile font-semibold text-primary cursor-pointer hover:opacity-80">Unsaid Wall</span>
-                        <div className="hidden lg:flex items-center gap-8">
-                            <button onClick={() => navigate('/guest-wall')} className="font-label-sm text-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
-                            <button onClick={() => navigate('/coach-profile')} className="font-label-sm text-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Coaches</button>
-                            <button onClick={() => navigate('/resources')} className="font-label-sm text-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                        </div>
+        <div className="bg-background text-on-surface antialiased custom-scrollbar min-h-screen">
+
+            {/* 🌟 PUBLIC DESKTOP NAVBAR (No Journal, No Sessions) */}
+            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0px_4px_20px_rgba(5,139,3,0.05)] border-b border-outline-variant/10">
+                <div className="flex items-center justify-between px-6 h-16 w-full max-w-screen-xl mx-auto">
+                    <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform hover:opacity-80">
+                        <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
+                        <h1 className="font-display-lg-mobile text-display-lg-mobile text-primary tracking-tight font-bold">Unsaid Wall</h1>
                     </div>
-                    <div>
-                        <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">
-                            Login / Register
-                        </button>
+                    <div className="hidden md:flex items-center gap-6">
+                        <button onClick={() => navigate('/guest-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
+                        <button onClick={() => { setSelectedCoach(null); navigate('/coach-directory'); }} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Coaches</button>
+                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
+                        <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">Login / Register</button>
                     </div>
-                </nav>
+                </div>
             </header>
 
-            <main className="max-w-screen-xl mx-auto px-container-padding py-12">
-                <div className="flex flex-col lg:flex-row gap-12">
-                    
-                    {/* Sidebar Filters */}
-                    <aside className="w-full lg:w-72 flex-shrink-0">
-                        <div className="sidebar-sticky">
-                            <div className="glass-card p-6 rounded-lg border border-outline-variant/20 flex flex-col gap-8">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <Filter className="w-5 h-5 text-primary" />
-                                        <h2 className="font-headline-md text-xl text-on-surface">Filters</h2>
-                                    </div>
+            <main className="max-w-screen-xl mx-auto px-container-padding py-12 pt-28">
 
-                                    {/* Specialization */}
-                                    <div className="mb-6">
-                                        <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Specialization</label>
-                                        <div className="flex flex-col gap-2">
-                                            <label className="flex items-center gap-3 cursor-pointer group">
-                                                <input checked={isAllSpecs} onChange={() => handleSpecChange('ALL')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
-                                                <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">All Specializations</span>
-                                            </label>
-                                            <label className="flex items-center gap-3 cursor-pointer group">
-                                                <input checked={activeSpecs.includes('CBT')} onChange={() => handleSpecChange('CBT')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
-                                                <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">CBT Therapy</span>
-                                            </label>
-                                            <label className="flex items-center gap-3 cursor-pointer group">
-                                                <input checked={activeSpecs.includes('TRAUMA')} onChange={() => handleSpecChange('TRAUMA')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
-                                                <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">Trauma Recovery</span>
-                                            </label>
-                                            <label className="flex items-center gap-3 cursor-pointer group">
-                                                <input checked={activeSpecs.includes('ANXIETY')} onChange={() => handleSpecChange('ANXIETY')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
-                                                <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">Anxiety & Stress</span>
-                                            </label>
+                {/* 🌟 CONDITIONAL RENDERING: Show Profile if selected, otherwise show Grid */}
+                {selectedCoach ? (
+
+                    /* --- PUBLIC PROFILE VIEW --- */
+                    <div className="space-y-8 animate-fade-in">
+                        <button
+                            onClick={() => setSelectedCoach(null)}
+                            className="flex items-center gap-2 text-primary font-bold hover:opacity-80 transition-opacity cursor-pointer w-max"
+                        >
+                            <ArrowLeft className="w-5 h-5" /> Back to Directory
+                        </button>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-12">
+                            {/* Left Column: Bio */}
+                            <div className="lg:col-span-8 space-y-12">
+                                <section className="flex flex-col md:flex-row gap-8 items-start">
+                                    <div className="relative group">
+                                        <img
+                                            alt={selectedCoach.name || selectedCoach.user?.display_name || "Practitioner Avatar"}
+                                            className="relative w-full md:w-64 aspect-[4/5] object-cover rounded-xl shadow-xl shadow-primary/5"
+                                            src={selectedCoach.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=512"}
+                                        />
+                                    </div>
+                                    <div className="flex-1 space-y-4">
+                                        <div className="space-y-1">
+                                            <span className="text-primary font-label-sm tracking-wider uppercase">{selectedCoach.title || "Senior Accredited Coach"}</span>
+                                            <h1 className="font-display-lg text-display-lg text-on-surface">{selectedCoach.name || selectedCoach.user?.display_name || "Specialist"}</h1>
+                                            <p className="text-on-surface-variant font-body-lg italic">{selectedCoach.tagline || "Clinical Psychologist & Emotional Wellness Specialist"}</p>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(selectedCoach.specializations || []).map((spec, index) => (
+                                                <span key={index} className="px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-semibold capitalize">
+                                                    {String(spec).toLowerCase()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="pt-4 flex gap-8 border-t border-outline-variant/20">
+                                            <div>
+                                                <p className="text-[32px] font-bold text-primary">{selectedCoach.rating || "0.0"}</p>
+                                                <p className="text-label-sm text-on-surface-variant">Rating</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[32px] font-bold text-primary">{selectedCoach.experience_years || selectedCoach.experience || "10+"}</p>
+                                                <p className="text-label-sm text-on-surface-variant">Years Exp.</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[32px] font-bold text-primary">{selectedCoach.sessions_count || "0"}</p>
+                                                <p className="text-label-sm text-on-surface-variant">Sessions</p>
+                                            </div>
                                         </div>
                                     </div>
+                                </section>
 
-                                    {/* Language */}
-                                    <div className="mb-6">
-                                        <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Language</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {['English', 'Hindi', 'Gujarati'].map(lang => {
-                                                const code = lang === 'English' ? 'EN' : lang === 'Hindi' ? 'HI' : 'GU';
-                                                return (
-                                                    <button
-                                                        key={lang}
-                                                        onClick={() => setActiveLanguage(code)}
-                                                        className={`py-2 px-3 rounded-lg font-label-sm text-xs transition-colors ${activeLanguage === code
-                                                            ? 'border border-primary bg-primary text-on-primary'
-                                                            : 'border border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:border-primary'
-                                                            }`}>
-                                                        {lang}
-                                                    </button>
-                                                );
-                                            })}
+                                <section className="space-y-4">
+                                    <h2 className="font-headline-md text-headline-md text-on-surface">About {selectedCoach.name ? selectedCoach.name.split(' ')[0] : 'Specialist'}</h2>
+                                    <p className="font-body-lg text-on-surface-variant leading-relaxed max-w-2xl whitespace-pre-line">
+                                        {selectedCoach.bio || "I believe that every person carries an 'Unsaid Wall'—a collection of thoughts and feelings we find difficult to share. My practice focuses on creating a safe, non-judgmental space where these walls can be gently dismantled, allowing for genuine growth and renewed clarity."}
+                                    </p>
+                                </section>
+
+                                <section className="space-y-6">
+                                    <h2 className="font-headline-md text-headline-md text-on-surface">Philosophy & Approach</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="glass-card p-6 rounded-lg space-y-3 border-l-4 border-primary">
+                                            <span className="material-symbols-outlined text-primary text-3xl">psychology</span>
+                                            <h3 className="font-headline-md text-xl">Cognitive Compassion</h3>
+                                            <p className="text-on-surface-variant">{selectedCoach.approach_one || "Integrating evidence-based CBT with deep empathetic listening to address the root of emotional distress."}</p>
+                                        </div>
+                                        <div className="glass-card p-6 rounded-lg space-y-3 border-l-4 border-tertiary">
+                                            <span className="material-symbols-outlined text-tertiary text-3xl">eco</span>
+                                            <h3 className="font-headline-md text-xl">Growth Mindset</h3>
+                                            <p className="text-on-surface-variant">{selectedCoach.approach_two || "Focusing on your innate strengths rather than just clinical symptoms to build long-term resilience."}</p>
                                         </div>
                                     </div>
+                                </section>
+                            </div>
 
-                                    {/* Availability */}
-                                    <div className="mb-6">
-                                        <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Availability</label>
-                                        <div className="relative">
-                                            <select
-                                                value={activeAvailability}
-                                                onChange={(e) => setActiveAvailability(e.target.value)}
-                                                className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:outline-none appearance-none text-sm pr-10">
-                                                <option value="Anytime">Anytime</option>
-                                                <option value="Available Today">Available Today</option>
-                                                <option value="Available this Week">Available this Week</option>
-                                                <option value="Online Now">Online Now</option>
-                                            </select>
-                                            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+                            {/* Right Column: Secure Public Request Block */}
+                            <div className="lg:col-span-4">
+                                <div className="sticky top-24 bg-white/60 backdrop-blur-xl p-8 rounded-lg shadow-2xl shadow-primary/10 border-t-4 border-primary">
+                                    <h2 className="font-headline-md text-headline-md mb-2">Request a Session</h2>
+                                    <p className="text-on-surface-variant text-body-md mb-8">Start your journey toward quiet strength today.</p>
+
+                                    <div className="space-y-6">
+                                        <div className="p-4 bg-surface-container-low rounded-lg border border-outline-variant/30 text-center">
+                                            <UserCheck className="w-8 h-8 text-primary mx-auto mb-2" />
+                                            <p className="text-sm text-on-surface-variant">You are currently browsing the public directory.</p>
                                         </div>
+                                        {/* 🌟 LOCKED: Triggers Login Modal */}
+                                        <button
+                                            onClick={() => {
+                                                setModalAction('request');
+                                                setIsLoginModalOpen(true);
+                                            }}
+                                            className="w-full bg-primary hover:opacity-90 text-on-primary font-bold py-4 rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            Login to Book Session
+                                            <Lock className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </aside>
+                    </div>
 
-                    {/* Main Content Grid */}
-                    <div className="flex-1">
-                        <div className="mb-10">
-                            <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-4">Vetted Coaches</h1>
-                            <p className="text-on-surface-variant max-w-3xl font-body-lg text-body-lg">Every coach on our platform undergoes a rigorous vetting process to ensure you receive the highest quality of compassionate care.</p>
-                        </div>
+                ) : (
 
-                        {/* Coach Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                            {isLoading ? (
-                                <div className="col-span-full text-center py-32 text-on-surface-variant font-body-md flex flex-col items-center gap-3">
-                                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Syncing verified connections securely...</span>
-                                </div>
-                            ) : coaches.filter(matchesFilters).length === 0 ? (
-                                <div className="col-span-full text-center py-24 text-on-surface-variant font-body-md bg-surface-container-low rounded-lg border-2 border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-8">
-                                    <AlertCircle className="text-outline w-12 h-12 mb-4" />
-                                    <h3 className="font-headline-sm font-bold mb-1 text-on-surface">No matches found</h3>
-                                    <p className="text-sm max-w-sm">No specialists match your selected criteria right now. Try adjusting your filter parameters or timeline options.</p>
-                                </div>
-                            ) : (
-                                coaches.filter(matchesFilters).map((coach) => {
-                                    const isAvailable = coach.availability === 'available';
-                                    return (
-                                        <div key={coach.id} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div className="relative">
-                                                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-                                                        <img 
-                                                            alt={coach.name || coach.user?.display_name || "Coach Avatar"} 
-                                                            className="w-full h-full object-cover" 
-                                                            src={coach.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256"} 
-                                                        />
-                                                    </div>
-                                                    <div className={`absolute bottom-1 right-1 w-5 h-5 border-2 border-white rounded-full ${isAvailable ? 'bg-primary' : 'bg-outline-variant'}`} title={coach.availability}></div>
-                                                </div>
-                                                <span className={`px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase ${isAvailable ? 'bg-primary/10 text-primary' : 'bg-on-surface-variant/10 text-on-surface-variant'}`}>
-                                                    {coach.availability || 'away'}
-                                                </span>
-                                            </div>
+                    /* --- PUBLIC DIRECTORY GRID VIEW --- */
+                    <div className="flex flex-col lg:flex-row gap-12 animate-fade-in">
+                        {/* Sidebar Filters */}
+                        <aside className="w-full lg:w-72 flex-shrink-0">
+                            <div className="sidebar-sticky">
+                                <div className="glass-card p-6 rounded-lg border border-outline-variant/20 flex flex-col gap-8">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <Filter className="w-5 h-5 text-primary" />
+                                            <h2 className="font-headline-md text-xl text-on-surface">Filters</h2>
+                                        </div>
 
-                                            <div className="mb-4">
-                                                <h3 className="font-headline-md text-xl mb-1 text-on-surface">
-                                                    {coach.name || coach.user?.display_name || "Specialist"}
-                                                </h3>
-                                                <p className="text-on-surface-variant font-body-md text-sm mb-4 line-clamp-1">
-                                                    {coach.specializations && coach.specializations.length > 0 ? coach.specializations.join(" • ") : "Support Specialist"}
-                                                </p>
-                                                <div className="flex flex-wrap gap-2 mb-6">
-                                                    {(coach.specializations || []).map((spec, idx) => (
-                                                        <span key={idx} className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
-                                                            {spec}
-                                                        </span>
-                                                    ))}
-                                                    <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
-                                                        {(coach.languages || ['EN']).join(' / ').toUpperCase()}
-                                                    </span>
-                                                </div>
-                                                <p className="text-on-surface-variant text-sm line-clamp-3 leading-relaxed">
-                                                    {coach.bio || "Vetted psychological assistance agent verified under structural safety policies."}
-                                                </p>
-                                            </div>
-
-                                            <div className="mt-auto flex flex-col gap-3">
-                                                <button 
-                                                    onClick={() => handleSessionRequest(coach.id)} 
-                                                    className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
-                                                >
-                                                    Request Session
-                                                </button>
-                                                {/* Connected with dynamic profile routing link rules */}
-                                                <button 
-                                                    onClick={() => navigate(`/coaches/${coach.id}`)} 
-                                                    className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer"
-                                                >
-                                                    View Profile
-                                                </button>
+                                        {/* Specialization */}
+                                        <div className="mb-6">
+                                            <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Specialization</label>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="flex items-center gap-3 cursor-pointer group">
+                                                    <input checked={isAllSpecs} onChange={() => handleSpecChange('ALL')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                    <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">All Specializations</span>
+                                                </label>
+                                                <label className="flex items-center gap-3 cursor-pointer group">
+                                                    <input checked={activeSpecs.includes('CBT')} onChange={() => handleSpecChange('CBT')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                    <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">CBT Therapy</span>
+                                                </label>
+                                                <label className="flex items-center gap-3 cursor-pointer group">
+                                                    <input checked={activeSpecs.includes('TRAUMA')} onChange={() => handleSpecChange('TRAUMA')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                    <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">Trauma Recovery</span>
+                                                </label>
+                                                <label className="flex items-center gap-3 cursor-pointer group">
+                                                    <input checked={activeSpecs.includes('ANXIETY')} onChange={() => handleSpecChange('ANXIETY')} className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                    <span className="text-body-md text-sm text-on-surface group-hover:text-primary transition-colors">Anxiety & Stress</span>
+                                                </label>
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
+
+                                        {/* Language */}
+                                        <div className="mb-6">
+                                            <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Language</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {['English', 'Hindi', 'Gujarati'].map(lang => {
+                                                    const code = lang === 'English' ? 'EN' : lang === 'Hindi' ? 'HI' : 'GU';
+                                                    return (
+                                                        <button
+                                                            key={lang}
+                                                            onClick={() => setActiveLanguage(code)}
+                                                            className={`py-2 px-3 rounded-lg font-label-sm text-xs transition-colors ${activeLanguage === code
+                                                                ? 'border border-primary bg-primary text-on-primary'
+                                                                : 'border border-outline-variant/30 bg-surface-container-lowest text-on-surface-variant hover:border-primary'
+                                                                }`}>
+                                                            {lang}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Availability */}
+                                        <div className="mb-6">
+                                            <label className="block font-label-sm text-label-sm text-on-surface-variant mb-3 uppercase tracking-wider">Availability</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={activeAvailability}
+                                                    onChange={(e) => setActiveAvailability(e.target.value)}
+                                                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:outline-none appearance-none text-sm pr-10">
+                                                    <option value="Anytime">Anytime</option>
+                                                    <option value="Available Today">Available Today</option>
+                                                    <option value="Available this Week">Available this Week</option>
+                                                    <option value="Online Now">Online Now</option>
+                                                </select>
+                                                <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        {/* Main Content Grid */}
+                        <div className="flex-1">
+                            <div className="mb-10">
+                                <h1 className="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-4">Vetted Coaches</h1>
+                                <p className="text-on-surface-variant max-w-3xl font-body-lg text-body-lg">Every coach on our platform undergoes a rigorous vetting process to ensure you receive the highest quality of compassionate care.</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                                {isLoading ? (
+                                    <div className="col-span-full text-center py-32 text-on-surface-variant font-body-md flex flex-col items-center gap-3">
+                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Syncing verified connections securely...</span>
+                                    </div>
+                                ) : coaches.filter(matchesFilters).length === 0 ? (
+                                    <div className="col-span-full text-center py-24 text-on-surface-variant font-body-md bg-surface-container-low rounded-lg border-2 border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-8">
+                                        <AlertCircle className="text-outline w-12 h-12 mb-4" />
+                                        <h3 className="font-headline-sm font-bold mb-1 text-on-surface">No matches found</h3>
+                                        <p className="text-sm max-w-md w-full mx-auto">No specialists match your selected criteria right now. Try adjusting your filter parameters or timeline options.</p>
+                                    </div>
+                                ) : (
+                                    coaches.filter(matchesFilters).map((coach) => {
+                                        const isAvailable = coach.availability === 'available';
+                                        return (
+                                            <div key={coach.id} className="glass-card rounded-lg p-6 border border-outline-variant/10 transition-all duration-300 coach-card-shadow flex flex-col group">
+                                                <div className="flex justify-between items-start mb-6">
+                                                    <div className="relative">
+                                                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
+                                                            <img
+                                                                alt={coach.name || coach.user?.display_name || "Coach Avatar"}
+                                                                className="w-full h-full object-cover"
+                                                                src={coach.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256"}
+                                                            />
+                                                        </div>
+                                                        <div className={`absolute bottom-1 right-1 w-5 h-5 border-2 border-white rounded-full ${isAvailable ? 'bg-primary' : 'bg-outline-variant'}`} title={coach.availability}></div>
+                                                    </div>
+                                                    <span className={`px-3 py-1 rounded-full font-label-sm text-[11px] font-bold tracking-wider uppercase ${isAvailable ? 'bg-primary/10 text-primary' : 'bg-on-surface-variant/10 text-on-surface-variant'}`}>
+                                                        {coach.availability || 'away'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mb-4">
+                                                    <h3 className="font-headline-md text-xl mb-1 text-on-surface">
+                                                        {coach.name || coach.user?.display_name || "Specialist"}
+                                                    </h3>
+                                                    <p className="text-on-surface-variant font-body-md text-sm mb-4 line-clamp-1">
+                                                        {coach.specializations && coach.specializations.length > 0 ? coach.specializations.join(" • ") : "Support Specialist"}
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-2 mb-6">
+                                                        {(coach.specializations || []).map((spec, idx) => (
+                                                            <span key={idx} className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
+                                                                {spec}
+                                                            </span>
+                                                        ))}
+                                                        <span className="bg-secondary-container/50 text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-medium border border-secondary/10">
+                                                            {(coach.languages || ['EN']).join(' / ').toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-on-surface-variant text-sm line-clamp-3 leading-relaxed">
+                                                        {coach.bio || "Vetted psychological assistance agent verified under structural safety policies."}
+                                                    </p>
+                                                </div>
+
+                                                <div className="mt-auto flex flex-col gap-3">
+                                                    {/* 🌟 LOCKED: Triggers Login Modal */}
+                                                    <button
+                                                        onClick={() => {
+                                                            setModalAction('request');
+                                                            setIsLoginModalOpen(true);
+                                                        }}
+                                                        className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                                                    >
+                                                        Request Session <Lock className="w-3 h-3" />
+                                                    </button>
+
+                                                    {/* 🌟 UNLOCKED: Shows the profile inside this page */}
+                                                    <button
+                                                        onClick={() => setSelectedCoach(coach)}
+                                                        className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer"
+                                                    >
+                                                        View Profile
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </main>
 
-            {/* Bottom Navigation Bar (Mobile) */}
-            <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 lg:hidden shadow-[0_-4px_20px_-2px_rgba(118,138,126,0.05)]">
-                <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <Sparkles className="w-5 h-5 mb-1" />
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-110 cursor-pointer">
-                    <Smile className="w-5 h-5 mb-1" />
-                    <span className="font-label-sm text-[10px] font-semibold">Coaches</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <BookOpen className="w-5 h-5 mb-1" />
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
+            {/* 🌟 PUBLIC MOBILE NAVBAR (No Journal, No Sessions) */}
+            <nav className="fixed bottom-0 left-0 w-full md:hidden bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl shadow-[0px_-4px_24px_rgba(5,139,3,0.08)] z-50 rounded-t-xl">
+                <div className="flex justify-around items-center px-4 py-3 pb-safe max-w-screen-xl mx-auto">
+                    <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
+                        <span className="material-symbols-outlined">grid_view</span>
+                        <span className="font-label-sm text-[10px]">Wall</span>
+                    </button>
+                    <button onClick={() => { setSelectedCoach(null); navigate('/coach-directory'); }} className="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1.5 cursor-pointer">
+                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                        <span className="font-label-sm text-[10px]">Coaches</span>
+                    </button>
+                    <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
+                        <span className="material-symbols-outlined">local_library</span>
+                        <span className="font-label-sm text-[10px]">Resources</span>
+                    </button>
+                </div>
             </nav>
 
-            {/* Dynamic Login Prompt Modal */}
+            {/* 🌟 LOGIN PROMPT MODAL */}
             {isLoginModalOpen && (
-                <div onClick={(e) => { if (e.target === e.currentTarget) setIsLoginModalOpen(false) }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="glass-card w-full max-w-[400px] p-8 rounded-2xl shadow-2xl transition-all duration-300 transform flex flex-col text-center">
+                <div onClick={(e) => { if (e.target === e.currentTarget) setIsLoginModalOpen(false) }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="glass-card w-full max-w-[400px] p-8 rounded-2xl shadow-2xl transition-all duration-300 transform flex flex-col text-center bg-surface border border-outline-variant/10">
 
                         <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6">
                             {modalAction === 'request' ? <Lock className="w-7 h-7" /> : <UserCheck className="w-7 h-7" />}
                         </div>
 
                         <h3 className="font-headline-md text-2xl font-bold text-on-surface mb-3">
-                            {modalAction === 'request' ? 'Sign in to book a session' : 'Unlock Full Profiles'}
+                            Sign in to book a session
                         </h3>
                         <p className="text-on-surface-variant font-body-md mb-8">
-                            {modalAction === 'request'
-                                ? 'You need an account to request private sessions with our vetted coaches. Your privacy is our priority.'
-                                : 'Create an account to view detailed coach credentials, read reviews, and explore their specialized therapeutic approaches.'}
+                            You need an account to request private sessions with our vetted coaches. Your privacy is our priority.
                         </p>
 
                         <div className="flex flex-col gap-3 w-full">
-                            <button onClick={() => navigate('/login')} className="w-full py-3 bg-primary text-on-primary rounded-full font-label-sm text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+                            <button onClick={() => navigate('/login')} className="w-full py-3 bg-primary text-on-primary rounded-full font-label-sm text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                                 Login / Sign Up
                             </button>
-                            <button onClick={() => setIsLoginModalOpen(false)} className="w-full py-3 text-outline font-label-sm text-sm font-bold hover:text-primary transition-colors">
+                            <button onClick={() => setIsLoginModalOpen(false)} className="w-full py-3 text-outline font-label-sm text-sm font-bold hover:text-primary transition-colors cursor-pointer">
                                 Maybe Later
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}
