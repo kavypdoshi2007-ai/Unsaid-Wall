@@ -6,16 +6,25 @@ const sessionController = {
   // 1. CREATE: User requests an open support session or direct coach booking
   async createSession(req, res, next) {
     try {
-      const { coach_id, context_message } = req.body;
+      const { coach_id, context_message , scheduled_at, duration_minutes} = req.body;
       const authenticatedUserId = req.userData.id; 
 
       const sessionData = {
         user: {
           connect: { id: authenticatedUserId }
         },
-        status: 'pending',
+        status: scheduled_at ? 'scheduled' : 'pending',
+        duration_minutes: duration_minutes ? parseInt(duration_minutes) : 30,
         context_message: context_message || ""
       };
+
+      if (scheduled_at) {
+        const scheduledDate = new Date(scheduled_at);
+        if (isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
+          return res.status(400).json({ error: "Please provide a valid future date and time for scheduling." });
+        }
+        sessionData.scheduled_at = scheduledDate;
+      }
 
       // If a user clicked a specific coach's profile card, connect them directly
       if (coach_id) {
@@ -41,10 +50,15 @@ const sessionController = {
       // Broadcast the request into the coach marketplace pool in real-time
       const io = req.app.get('io');
       if (io) {
-        io.emit('new_session_request', {
-          sessionId: newSession.id,
-          contextMessage: newSession.context_message
-        });
+        if (newSession.status === 'scheduled') {
+          // Emit specifically to the scheduled coach or space if designated
+          io.emit('session_scheduled_success', { sessionId: newSession.id, scheduled_at: newSession.scheduled_at });
+        } else {
+          io.emit('new_session_request', {
+            sessionId: newSession.id,
+            contextMessage: newSession.context_message
+          });
+        }
       }
 
       return res.status(201).json(newSession);
@@ -60,7 +74,7 @@ const sessionController = {
     const { status } = req.body; // 'active', 'declined', or 'completed'
     const authenticatedUserId = req.userData.id; // Sourced securely via JWT
 
-    if (!['active', 'declined', 'completed'].includes(status)) {
+    if (!['scheduled', 'active', 'declined', 'completed'].includes(status)) {
       return res.status(400).json({ error: "Invalid status state assignment." });
     }
 
@@ -134,7 +148,7 @@ const sessionController = {
       // Release the coach profile resource state back to available
       await prisma.coach.update({
     where: {
-        id: "930d5e56-3fb2-43b0-b9a4-9791b55af224"
+        id: coachProfile.id
     },
     data: {
         availability: "available",

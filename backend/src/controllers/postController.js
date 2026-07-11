@@ -248,6 +248,7 @@ const postController = {
                 coach_id: availableCoach.id,
                 status: 'active',
                 started_at: new Date(),
+                duration_minutes: 30,
                 context_message: `🚨 [CRITICAL AUTO-ASSIGN] Assigned to you immediately due to system crisis alert.`
               }
             }),
@@ -264,12 +265,14 @@ const postController = {
                 sessionId: autoSession.id,
                 coachName: availableCoach.user.display_name_pool?.[0] || 'A Support Specialist'
             });
+            io.emit(`coach_emergency_assigned_${availableCoach.id}`, { sessionId: autoSession.id });
           }
         } else {
           autoSession = await prisma.session.create({
             data: {
               user_id: user_id,
               status: 'pending',
+              duration_minutes: 30,
               context_message: `⚠️ [AUTOMATED EMERGENCY] No coaches were available for auto-assignment. Please claim immediately: "${content.substring(0, 50)}..."`
             }
           });
@@ -292,32 +295,20 @@ const postController = {
           io.emit('crisis_alert', { postId: post.id, content: post.content, timestamp: post.created_at });
         }
 
-        return res.status(403).json({
-          status: "INTERCEPTED",
-          message: "Your post has been kept private. We hear you, and you are not alone. Let's connect you with a supportive space right now.\n iCall (9152987821), Vandrevala Foundation (1860-2662-345), Surat Psychology Club direct contact",
-          sessionId: autoSession.id 
-        });
-      }
-
-      if (post.flag_level === 'concerning') {
-        const autoSession = await prisma.session.create({
-          data: {
-            user_id: user_id,
-            status: 'pending',
-            context_message: `👀 [CONCERNING POST FLAG] System detected high-risk sentiment markers: "${content.substring(0, 60)}..."`
-          }
-        });
-
-        if (io) {
-          io.emit('new_session_request', {
-            sessionId: autoSession.id,
-            contextMessage: autoSession.context_message,
-            createdAt: autoSession.created_at || new Date()
+        if (post.flag_level === 'crisis') {
+          return res.status(403).json({
+            status: "INTERCEPTED",
+            message: "Your post has been kept private. We hear you, and you are not alone. Let's connect you with a supportive space right now.\n iCall (9152987821), Vandrevala Foundation (1860-2662-345)",
+            sessionId: autoSession.id 
+          });
+        } else {
+          return res.status(201).json({
+            status: "AUTO_SESSION_CREATED",
+            post: post,
+            sessionId: autoSession.id
           });
         }
-        return res.status(201).json(post);
       }
-
       return res.status(201).json(post);
     } catch (error) {
       next(error);

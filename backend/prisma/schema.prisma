@@ -88,6 +88,8 @@ model Session {
   context_message String?
   rating          Int?
   coach_notes     String?       @default("")
+  scheduled_at     DateTime?     
+  duration_minutes Int           @default(30)
   started_at      DateTime      @default(now())
   ended_at        DateTime?
   messages        Message[]
@@ -197,6 +199,7 @@ enum ReactionType {
 
 enum SessionStatus {
   pending
+  scheduled
   active
   completed
   declined
