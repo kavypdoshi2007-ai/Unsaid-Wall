@@ -15,6 +15,7 @@ export default function GuestWall() {
     const token = localStorage.getItem('token'); //[cite: 3]
     const [userRole, setUserRole] = useState('guest'); //[cite: 3]
     const [currentUserId, setCurrentUserId] = useState(null); //[cite: 3]
+    const [isTokenValid, setIsTokenValid] = useState(false); // true only if a token exists AND hasn't expired
 
     // --- Composer Form State (For logged-in users) ---
     const [isComposerOpen, setIsComposerOpen] = useState(false); //[cite: 3]
@@ -25,17 +26,36 @@ export default function GuestWall() {
     // --- Inline Coach Comment State ---
     const [commentInputs, setCommentInputs] = useState({}); // format: { [postId]: 'text' }[cite: 3]
 
-    // --- Decode User Credentials ---
+    // --- Decode User Credentials & Validate Expiry ---
     useEffect(() => {
         if (token) {
             try {
                 const base64Url = token.split('.')[1];
                 const parsedToken = JSON.parse(atob(base64Url));
-                setUserRole(parsedToken.role || 'user'); //[cite: 3]
-                setCurrentUserId(parsedToken.id || parsedToken.userId || parsedToken.user_id || null); //[cite: 3]
+
+                // JWT 'exp' is a Unix timestamp in seconds; Date.now() is in ms.
+                const isExpired = parsedToken.exp && (parsedToken.exp * 1000 < Date.now());
+
+                if (isExpired) {
+                    // Stale token left over from a previous session — clear it so the UI
+                    // stops showing "Logout" for a session that's no longer valid.
+                    localStorage.removeItem('token');
+                    setUserRole('guest');
+                    setCurrentUserId(null);
+                    setIsTokenValid(false);
+                } else {
+                    setUserRole(parsedToken.role || 'user'); //[cite: 3]
+                    setCurrentUserId(parsedToken.id || parsedToken.userId || parsedToken.user_id || null); //[cite: 3]
+                    setIsTokenValid(true);
+                }
             } catch (e) {
                 console.error("Failed parsing user data from token:", e);
+                // Malformed token — treat as invalid rather than trusting its presence.
+                localStorage.removeItem('token');
+                setIsTokenValid(false);
             }
+        } else {
+            setIsTokenValid(false);
         }
     }, [token]);
 
@@ -281,7 +301,7 @@ export default function GuestWall() {
                         <button onClick={() => handleProtectedNav('/journal')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Journal</button>
                         <button onClick={() => navigate('/coach-directory')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
                         <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                        {token ? (
+                        {isTokenValid ? (
                             <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-outline/20 transition-all cursor-pointer">Logout</button>
                         ) : (
                             <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">Login</button>

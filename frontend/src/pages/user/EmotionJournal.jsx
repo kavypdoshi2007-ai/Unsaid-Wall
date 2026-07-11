@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../../config/api';
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 
 export default function EmotionJournal() {
     const navigate = useNavigate();
@@ -11,15 +13,35 @@ export default function EmotionJournal() {
     const [barHeights, setBarHeights] = useState({ sad: '0%', calm: '0%', anxious: '0%', joy: '0%', tired: '0%' });
     const [chartCounts, setChartCounts] = useState({ sad: 0, calm: 0, anxious: 0, joy: 0, tired: 0 });
 
-    // Absolute Backend Endpoint Configurations
-    const CONFIG = {
-        API_BASE: 'https://diminish-waving-shore.ngrok-free.dev/api/journal',
-        TOKEN_KEY: 'token'
+    const TOKEN_KEY = 'token';
+
+    // Emoji Mapping Dictionary for Quick Visual Recognition
+    // Emoji/Icon Mapping Dictionary using Material Symbols
+    const EMON_MAP = {
+        sad: 'sentiment_dissatisfied',
+        calm: 'self_improvement',
+        anxious: 'bolt',
+        joy: 'sunny',
+        tired: 'bedtime',
+        fallback: 'edit_note'
+    };
+    // --- 🌟 NEW: Emotion Normalization Engine ---
+    // This categorizes ANY emotion from the backend into your 5 core chart buckets
+    const normalizeEmotion = (rawEmotion) => {
+        if (!rawEmotion) return 'calm';
+        const e = String(rawEmotion).toLowerCase().trim();
+
+        if (['sad', 'depressed', 'down', 'lonely', 'numb', 'grief', 'cry'].some(k => e.includes(k))) return 'sad';
+        if (['anxious', 'stressed', 'overwhelmed', 'worried', 'angry', 'fear', 'nervous', 'panic'].some(k => e.includes(k))) return 'anxious';
+        if (['joy', 'happy', 'excited', 'hopeful', 'great', 'good', 'grateful'].some(k => e.includes(k))) return 'joy';
+        if (['tired', 'exhausted', 'fatigue', 'drained', 'sleepy', 'burnout'].some(k => e.includes(k))) return 'tired';
+
+        return 'calm'; // Default bucket for calm, neutral, fine, okay, etc.
     };
 
     // --- Cryptographic JWT ID Extractor Helper ---
     function getActiveUserId() {
-        const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+        const token = localStorage.getItem(TOKEN_KEY);
         if (!token || token === "null" || token === "undefined") return null;
         try {
             const base64Url = token.split('.')[1];
@@ -34,12 +56,12 @@ export default function EmotionJournal() {
 
     // --- Auth Headers Helper ---
     function getAuthHeaders() {
-        const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+        const token = localStorage.getItem(TOKEN_KEY);
         if (!token) return null;
         return {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
-            'ngrok-skip-browser-warning': 'true' // <-- Prevents ngrok warning wrapper page HTML intercept crash
+            'ngrok-skip-browser-warning': 'true'
         };
     }
 
@@ -56,7 +78,8 @@ export default function EmotionJournal() {
             }
 
             try {
-                const response = await fetch(`${CONFIG.API_BASE}/user/${userId}`, {
+                // Past Memories now shows the user's own Wall posts, not a separate private journal.
+                const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
                     method: 'GET',
                     headers: headers
                 });
@@ -68,20 +91,36 @@ export default function EmotionJournal() {
                 const rawData = await response.json();
 
                 // Parse out payloads cleanly
-                let journalEntries = [];
+                let allPosts = [];
                 if (Array.isArray(rawData)) {
-                    journalEntries = rawData;
+                    allPosts = rawData;
                 } else if (rawData && Array.isArray(rawData.data)) {
-                    journalEntries = rawData.data;
-                } else if (rawData && Array.isArray(rawData.entries)) {
-                    journalEntries = rawData.entries;
+                    allPosts = rawData.data;
+                } else if (rawData && Array.isArray(rawData.posts)) {
+                    allPosts = rawData.posts;
                 } else if (rawData && typeof rawData === 'object') {
                     const foundArray = Object.values(rawData).find(val => Array.isArray(val));
-                    if (foundArray) journalEntries = foundArray;
+                    if (foundArray) allPosts = foundArray;
                 }
 
-                setEntries(journalEntries);
-                calculateEmotionalPulse(journalEntries);
+                // GET_FEED returns everyone's posts — keep only this user's own.
+                // Field name is unconfirmed server-side, so check every likely shape.
+                const myPosts = allPosts.filter(post => {
+                    const postUserId =
+                        post.userId ?? post.user_id ?? post.authorId ?? post.author_id ??
+                        post.user?.id ?? post.user?._id ?? post.author?.id ?? post.author?._id;
+                    return postUserId !== undefined && String(postUserId) === String(userId);
+                });
+
+                // Sort entries to guarantee latest dates appear first on top
+                const sortedEntries = myPosts.sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || a.timestamp || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || b.timestamp || 0);
+                    return dateB - dateA; // Descending Order (Newest First)
+                });
+
+                setEntries(sortedEntries);
+                calculateEmotionalPulse(sortedEntries); // Chart reflects the same posts shown in Past Memories
 
             } catch (err) {
                 console.error("Dashboard Loading Error:", err);
@@ -94,90 +133,76 @@ export default function EmotionJournal() {
         loadJournalDashboard();
     }, []);
 
-    // --- Calculate Metric Percentages and Heights ---
+    // --- Emotion calculation function ---
+    // Reads whichever field the wall post uses for its emotion/vibe value.
     const calculateEmotionalPulse = (journalEntries) => {
         const counts = { sad: 0, calm: 0, anxious: 0, joy: 0, tired: 0 };
 
         journalEntries.forEach(entry => {
-            if (!entry.emotion) return;
-            const emo = String(entry.emotion).toLowerCase().trim();
-
-            if (counts[emo] !== undefined) {
-                counts[emo]++;
-            } else if (["angry", "lonely", "overwhelmed", "confused", "numb", "stressed"].includes(emo)) {
-                counts.anxious++; // Group related expressions under the anxious cluster fallback
-            } else if (["hopeful"].includes(emo)) {
-                counts.joy++;
-            }
+            const emotionValue = entry.emotion ?? entry.vibe ?? entry.mood ?? entry.feeling;
+            const bucket = normalizeEmotion(emotionValue);
+            counts[bucket]++;
         });
 
-        setChartCounts(counts);
-
-        // Animate graph elements dynamically
         const max = Math.max(...Object.values(counts), 1);
-        setTimeout(() => {
-            setBarHeights({
-                sad: `${(counts.sad / max) * 100}%`,
-                calm: `${(counts.calm / max) * 100}%`,
-                anxious: `${(counts.anxious / max) * 100}%`,
-                joy: `${(counts.joy / max) * 100}%`,
-                tired: `${(counts.tired / max) * 100}%`
-            });
-        }, 200);
+
+        const newHeights = {
+            sad: `${(counts.sad / max) * 100}%`,
+            calm: `${(counts.calm / max) * 100}%`,
+            anxious: `${(counts.anxious / max) * 100}%`,
+            joy: `${(counts.joy / max) * 100}%`,
+            tired: `${(counts.tired / max) * 100}%`
+        };
+
+        setChartCounts(counts);
+        setBarHeights(newHeights);
     };
 
     // --- Handle Entry Deletion ---
+    // NOTE: api.js currently has no delete route for Wall posts (only JOURNAL.DELETE_ENTRY
+    // exists, which would delete the wrong resource). This is a placeholder until a
+    // POSTS.DELETE(postId) endpoint is added on the backend.
     const handleDeleteJournalRecord = async (id) => {
-        if (!confirm("Are you sure you want to permanently delete this private memory?")) return;
+        alert("Deleting Wall posts isn't supported yet — the backend needs a POSTS delete endpoint added first.");
+        // Once that endpoint exists, swap this in:
+        //
+        // if (!confirm("Are you sure you want to permanently delete this post?")) return;
+        // const headers = getAuthHeaders();
+        // if (!headers) return alert("Missing session authentication token.");
+        // try {
+        //     const response = await fetch(API_ENDPOINTS.POSTS.DELETE(id), { method: 'DELETE', headers });
+        //     if (!response.ok) throw new Error('Deletion processing aborted.');
+        //     const remaining = entries.filter(e => (e.id || e._id) !== id);
+        //     setEntries(remaining);
+        //     calculateEmotionalPulse(remaining);
+        // } catch (err) {
+        //     alert(`Error deleting entry: ${err.message}`);
+        // }
+    };
 
-        const headers = getAuthHeaders();
-        if (!headers) return alert("Missing session authentication token.");
+    const formatTimestamp = (entry) => {
+        const rawDate = entry.created_at || entry.createdAt || entry.timestamp;
+        if (!rawDate) return 'Recent';
+        return new Date(rawDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
 
-        try {
-            const response = await fetch(`${CONFIG.API_BASE}/${id}`, {
-                method: 'DELETE',
-                headers: headers
-            });
-
-            if (!response.ok) throw new Error('Deletion processing aborted by backend routes.');
-
-            // Instantly filter out local state entries list
-            const remaining = entries.filter(e => (e.id || e._id) !== id);
-            setEntries(remaining);
-            calculateEmotionalPulse(remaining);
-        } catch (err) {
-            alert(`Error deleting entry: ${err.message}`);
-        }
+    const formatShortDate = (entry) => {
+        const rawDate = entry.created_at || entry.createdAt || entry.timestamp;
+        if (!rawDate) return 'Today';
+        return new Date(rawDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     return (
         <div className="font-body-md text-body-md overflow-x-hidden bg-background text-on-surface min-h-screen relative pb-24">
 
-            {/* HEADER */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
-                <div className="flex justify-between items-center px-container-padding h-16 w-full max-w-7xl mx-auto">
-                    <div onClick={() => navigate('/user-wall')} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <span className="font-headline-md text-[20px] font-bold text-primary tracking-tight">Unsaid Wall</span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
-                        <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Journal</button>
-                        <button onClick={() => navigate('/coach-profile')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/my-sessions')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Sessions</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                    </div>
-                </div>
-            </header>
 
             {/* MAIN CONTENT SPACE */}
-            <main className="pt-24 px-container-padding max-w-[1200px] mx-auto">
+            <main className="pt-24 px-6 max-w-[1200px] mx-auto">
                 <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
                     <section className="space-y-4 max-w-2xl">
-                        <h2 className="font-display-lg text-primary">Softly Landing, Alex.</h2>
+                        <h2 className="font-display-lg text-primary">Your Safe Space.</h2>
                         <p className="text-on-surface-variant text-lg leading-relaxed">
-                            This week, your garden of thoughts has seen a mix of sun and clouds. You've sat with <span className="font-bold text-primary">Quiet Sadness</span> {chartCounts.sad} {chartCounts.sad === 1 ? 'time' : 'times'}, but your <span className="font-bold text-secondary">Calm</span> is growing back. Remember, every word you leave here is a seed for tomorrow's healing.
+                            Your garden of thoughts has seen a mix of sun and clouds. You've sat with <span className="font-bold text-primary">Quiet Sadness</span> {chartCounts.sad} {chartCounts.sad === 1 ? 'time' : 'times'}, but your <span className="font-bold text-secondary">Calm</span> is growing back. Remember, every word you leave here is a seed for tomorrow's healing.
                         </p>
                     </section>
 
@@ -212,9 +237,9 @@ export default function EmotionJournal() {
                                 <section className="bg-white/60 backdrop-blur-xl p-8 rounded-lg space-y-8 border border-primary/10">
                                     <div className="flex justify-between items-end">
                                         <h3 className="font-headline-md text-primary">Emotional Pulse</h3>
-                                        <span className="text-label-sm text-on-surface-variant">Last 7 Days</span>
+                                        <span className="text-label-sm text-on-surface-variant">All Time</span>
                                     </div>
-                                    <div className="flex items-end justify-between h-48 gap-4 px-2">
+                                    <div className="flex items-end justify-between gap-4 px-2" style={{ height: '192px' }}>
                                         {[
                                             { key: 'sad', color: 'bg-tertiary-container', label: `Sad (${chartCounts.sad})` },
                                             { key: 'calm', color: 'bg-secondary-container', label: `Calm (${chartCounts.calm})` },
@@ -222,59 +247,69 @@ export default function EmotionJournal() {
                                             { key: 'joy', color: 'bg-primary-container', label: `Joy (${chartCounts.joy})` },
                                             { key: 'tired', color: 'bg-surface-container-highest', label: `Tired (${chartCounts.tired})` },
                                         ].map(stat => (
-                                            <div key={stat.key} className="flex-1 flex flex-col items-center gap-2">
-                                                <div className={`w-full ${stat.color} rounded-t-full transition-all duration-1000 ease-out`} style={{ height: barHeights[stat.key] }}></div>
+                                            <div key={stat.key} className="flex-1 flex flex-col items-center gap-2" style={{ height: '100%' }}>
+                                                <div className="w-full flex flex-col justify-end" style={{ flex: 1 }}>
+                                                    <div
+                                                        className={`w-full ${stat.color} rounded-t-full transition-all duration-1000 ease-out`}
+                                                        style={{ height: barHeights[stat.key] || '0%' }}
+                                                    ></div>
+                                                </div>
                                                 <span className="text-label-sm text-on-surface-variant whitespace-nowrap text-[11px]">{stat.label}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </section>
 
-                                {/* Weekly Timeline Blocks */}
+                                {/* Recent Frequency Blocks */}
                                 <section className="bg-white/60 backdrop-blur-xl p-8 rounded-lg space-y-6 border border-primary/10">
                                     <h3 className="font-headline-md text-primary">Recent Frequency</h3>
                                     <div className="grid grid-cols-3 gap-3">
                                         {entries.slice(0, 5).map((entry, index) => {
-                                            const emotionLabel = entry.emotion ? String(entry.emotion).substring(0, 2).toUpperCase() : '??';
+                                            const emoKey = normalizeEmotion(entry.emotion);
+                                            const activeEmoji = EMON_MAP[emoKey] || EMON_MAP.fallback;
+
                                             return (
-                                                <div key={entry.id || entry._id || index} className="p-3 rounded-lg text-center space-y-2 bg-tertiary-container/10 border border-primary/5">
-                                                    <span className="text-[10px] uppercase font-bold text-outline">Log #{index + 1}</span>
-                                                    <div className="w-10 h-10 bg-primary/10 rounded-full mx-auto flex items-center justify-center text-xs font-bold text-primary">
-                                                        {emotionLabel}
+                                                <div key={entry.id || entry._id || index} className="p-3 rounded-2xl text-center flex flex-col justify-between h-28 bg-white border border-outline-variant/10 shadow-sm">
+                                                    <span className="text-[9px] uppercase font-bold text-outline tracking-wider">{formatShortDate(entry)}</span>
+
+                                                    {/* The new Icon Block */}
+                                                    <div className="flex items-center justify-center my-auto">
+                                                        <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
+                                                            <span className="material-symbols-outlined text-primary text-xl">
+                                                                {activeEmoji}
+                                                            </span>
+                                                        </div>
                                                     </div>
+
+                                                    <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tight truncate capitalize">
+                                                        {entry.emotion || 'Log'}
+                                                    </span>
                                                 </div>
                                             );
                                         })}
-                                        <div
-                                            onClick={() => navigate('/private-journal')}
-                                            className="p-3 rounded-lg border-2 border-dashed border-outline-variant/40 flex flex-col items-center justify-center text-outline/60 cursor-pointer hover:bg-primary-container/10 transition-colors"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">add</span>
-                                        </div>
                                     </div>
                                 </section>
                             </div>
 
-                            {/* Restored Complete Dynamic Feed Render Output */}
+                            {/* Complete Dynamic Feed Render Output (Newest First on Top) */}
                             <section className="space-y-6 pt-4">
-                                <h3 className="font-headline-md text-primary">Private Memories</h3>
+                                <h3 className="font-headline-md text-primary">Past Memories</h3>
                                 <div className="grid grid-cols-1 gap-6">
                                     {entries.length > 0 ? (
                                         entries.map(entry => {
-                                            const entryDate = new Date(entry.created_at || entry.createdAt || entry.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                                             return (
                                                 <article key={entry.id || entry._id} className="bg-white/60 backdrop-blur-xl p-8 rounded-lg relative overflow-hidden group hover:shadow-md transition-all border border-primary/10">
                                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                                                         <div className="flex items-center gap-3">
                                                             <span className="material-symbols-outlined text-outline text-lg">lock</span>
-                                                            <time className="text-label-sm text-outline uppercase tracking-wider font-semibold text-xs">{entryDate}</time>
+                                                            <time className="text-label-sm text-outline uppercase tracking-wider font-semibold text-xs">{formatTimestamp(entry)}</time>
                                                         </div>
                                                         <div className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase w-fit">
-                                                            {entry.emotion || 'Reflection'} ({entry.intensity || 'med'})
+                                                            {entry.emotion || 'Reflection'} {entry.intensity ? `(${entry.intensity})` : ''}
                                                         </div>
                                                     </div>
                                                     <p className="text-base text-on-surface leading-relaxed italic whitespace-pre-wrap">
-                                                        "{entry.note || entry.entry || entry.content || entry.text}"
+                                                        "{entry.note || entry.entry || entry.content || entry.text || entry.postText}"
                                                     </p>
                                                     <div className="mt-4 flex justify-end">
                                                         <button
@@ -304,37 +339,13 @@ export default function EmotionJournal() {
                                     <h4 className="font-bold text-primary">AI Insights Sandbox</h4>
                                 </div>
                                 <p className="text-on-surface-variant text-sm leading-relaxed mb-4">
-                                    Entries written privately pass metrics into your charts locally without bleeding out into public timeline wall streams.
+                                    These insights are calculated from your public Wall posts, and stay visible only to you here.
                                 </p>
                             </section>
                         </aside>
                     </div>
                 )}
             </main>
-
-            {/* MOBILE BOTTOM NAV BAR BAR */}
-            <div className="fixed bottom-0 left-0 w-full md:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
-                <button onClick={() => navigate('/user-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_awesome</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/emotion-journal')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1.5 cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_stories</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Journal</span>
-                </button>
-                <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">psychology</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Coaches</span>
-                </button>
-                <button onClick={() => navigate('/my-sessions')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">forum</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Sessions</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">local_library</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
-            </div>
         </div>
     );
 }
