@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. IMPORTED NAVIGATION
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 
 export default function LandingPage() {
     const navigate = useNavigate(); // 2. INITIALIZED NAVIGATION
@@ -52,9 +53,9 @@ export default function LandingPage() {
             try {
                 const response = await fetch(API_POSTS_URL, {
                     method: 'GET',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' 
+                        'ngrok-skip-browser-warning': 'true'
                     }
                 });
                 if (!response.ok) throw new Error('Could not fetch posts.');
@@ -71,7 +72,7 @@ export default function LandingPage() {
             try {
                 const response = await fetch(API_COACHES_URL, {
                     method: 'GET',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'ngrok-skip-browser-warning': 'true'
                     }
@@ -128,45 +129,7 @@ export default function LandingPage() {
 
     return (
         <div className="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed scroll-smooth">
-            {/* TopNavBar */}
-            <nav className="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm dark:shadow-none">
-                <div className="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
-                    <div
-                        onClick={() => navigate('/')}
-                        className="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim cursor-pointer"
-                    >
-                        Unsaid Wall
-                    </div>
-                    {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center gap-lg">
-                        <button
-                            onClick={() => navigate('/guest-wall')}
-                            className="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer"
-                        >
-                            The Wall
-                        </button>
-                        <button onClick={() => navigate('/coach-directory')} className="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer">
-                            Coaches
-                        </button>
-                        <button
-                            onClick={() => navigate('/resources')}
-                            className="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer"
-                        >
-                            Resource Library
-                        </button>
-                        <button
-                            onClick={() => {
-                                const aboutSection = document.getElementById('how-it-works');
-                                if (aboutSection) aboutSection.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer"
-                        >
-                            About
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
+            <Navbar />
             <main className="pt-16">
                 {/* Hero Section */}
                 <section className="relative min-h-[921px] flex items-center overflow-hidden">
@@ -465,34 +428,6 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
-
-            {/* Footer */}
-            <footer className="w-full py-lg mt-xl bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant dark:border-outline">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-md px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
-                    <div className="space-y-sm text-center md:text-left">
-                        <div className="font-headline-md text-headline-md font-bold text-on-surface dark:text-inverse-on-surface">
-                            Unsaid Wall
-                        </div>
-                        <p className="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant">
-                            ©️ 2024 Unsaid Wall. In partnership with Surat Psychology Club.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap justify-center gap-md">
-                        <a className="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">
-                            Privacy Policy
-                        </a>
-                        <a className="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">
-                            Terms of Service
-                        </a>
-                        <a className="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">
-                            Crisis Resources
-                        </a>
-                        <a className="font-caption text-caption text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">
-                            Contact Us
-                        </a>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 }
