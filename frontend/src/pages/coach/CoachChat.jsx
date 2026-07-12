@@ -2,27 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { io as socketIOClient } from 'socket.io-client';
 import { API_ENDPOINTS, BACKEND_URL } from '../../config/api';
-
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 // The API base is BACKEND_URL + '/api'; Socket.io runs on the bare host, not under /api
 const SOCKET_URL = BACKEND_URL.replace(/\/api\/?$/, '');
 
 export default function CoachChat() {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     // Extract the live session context sent over from the dashboard selection
     const routeSessionId = location.state?.sessionId || null;
 
     // Core Connection and UI States
     const [sessionId, setSessionId] = useState(routeSessionId);
-    const [sessionMeta, setSessionMeta] = useState(null); 
+    const [sessionMeta, setSessionMeta] = useState(null);
     const [latestPost, setLatestPost] = useState(null);
     const [messages, setMessages] = useState([]);
     const [chatInput, setChatInput] = useState('');
     const [privateNotes, setPrivateNotes] = useState('');
     const [lastSavedNote, setLastSavedNote] = useState(''); // Tracking the last explicitly saved note
     const [loading, setLoading] = useState(true);
-    const [currentUserId, setCurrentUserId] = useState(null); 
+    const [currentUserId, setCurrentUserId] = useState(null);
     const [dbResources, setDbResources] = useState([]);
 
     const messagesEndRef = useRef(null);
@@ -64,48 +64,48 @@ export default function CoachChat() {
 
     // Fetch the latest post of the user directly from the database using their ID
     const fetchLatestUserPost = async (metaData) => {
-    // Extract the target client/user ID from your session metadata
-            const targetUserId = metaData?.clientId || metaData?.userId || metaData?.client?._id || metaData?.user?.id || metaData?.client;
-            
-            if (!targetUserId) {
-                console.warn("Could not find a valid user ID inside session metadata.");
-                return;
-            }
+        // Extract the target client/user ID from your session metadata
+        const targetUserId = metaData?.clientId || metaData?.userId || metaData?.client?._id || metaData?.user?.id || metaData?.client;
 
-            try {
-                const token = localStorage.getItem('token');
-                const res = await fetch(`${BACKEND_URL}/posts`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
+        if (!targetUserId) {
+            console.warn("Could not find a valid user ID inside session metadata.");
+            return;
+        }
 
-                if (res.ok) {
-                    const allPosts = await res.json();
-                    
-                    if (Array.isArray(allPosts)) {
-                        // Look through feed array to find the first match for this user_id
-                        const latestPostForUser = allPosts.find(post => {
-                            // Extract the post's user_id value (checking if it's an object with an ID or a string directly)
-                            const postUserId = post.user_id?._id || post.user_id?.id || post.user_id;
-                            
-                            // Convert both sides to strings to safely handle formatting/type mismatches
-                            return String(postUserId) === String(targetUserId);
-                        });
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/posts`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            });
 
-                        if (latestPostForUser) {
-                            setLatestPost(latestPostForUser);
-                        } else {
-                            setLatestPost(null);
-                        }
+            if (res.ok) {
+                const allPosts = await res.json();
+
+                if (Array.isArray(allPosts)) {
+                    // Look through feed array to find the first match for this user_id
+                    const latestPostForUser = allPosts.find(post => {
+                        // Extract the post's user_id value (checking if it's an object with an ID or a string directly)
+                        const postUserId = post.user_id?._id || post.user_id?.id || post.user_id;
+
+                        // Convert both sides to strings to safely handle formatting/type mismatches
+                        return String(postUserId) === String(targetUserId);
+                    });
+
+                    if (latestPostForUser) {
+                        setLatestPost(latestPostForUser);
+                    } else {
+                        setLatestPost(null);
                     }
                 }
-            } catch (err) {
-                console.error("Failed to fetch user's latest post via feed:", err);
             }
-        };
+        } catch (err) {
+            console.error("Failed to fetch user's latest post via feed:", err);
+        }
+    };
     // 1. Initial Connection Setup and Context Tracking
     useEffect(() => {
         const initializationHandshake = async () => {
@@ -151,24 +151,24 @@ export default function CoachChat() {
                 }
 
                 if (activeId) {
-                        // Fetch Specific Live Session Attributes
-                        const metaRes = await fetch(API_ENDPOINTS.SESSIONS.GET_BY_ID(activeId), { headers });
-                        if (metaRes.ok) {
-                            const metaData = await metaRes.json();
-                            setSessionMeta(metaData);
-                            
-                            if (metaData.coach_notes) {
-                                setPrivateNotes(metaData.coach_notes);
-                                setLastSavedNote(metaData.coach_notes);
-                            }
+                    // Fetch Specific Live Session Attributes
+                    const metaRes = await fetch(API_ENDPOINTS.SESSIONS.GET_BY_ID(activeId), { headers });
+                    if (metaRes.ok) {
+                        const metaData = await metaRes.json();
+                        setSessionMeta(metaData);
 
-                            // PASS THE METADATA HERE to get the User ID dynamically from the DB
-                            await fetchLatestUserPost(metaData);
+                        if (metaData.coach_notes) {
+                            setPrivateNotes(metaData.coach_notes);
+                            setLastSavedNote(metaData.coach_notes);
                         }
-                        
-                        // Initial load for messages
-                        await fetchMessages(activeId, myId);
+
+                        // PASS THE METADATA HERE to get the User ID dynamically from the DB
+                        await fetchLatestUserPost(metaData);
                     }
+
+                    // Initial load for messages
+                    await fetchMessages(activeId, myId);
+                }
             } catch (err) {
                 console.error("Error setting up backend workspace sync:", err);
             } finally {
@@ -346,7 +346,7 @@ export default function CoachChat() {
                     'Authorization': `Bearer ${token}`,
                     'ngrok-skip-browser-warning': 'true'
                 },
-                body: JSON.stringify({ coach_notes: privateNotes})
+                body: JSON.stringify({ coach_notes: privateNotes })
             });
             if (res.ok) {
                 setLastSavedNote(privateNotes);
@@ -401,6 +401,7 @@ export default function CoachChat() {
 
     return (
         <div className="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+            <Navbar />
             {/* SideNavBar */}
             <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-surface-container flex-col py-4 space-y-2 shadow-md shadow-primary/5 z-50">
                 <div className="px-6 mb-8">
@@ -476,7 +477,7 @@ export default function CoachChat() {
                                                 <span className="text-[11px] text-on-surface-variant">Level</span>
                                             </div>
                                             <div className="w-full bg-surface-container-highest h-1 rounded-full mt-1">
-                                                <div 
+                                                <div
                                                     className="bg-tertiary h-full rounded-full"
                                                     style={{ width: `${sessionMeta?.latestPostIntensity || 80}%` }}
                                                 ></div>
@@ -687,7 +688,7 @@ export default function CoachChat() {
                                         placeholder="Add confidential notes for this session..."
                                     ></textarea>
                                     <div className="mt-2 flex justify-end">
-                                        <button 
+                                        <button
                                             onClick={handleSavePrivateNotes}
                                             disabled={!sessionId}
                                             className="px-3 py-1 bg-primary text-on-primary text-xs font-bold rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
@@ -721,26 +722,6 @@ export default function CoachChat() {
                     </div>
                 </section>
             </main>
-
-            {/* Coach Mobile Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 w-full lg:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
-                <button onClick={() => navigate('/coach-dashboard')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">dashboard</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Dashboard</span>
-                </button>
-                <button onClick={() => navigate('/coach-chat')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1.5 cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">forum</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Chats</span>
-                </button>
-                <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">view_day</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">local_library</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
-            </div>
         </div>
     );
 }
