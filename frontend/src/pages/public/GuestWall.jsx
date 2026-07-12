@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS } from '../../config/api'; // Central configuration endpoints[cite: 2]
-
+import { API_ENDPOINTS } from '../../config/api'; // Central configuration endpoints
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 export default function GuestWall() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const navigate = useNavigate();
@@ -12,50 +12,30 @@ export default function GuestWall() {
     const [error, setError] = useState(null);
 
     // --- User Session Parsing States ---
-    const token = localStorage.getItem('token'); //[cite: 3]
-    const [userRole, setUserRole] = useState('guest'); //[cite: 3]
-    const [currentUserId, setCurrentUserId] = useState(null); //[cite: 3]
-    const [isTokenValid, setIsTokenValid] = useState(false); // true only if a token exists AND hasn't expired
+    const token = localStorage.getItem('token');
+    const [userRole, setUserRole] = useState('guest');
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     // --- Composer Form State (For logged-in users) ---
-    const [isComposerOpen, setIsComposerOpen] = useState(false); //[cite: 3]
-    const [postText, setPostText] = useState(''); //[cite: 3]
-    const [activeLang, setActiveLang] = useState('en'); //[cite: 3]
-    const [previewUsername, setPreviewUsername] = useState('Generating anonymous identity...'); //[cite: 3]
+    const [isComposerOpen, setIsComposerOpen] = useState(false);
+    const [postText, setPostText] = useState('');
+    const [activeLang, setActiveLang] = useState('en');
+    const [previewUsername, setPreviewUsername] = useState('Generating anonymous identity...');
 
     // --- Inline Coach Comment State ---
-    const [commentInputs, setCommentInputs] = useState({}); // format: { [postId]: 'text' }[cite: 3]
+    const [commentInputs, setCommentInputs] = useState({}); // format: { [postId]: 'text' }
 
-    // --- Decode User Credentials & Validate Expiry ---
+    // --- Decode User Credentials ---
     useEffect(() => {
         if (token) {
             try {
                 const base64Url = token.split('.')[1];
                 const parsedToken = JSON.parse(atob(base64Url));
-
-                // JWT 'exp' is a Unix timestamp in seconds; Date.now() is in ms.
-                const isExpired = parsedToken.exp && (parsedToken.exp * 1000 < Date.now());
-
-                if (isExpired) {
-                    // Stale token left over from a previous session — clear it so the UI
-                    // stops showing "Logout" for a session that's no longer valid.
-                    localStorage.removeItem('token');
-                    setUserRole('guest');
-                    setCurrentUserId(null);
-                    setIsTokenValid(false);
-                } else {
-                    setUserRole(parsedToken.role || 'user'); //[cite: 3]
-                    setCurrentUserId(parsedToken.id || parsedToken.userId || parsedToken.user_id || null); //[cite: 3]
-                    setIsTokenValid(true);
-                }
+                setUserRole(parsedToken.role || 'user');
+                setCurrentUserId(parsedToken.id || parsedToken.userId || parsedToken.user_id || null);
             } catch (e) {
                 console.error("Failed parsing user data from token:", e);
-                // Malformed token — treat as invalid rather than trusting its presence.
-                localStorage.removeItem('token');
-                setIsTokenValid(false);
             }
-        } else {
-            setIsTokenValid(false);
         }
     }, [token]);
 
@@ -64,12 +44,12 @@ export default function GuestWall() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, { //[cite: 2]
+            const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
                 method: 'GET',
                 headers: {
-                    'Authorization': token ? `Bearer ${token}` : '', // Passthrough authentication context safely[cite: 3]
+                    'Authorization': token ? `Bearer ${token}` : '', // Passthrough authentication context safely
                     'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true' //[cite: 2]
+                    'ngrok-skip-browser-warning': 'true'
                 }
             });
 
@@ -97,24 +77,24 @@ export default function GuestWall() {
             return;
         }
         setIsComposerOpen(true);
-        setPreviewUsername('Generating anonymous identity...'); //[cite: 3]
+        setPreviewUsername('Generating anonymous identity...');
         try {
-            const response = await fetch(API_ENDPOINTS.POSTS.PREVIEW_USERNAME, { //[cite: 2]
+            const response = await fetch(API_ENDPOINTS.POSTS.PREVIEW_USERNAME, {
                 method: 'GET',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true' 
+                    'ngrok-skip-browser-warning': 'true'
                 }
             });
             if (response.ok) {
                 const data = await response.json();
-                setPreviewUsername(data.display_name); //[cite: 3]
+                setPreviewUsername(data.display_name);
             } else {
-                setPreviewUsername('AnonymousUser#00'); //[cite: 3]
+                setPreviewUsername('AnonymousUser#00');
             }
         } catch (error) {
             console.error("Error fetching preview username:", error);
-            setPreviewUsername('AnonymousUser#00'); //[cite: 3]
+            setPreviewUsername('AnonymousUser#00');
         }
     };
 
@@ -122,24 +102,24 @@ export default function GuestWall() {
         if (!postText.trim()) return;
 
         try {
-            const response = await fetch(API_ENDPOINTS.POSTS.CREATE, { //[cite: 2]
+            const response = await fetch(API_ENDPOINTS.POSTS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` //[cite: 3]
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    content: postText, //[cite: 3]
-                    language: activeLang, //[cite: 3]
-                    emotion: 'HEALING', // Default general tag[cite: 3]
-                    display_name: previewUsername //[cite: 3]
+                    content: postText,
+                    language: activeLang,
+                    emotion: 'HEALING', // Default general tag
+                    display_name: previewUsername
                 })
             });
 
             if (response.ok) {
-                setPostText(''); //[cite: 3]
-                setIsComposerOpen(false); //[cite: 3]
-                fetchCommunityFeed(); // Refresh stream[cite: 3]
+                setPostText('');
+                setIsComposerOpen(false);
+                fetchCommunityFeed(); // Refresh stream
             }
         } catch (error) {
             console.error("Error submitting expression:", error);
@@ -153,76 +133,76 @@ export default function GuestWall() {
             return;
         }
 
-        // Optimistic UI Render Step[cite: 3]
+        // Optimistic UI Render Step
         const updatedPosts = posts.map(post => {
             if (post.id !== postId) return post;
             let reactions = Array.isArray(post.reactions) ? [...post.reactions] : [];
-            const existingReactionIdx = reactions.findIndex(r => r.reaction_type === reactionType && (r.user_id === currentUserId || r.userHasReacted)); //[cite: 3]
+            const existingReactionIdx = reactions.findIndex(r => r.reaction_type === reactionType && (r.user_id === currentUserId || r.userHasReacted));
 
             if (existingReactionIdx > -1) {
                 const target = reactions[existingReactionIdx];
                 if (Number(target.count) > 1) {
-                    reactions[existingReactionIdx] = { ...target, count: Number(target.count) - 1, userHasReacted: false }; //[cite: 3]
+                    reactions[existingReactionIdx] = { ...target, count: Number(target.count) - 1, userHasReacted: false };
                 } else {
-                    reactions.splice(existingReactionIdx, 1); //[cite: 3]
+                    reactions.splice(existingReactionIdx, 1);
                 }
             } else {
-                reactions.push({ reaction_type: reactionType, count: 1, userHasReacted: true, user_id: currentUserId }); //[cite: 3]
+                reactions.push({ reaction_type: reactionType, count: 1, userHasReacted: true, user_id: currentUserId });
             }
             return { ...post, reactions };
         });
         setPosts(updatedPosts);
 
         try {
-            await fetch(API_ENDPOINTS.REACTIONS.TOGGLE, { //[cite: 2]
+            await fetch(API_ENDPOINTS.REACTIONS.TOGGLE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` //[cite: 3]
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ post_id: postId, reaction_type: reactionType }) //[cite: 3]
+                body: JSON.stringify({ post_id: postId, reaction_type: reactionType })
             });
 
-            // Fetch absolute source-of-truth count for this post card node[cite: 3]
-            const syncResponse = await fetch(API_ENDPOINTS.REACTIONS.GET_BY_POST(postId), { //[cite: 2]
+            // Fetch absolute source-of-truth count for this post card node
+            const syncResponse = await fetch(API_ENDPOINTS.REACTIONS.GET_BY_POST(postId), {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } //[cite: 3]
+                headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
             });
 
             if (syncResponse.ok) {
                 const freshReactions = await syncResponse.json();
-                setPosts(prev => prev.map(p => p.id === postId ? { ...p, reactions: freshReactions } : p)); //[cite: 3]
+                setPosts(prev => prev.map(p => p.id === postId ? { ...p, reactions: freshReactions } : p));
             }
         } catch (err) {
             console.error("Failed persisting interaction data event:", err);
-            fetchCommunityFeed(); // Rollback to server snapshot state on network crash[cite: 3]
+            fetchCommunityFeed(); // Rollback to server snapshot state on network crash
         }
     };
 
     // --- Post Coach Guidance Comments ---
     const submitCoachComment = async (postId) => {
-        const text = commentInputs[postId]?.trim(); //[cite: 3]
+        const text = commentInputs[postId]?.trim();
         if (!text) return;
 
         try {
-            const response = await fetch(API_ENDPOINTS.POSTS.ADD_COMMENT(postId), { //[cite: 2]
+            const response = await fetch(API_ENDPOINTS.POSTS.ADD_COMMENT(postId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` //[cite: 3]
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ content: text }) //[cite: 3]
+                body: JSON.stringify({ content: text })
             });
 
             if (response.ok) {
                 const newComment = await response.json();
-                setCommentInputs(prev => ({ ...prev, [postId]: '' })); // Clear input field safely[cite: 3]
+                setCommentInputs(prev => ({ ...prev, [postId]: '' })); // Clear input field safely
 
                 // Append comment layout array directly to view node without structural fetch reloads
                 setPosts(prev => prev.map(post => {
                     if (post.id !== postId) return post;
                     const existingComments = Array.isArray(post.comments) ? post.comments : [];
-                    return { ...post, comments: [...existingComments, newComment] }; //[cite: 3]
+                    return { ...post, comments: [...existingComments, newComment] };
                 }));
             }
         } catch (error) {
@@ -236,10 +216,10 @@ export default function GuestWall() {
         let reacted = false;
         if (post.reactions && Array.isArray(post.reactions)) {
             post.reactions.forEach(r => {
-                if (r.reaction_type === type || r.type === type) { //[cite: 3]
-                    count += typeof r.count !== 'undefined' ? Number(r.count) : 1; //[cite: 3]
-                    if (currentUserId && (r.user_id === currentUserId || r.userHasReacted === true)) { //[cite: 3]
-                        reacted = true; //[cite: 3]
+                if (r.reaction_type === type || r.type === type) {
+                    count += typeof r.count !== 'undefined' ? Number(r.count) : 1;
+                    if (currentUserId && (r.user_id === currentUserId || r.userHasReacted === true)) {
+                        reacted = true;
                     }
                 }
             });
@@ -288,27 +268,13 @@ export default function GuestWall() {
     };
 
     return (
-        <div className="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen bg-surface-container-lowest">
-            {/* Top App Bar */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0px_4px_20px_rgba(5,139,3,0.05)] border-b border-outline-variant/10">
-                <div className="flex items-center justify-between px-6 h-16 w-full max-w-720 mx-auto">
-                    <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform hover:opacity-80">
-                        <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <h1 className="font-display-lg-mobile text-display-lg-mobile text-primary tracking-tight font-bold">Unsaid Wall</h1>
-                    </div>
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/guest-wall')} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Wall</button>
-                        <button onClick={() => handleProtectedNav('/journal')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Journal</button>
-                        <button onClick={() => navigate('/coach-directory')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                        {isTokenValid ? (
-                            <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-outline/20 transition-all cursor-pointer">Logout</button>
-                        ) : (
-                            <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">Login</button>
-                        )}
-                    </div>
-                </div>
-            </header>
+        <div
+            className="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen"
+            style={{
+                backgroundColor: '#dfffde',
+                backgroundImage: 'radial-gradient(at 0% 0%, rgba(125, 241, 104, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(5, 235, 249, 0.1) 0px, transparent 50%)'
+            }}
+        ><Navbar />
 
             <main className="pt-20 pb-32 px-4 max-w-720 mx-auto space-y-6">
                 {/* Pinned Announcement */}
@@ -339,23 +305,23 @@ export default function GuestWall() {
                         </div>
                     ) : posts.length > 0 ? (
                         posts.map((post) => {
-                            const postCategory = post.category || post.emotion || 'Healing'; //[cite: 3]
-                            const postId = post.id || post._id; //[cite: 3]
+                            const postCategory = post.category || post.emotion || 'Healing';
+                            const postId = post.id || post._id;
 
-                            const hr = getReactionDetails(post, 'HEAR_YOU'); //[cite: 3]
-                            const na = getReactionDetails(post, 'NOT_ALONE'); //[cite: 3]
-                            const st = getReactionDetails(post, 'STRENGTH'); //[cite: 3]
-                            const wp = getReactionDetails(post, 'WILL_PASS'); //[cite: 3]
+                            const hr = getReactionDetails(post, 'HEAR_YOU');
+                            const na = getReactionDetails(post, 'NOT_ALONE');
+                            const st = getReactionDetails(post, 'STRENGTH');
+                            const wp = getReactionDetails(post, 'WILL_PASS');
 
                             return (
                                 <article
                                     key={postId}
                                     onMouseMove={handleMouseMove}
-                                    className="glass-card p-6 rounded-2xl space-y-4 shadow-sm bg-white border border-outline-variant/10 group transition-all duration-300"
+                                    className="glass-card p-6 rounded-lg space-y-4 shadow-[0px_4px_20px_rgba(5,139,3,0.03)] group transition-all duration-300"
                                 >
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-sm text-on-surface">{post.display_name || 'AnonymousUser'}</span> {/*[cite: 3] */}
+                                            <span className="font-semibold text-sm text-on-surface">{post.display_name || 'AnonymousUser'}</span>
                                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryStyles(postCategory)}`}>
                                                 {postCategory}
                                             </span>
@@ -371,28 +337,28 @@ export default function GuestWall() {
                                     {/* Action Interactivity Bar */}
                                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-outline-variant/5 text-xs">
                                         <button onClick={() => handleToggleReaction(postId, 'HEAR_YOU')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${hr.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${hr.reacted ? '1' : '0'}` }}>sentiment_satisfied</span> {/*[cite: 3] */}
-                                            <span>Hear You ({hr.count})</span> {/*[cite: 3] */}
+                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${hr.reacted ? '1' : '0'}` }}>sentiment_satisfied</span>
+                                            <span>Hear You ({hr.count})</span>
                                         </button>
 
                                         <button onClick={() => handleToggleReaction(postId, 'NOT_ALONE')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${na.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${na.reacted ? '1' : '0'}` }}>favorite</span> {/*[cite: 3] */}
-                                            <span>Not Alone ({na.count})</span> {/*[cite: 3] */}
+                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${na.reacted ? '1' : '0'}` }}>favorite</span>
+                                            <span>Not Alone ({na.count})</span>
                                         </button>
 
                                         <button onClick={() => handleToggleReaction(postId, 'STRENGTH')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${st.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${st.reacted ? '1' : '0'}` }}>fitness_center</span> {/*[cite: 3] */}
-                                            <span>Strength ({st.count})</span> {/*[cite: 3] */}
+                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${st.reacted ? '1' : '0'}` }}>fitness_center</span>
+                                            <span>Strength ({st.count})</span>
                                         </button>
 
                                         <button onClick={() => handleToggleReaction(postId, 'WILL_PASS')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${wp.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${wp.reacted ? '1' : '0'}` }}>air</span> {/*[cite: 3] */}
-                                            <span>Will Pass ({wp.count})</span> {/*[cite: 3] */}
+                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${wp.reacted ? '1' : '0'}` }}>air</span>
+                                            <span>Will Pass ({wp.count})</span>
                                         </button>
                                     </div>
 
                                     {/* Coach Comment Feed Thread */}
-                                    {((post.comments && post.comments.length > 0) || userRole === 'coach') && ( //[cite: 3]
+                                    {((post.comments && post.comments.length > 0) || userRole === 'coach') && (
                                         <div className="mt-4 pt-3 border-t border-outline-variant/20">
                                             <h4 className="text-[10px] font-bold text-outline uppercase tracking-wider mb-2 flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-sm">forum</span> Coach Guidance
@@ -404,29 +370,29 @@ export default function GuestWall() {
                                                         <div className="flex justify-between items-center mb-1">
                                                             <span className="text-xs font-bold text-primary flex items-center gap-1">
                                                                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                                                                Coach {comment.user?.coach_profile?.name || 'Verified Professional'} {/*[cite: 3] */}
+                                                                Coach {comment.user?.coach_profile?.name || 'Verified Professional'}
                                                             </span>
                                                             <span className="text-[10px] text-outline">
                                                                 {formatPostTime(comment.created_at)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm text-on-surface-variant ml-1">{comment.content}</p> {/*[cite: 3] */}
+                                                        <p className="text-sm text-on-surface-variant ml-1">{comment.content}</p>
                                                     </div>
                                                 ))}
                                             </div>
 
                                             {/* Actionable interface reserved exclusively for coaches */}
-                                            {userRole === 'coach' && ( //[cite: 3]
+                                            {userRole === 'coach' && (
                                                 <div className="mt-3 pt-3 border-t border-outline-variant/10">
                                                     <div className="flex gap-2">
                                                         <input
                                                             type="text"
-                                                            value={commentInputs[postId] || ''} //[cite: 3]
-                                                            onChange={(e) => setCommentInputs(prev => ({ ...prev, [postId]: e.target.value }))} //[cite: 3]
+                                                            value={commentInputs[postId] || ''}
+                                                            onChange={(e) => setCommentInputs(prev => ({ ...prev, [postId]: e.target.value }))}
                                                             placeholder="Write professional guidance..."
                                                             className="w-full text-xs rounded-xl border-outline-variant/40 bg-surface-container-low px-3 py-2 text-on-surface outline-none focus:ring-1 focus:ring-primary"
                                                         />
-                                                        <button onClick={() => submitCoachComment(postId)} className="bg-primary hover:opacity-90 text-on-primary font-bold px-3 py-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer"> {/*[cite: 3] */}
+                                                        <button onClick={() => submitCoachComment(postId)} className="bg-primary hover:opacity-90 text-on-primary font-bold px-3 py-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer">
                                                             <span className="material-symbols-outlined text-sm">send</span>
                                                         </button>
                                                     </div>
@@ -450,28 +416,6 @@ export default function GuestWall() {
                 <span className="material-symbols-outlined">edit_note</span>
                 <span className="font-label-sm pr-2">Share Something</span>
             </button>
-
-            {/* Bottom Navigation Ribbon */}
-            <nav className="fixed bottom-0 left-0 w-full md:hidden bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl shadow-[0px_-4px_24px_rgba(5,139,3,0.08)] z-50 rounded-t-xl">
-                <div className="flex justify-around items-center px-4 py-3 pb-safe max-w-720 mx-auto">
-                    <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1.5 cursor-pointer">
-                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>grid_view</span>
-                        <span className="font-label-sm text-label-sm">Wall</span>
-                    </button>
-                    <button onClick={() => handleProtectedNav('/journal')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined">auto_stories</span>
-                        <span className="font-label-sm text-label-sm">Journal</span>
-                    </button>
-                    <button onClick={() => navigate('/coach-directory')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined">psychology</span>
-                        <span className="font-label-sm text-label-sm">Coaches</span>
-                    </button>
-                    <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined">local_library</span>
-                        <span className="font-label-sm text-label-sm">Resources</span>
-                    </button>
-                </div>
-            </nav>
 
             {/* Full-Sheet Composer Modal Drawer for Authenticated Writing */}
             <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-transform duration-500 ease-out flex flex-col ${isComposerOpen ? 'translate-y-0' : 'translate-y-full'}`}>
