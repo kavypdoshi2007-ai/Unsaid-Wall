@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 
 // Keep your backend endpoint centralized so it works everywhere
 const BACKEND_URL = 'https://diminish-waving-shore.ngrok-free.dev/api';
@@ -8,7 +9,7 @@ const BACKEND_URL = 'https://diminish-waving-shore.ngrok-free.dev/api';
 export default function UserWall() {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-
+    const [error, setError] = useState(null);
     // --- State Variables ---
     const [posts, setPosts] = useState([]);
     const [loadingFeed, setLoadingFeed] = useState(true);
@@ -54,7 +55,7 @@ export default function UserWall() {
             auth: {
                 token: localStorage.getItem('token') // Or wherever you pull your token from
             }
-            });
+        });
 
         // Listen for the exact moment a coach clicks "Accept"
         socket.on(`session_accepted_${currentUserId}`, (data) => {
@@ -82,17 +83,40 @@ export default function UserWall() {
                     'ngrok-skip-browser-warning': 'true'
                 }
             });
-            if (response.ok) {
-                const data = await response.json();
-                setPosts(data);
+
+            // 🌟 NEW: Handle errors with backend messages
+            if (!response.ok) {
+                // Attempt to parse the backend error JSON
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || errorData.message || `Error ${response.status}`;
+
+                // If it's a 403, we know specifically it's an authorization/permission issue
+                if (response.status === 403) {
+                    throw new Error(`Access Denied: ${errorMessage}`);
+                } else {
+                    throw new Error(errorMessage);
+                }
             }
+
+            const data = await response.json();
+
+            // Sort posts by newest first
+            const sortedPosts = data.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.createdAt || 0);
+                const dateB = new Date(b.created_at || b.createdAt || 0);
+                return dateB - dateA;
+            });
+
+            setPosts(sortedPosts);
+
         } catch (error) {
             console.error("Error building dashboard timeline:", error);
+            // 🌟 Set the error state so you can show it to the user
+            setError(error.message);
         } finally {
             setLoadingFeed(false);
         }
     };
-
     // --- Create / Request Support Session Loop ---
     const startSupportSession = async () => {
         if (!token) {
@@ -134,9 +158,10 @@ export default function UserWall() {
         try {
             const response = await fetch(`${BACKEND_URL}/posts/username`, {
                 method: 'GET',
-                headers: { 
+                headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
-                     'ngrok-skip-browser-warning': 'true' }
+                    'ngrok-skip-browser-warning': 'true'
+                }
             });
             if (response.ok) {
                 const data = await response.json();
@@ -164,7 +189,7 @@ export default function UserWall() {
                 body: JSON.stringify({
                     content: postText,
                     language: activeLang,
-                    emotion: selectedEmotion.label.toUpperCase(),
+                    emotion: 'REFLECTION', // 🌟 FIX: Re-added the missing emotion field!
                     display_name: previewUsername
                 })
             });
@@ -172,7 +197,9 @@ export default function UserWall() {
             if (response.ok) {
                 setPostText('');
                 setIsComposerOpen(false);
-                fetchFeed();
+                fetchFeed(); // This will now fetch and sort the newest post to the top!
+            } else {
+                console.error("Backend rejected the post.");
             }
         } catch (error) {
             console.error("Error submitting expression:", error);
@@ -233,6 +260,7 @@ export default function UserWall() {
             }
         } catch (err) {
             console.error("Failed persisting interaction data event:", err);
+            setError("Failed to update reaction. Please try again.");
             fetchFeed(); // Rollback to source of truth on failure
         }
     };
@@ -291,32 +319,22 @@ export default function UserWall() {
 
     return (
         <div className="bg-background text-on-surface font-body-md min-h-screen pb-24 overflow-x-hidden">
-            {/* FIXED SYSTEM HEADER */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
-                <div className="flex justify-between items-center px-6 h-16 w-full max-w-7xl mx-auto">
-                    <div onClick={() => navigate('/user-wall')} className="flex items-center gap-2 cursor-pointer">
-                        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <span className="font-headline-md text-[20px] font-bold text-primary tracking-tight">Unsaid Wall</span>
-                    </div>
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-primary">Wall</button>
-                        <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-outline">Journal</button>
-                        <button onClick={() => navigate('/coach-directory')} className="font-label-sm font-semibold text-outline">Coaches</button>
-                        <button onClick={() => navigate('/my-sessions')} className="font-label-sm font-semibold text-outline">Sessions</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline">Resources</button>
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             {/* MAIN LAYOUT CANVAS */}
             <main className="pt-24 px-6 max-w-[720px] mx-auto space-y-6">
+                {/* 🌟 ADD THIS BLOCK HERE */}
+                {error && (
+                    <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm text-center">
+                        {error}
+                    </div>
+                )}
 
                 {/* LIVE DYNAMIC CHAT REQUEST BAR */}
                 <section id="support-action-container" className="w-full">
                     {sessionStatus === 'idle' && (
                         <div className="p-4 bg-white/40 border border-zinc-100 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                             <p className="text-sm text-zinc-600">Need real-time immediate human guidance?</p>
-                            <button onClick={startSupportSession} className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer">
+                            <button onClick={startSupportSession} className="bg-surface-variant text-on-surface-variant hover:brightness-95 text-xs font-bold px-5 py-3 rounded-full transition-all shadow-sm active:scale-95 cursor-pointer">
                                 Connect with a Support Specialist
                             </button>
                         </div>
@@ -365,11 +383,11 @@ export default function UserWall() {
                             const wp = getReactionDetails(post, 'WILL_PASS');
 
                             return (
-                                <article key={post.id} className="bg-white border border-zinc-100 p-5 rounded-2xl shadow-sm">
+                                <article key={post.id} className="bg-white/40 border border-white/50 rounded-lg p-6 shadow-[0_4px_20px_rgba(5,139,3,0.05)] transition-all duration-200 active:scale-[0.99]">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
                                             <span className="font-['Plus_Jakarta_Sans'] font-semibold text-sm text-zinc-800">{post.display_name || 'Anonymous'}</span>
-                                            <span className="text-[11px] px-2.5 py-0.5 ml-2 rounded-full bg-emerald-100 text-emerald-800 font-medium">{post.emotion}</span>
+                                            <span className="bg-surface-variant text-on-surface-variant font-label-sm text-[10px] px-2 py-0.5 ml-2 rounded-full">{post.emotion}</span>
                                         </div>
                                         <span className="text-xs text-zinc-400">
                                             {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Just now'}
@@ -379,28 +397,27 @@ export default function UserWall() {
                                     <p className="text-zinc-700 font-['Literata'] text-base leading-relaxed mb-4">{post.content}</p>
 
                                     {/* INTERACTIVE COMPONENT REACTION TOOLBAR */}
-                                    <div className="flex flex-wrap items-center gap-2 pb-1 text-xs font-['Plus_Jakarta_Sans']">
-                                        <button onClick={() => toggleReaction(post.id, 'HEAR_YOU')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-95 ${hr.reacted ? 'text-emerald-600 bg-emerald-50/50' : 'text-zinc-500 hover:bg-emerald-50/30'}`}>
+                                    <div className="flex flex-wrap items-center gap-2 pb-1 text-[12px] font-label-sm mt-2">
+                                        <button onClick={() => toggleReaction(post.id, 'HEAR_YOU')} className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-transform active:scale-110 ${hr.reacted ? 'bg-surface-variant text-on-surface-variant' : 'bg-surface-container text-on-surface-variant hover:bg-surface-variant/50'}`}>
                                             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: `'FILL' ${hr.reacted ? '1' : '0'}` }}>sentiment_satisfied</span>
                                             <span className="font-semibold">Hear You ({hr.count})</span>
                                         </button>
 
-                                        <button onClick={() => toggleReaction(post.id, 'NOT_ALONE')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-95 ${na.reacted ? 'text-emerald-600 bg-emerald-50/50' : 'text-zinc-500 hover:bg-emerald-50/30'}`}>
+                                        <button onClick={() => toggleReaction(post.id, 'NOT_ALONE')} className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-transform active:scale-110 ${na.reacted ? 'bg-surface-variant text-on-surface-variant' : 'bg-surface-container text-on-surface-variant hover:bg-surface-variant/50'}`}>
                                             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: `'FILL' ${na.reacted ? '1' : '0'}` }}>favorite</span>
                                             <span className="font-semibold">Not Alone ({na.count})</span>
                                         </button>
 
-                                        <button onClick={() => toggleReaction(post.id, 'STRENGTH')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-95 ${st.reacted ? 'text-emerald-600 bg-emerald-50/50' : 'text-zinc-500 hover:bg-emerald-50/30'}`}>
+                                        <button onClick={() => toggleReaction(post.id, 'STRENGTH')} className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-transform active:scale-110 ${st.reacted ? 'bg-surface-variant text-on-surface-variant' : 'bg-surface-container text-on-surface-variant hover:bg-surface-variant/50'}`}>
                                             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: `'FILL' ${st.reacted ? '1' : '0'}` }}>fitness_center</span>
                                             <span className="font-semibold">Strength ({st.count})</span>
                                         </button>
 
-                                        <button onClick={() => toggleReaction(post.id, 'WILL_PASS')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-95 ${wp.reacted ? 'text-emerald-600 bg-emerald-50/50' : 'text-zinc-500 hover:bg-emerald-50/30'}`}>
+                                        <button onClick={() => toggleReaction(post.id, 'WILL_PASS')} className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-transform active:scale-110 ${wp.reacted ? 'bg-surface-variant text-on-surface-variant' : 'bg-surface-container text-on-surface-variant hover:bg-surface-variant/50'}`}>
                                             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: `'FILL' ${wp.reacted ? '1' : '0'}` }}>air</span>
                                             <span className="font-semibold">Will Pass ({wp.count})</span>
                                         </button>
                                     </div>
-
                                     {/* COACH GUIDANCE WRAPPER CHANNEL */}
                                     {((post.comments && post.comments.length > 0) || userRole === 'coach') && (
                                         <div className="mt-4 pt-3 border-t border-zinc-100">
@@ -487,15 +504,6 @@ export default function UserWall() {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* MOBILE SYSTEM NAVIGATION OVERLAY BAR */}
-            <div className="fixed bottom-0 left-0 w-full md:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 rounded-t-xl">
-                <button onClick={() => navigate('/user-wall')} className="flex flex-col items-center text-primary py-1"><span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span><span className="text-[10px] font-semibold">Wall</span></button>
-                <button onClick={() => navigate('/emotion-journal')} className="flex flex-col items-center text-on-surface-variant py-1"><span className="material-symbols-outlined mb-1 text-xl">auto_stories</span><span className="text-[10px] font-semibold">Journal</span></button>
-                <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center text-on-surface-variant py-1"><span className="material-symbols-outlined mb-1 text-xl">psychology</span><span className="text-[10px] font-semibold">Coaches</span></button>
-                <button onClick={() => navigate('/my-sessions')} className="flex flex-col items-center text-on-surface-variant py-1"><span className="material-symbols-outlined mb-1 text-xl">forum</span><span className="text-[10px] font-semibold">Sessions</span></button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center text-on-surface-variant py-1"><span className="material-symbols-outlined mb-1 text-xl">local_library</span><span className="text-[10px] font-semibold">Resources</span></button>
             </div>
         </div>
     );
