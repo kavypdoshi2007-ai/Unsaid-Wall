@@ -194,7 +194,7 @@ export default function EmotionJournal() {
 
     return (
         <div className="font-body-md text-body-md overflow-x-hidden bg-background text-on-surface min-h-screen relative pb-24">
-
+            <Navbar />
 
             {/* MAIN CONTENT SPACE */}
             <main className="pt-24 px-6 max-w-[1200px] mx-auto">
