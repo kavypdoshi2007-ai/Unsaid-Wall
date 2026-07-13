@@ -1,34 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, ChevronDown, Lock, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Filter, ChevronDown, AlertCircle, ArrowLeft } from 'lucide-react';
 import { API_ENDPOINTS } from '../../config/api';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
 
-export default function CoachDirectory() {
+export default function CoachProfile() {
+    const navigate = useNavigate();
+    const token = localStorage.getItem('token');
+
+    // 🌟 KICKOUT LOGIC: If a guest lands on this user page, redirect to login.
+    useEffect(() => {
+        if (!token || token === 'null' || token === 'undefined') {
+            navigate('/login');
+        }
+    }, [token, navigate]);
+
+    // --- Directory & Profile States ---
     const [coaches, setCoaches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [modalAction, setModalAction] = useState('request');
+    const [selectedCoach, setSelectedCoach] = useState(null); // Controls Grid vs Profile View
 
-    // 🌟 Controls switching between the Grid and the Profile view
-    const [selectedCoach, setSelectedCoach] = useState(null);
+    // --- Form Interaction States ---
+    const [requestContext, setRequestContext] = useState('');
+    const [selectedDate, setSelectedDate] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const navigate = useNavigate();
-
-    // Filter States
+    // --- Filter States ---
     const [activeLanguage, setActiveLanguage] = useState('EN');
     const [activeAvailability, setActiveAvailability] = useState('Anytime');
     const [activeSpecs, setActiveSpecs] = useState([]);
     const [isAllSpecs, setIsAllSpecs] = useState(true);
 
-    // 1. FETCH DIRECTORY DATA
+    const today = new Date().toISOString().split('T')[0];
+
+    // 1. FETCH ALL COACHES FOR DIRECTORY GRID
     useEffect(() => {
         setIsLoading(true);
         fetch(API_ENDPOINTS.COACHES.GET_ALL, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': `Bearer ${token}`
             }
         })
             .then((res) => {
@@ -44,8 +57,45 @@ export default function CoachDirectory() {
                 console.error("Error capturing live coach nodes:", err);
                 setIsLoading(false);
             });
-    }, []);
+    }, [token]);
 
+    // 2. DISPATCH SESSION CREATION
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(API_ENDPOINTS.SESSIONS.CREATE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    coachId: selectedCoach.id, // Uses the currently selected coach
+                    preferredDate: selectedDate,
+                    context_message: requestContext
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`Request successfully broadcasted! Available coaches will review your request shortly.`);
+                navigate('/my-sessions');
+            } else {
+                alert(result.error || result.message || "Could not complete session booking handshake.");
+            }
+        } catch (err) {
+            console.error("Session creation mutation exception caught:", err);
+            alert("Network pipeline exception dropped your request. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Filter Logic
     const handleSpecChange = (spec) => {
         if (spec === 'ALL') {
             setIsAllSpecs(true);
@@ -84,18 +134,18 @@ export default function CoachDirectory() {
     return (
         <div className="bg-background text-on-surface antialiased custom-scrollbar min-h-screen">
             <Navbar />
-            <main className="max-w-screen-xl mx-auto px-container-padding py-12 pt-28">
-
-                {/* 🌟 CONDITIONAL RENDERING: Show Profile if selected, otherwise show Grid */}
+            // Example: pt-20 on mobile, pt-28 on tablets and up
+            <main className="max-w-screen-xl mx-auto px-container-padding py-12 pt-20 md:pt-28">
+                {/* 🌟 CONDITIONAL RENDERING: Show Profile Form if selected, otherwise show Grid */}
                 {selectedCoach ? (
 
-                    /* --- PUBLIC PROFILE VIEW --- */
+                    /* --- SECURE USER PROFILE VIEW --- */
                     <div className="space-y-8 animate-fade-in">
                         <button
                             onClick={() => setSelectedCoach(null)}
                             className="flex items-center gap-2 text-primary font-bold hover:opacity-80 transition-opacity cursor-pointer w-max"
                         >
-                            <ArrowLeft className="w-5 h-5" /> Back to Directory
+                            <ArrowLeft className="w-5 h-5" /> Back to Coaches
                         </button>
 
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-12">
@@ -163,29 +213,48 @@ export default function CoachDirectory() {
                                 </section>
                             </div>
 
-                            {/* Right Column: Secure Public Request Block */}
+                            {/* Right Column: ACTIVE Booking Form */}
                             <div className="lg:col-span-4">
                                 <div className="sticky top-24 bg-white/60 backdrop-blur-xl p-8 rounded-lg shadow-2xl shadow-primary/10 border-t-4 border-primary">
                                     <h2 className="font-headline-md text-headline-md mb-2">Request a Session</h2>
                                     <p className="text-on-surface-variant text-body-md mb-8">Start your journey toward quiet strength today.</p>
 
-                                    <div className="space-y-6">
-                                        <div className="p-4 bg-surface-container-low rounded-lg border border-outline-variant/30 text-center">
-                                            <UserCheck className="w-8 h-8 text-primary mx-auto mb-2" />
-                                            <p className="text-sm text-on-surface-variant">You are currently browsing the public directory.</p>
+                                    <form className="space-y-6" onSubmit={handleSubmit}>
+                                        <div className="space-y-2">
+                                            <label className="block text-label-sm font-semibold text-on-surface-variant px-1">Select Preferred Date</label>
+                                            <input
+                                                required
+                                                type="date"
+                                                min={today}
+                                                value={selectedDate}
+                                                onChange={(e) => setSelectedDate(e.target.value)}
+                                                className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                            />
                                         </div>
-                                        {/* 🌟 LOCKED: Triggers Login Modal */}
+
+                                        <div className="space-y-2">
+                                            <label className="block text-label-sm font-semibold text-on-surface-variant px-1">Context <span className="font-normal text-on-surface-variant/60">(optional)</span></label>
+                                            <textarea
+                                                value={requestContext}
+                                                onChange={(e) => setRequestContext(e.target.value)}
+                                                className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
+                                                placeholder="Briefly share what's on your mind... (optional)"
+                                                rows="4"></textarea>
+                                        </div>
+
                                         <button
-                                            onClick={() => {
-                                                setModalAction('request');
-                                                setIsLoginModalOpen(true);
-                                            }}
-                                            className="w-full bg-primary hover:opacity-90 text-on-primary font-bold py-4 rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full bg-primary hover:bg-primary-dim disabled:opacity-50 text-on-primary font-bold py-4 rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                                         >
-                                            Login to Book Session
-                                            <Lock className="w-4 h-4" />
+                                            {isSubmitting ? 'Sending Request...' : 'Send Request'}
+                                            <span className="material-symbols-outlined">send</span>
                                         </button>
-                                    </div>
+
+                                        <p className="text-center text-[11px] text-on-surface-variant leading-tight px-4">
+                                            By clicking send, you agree to our <a className="underline cursor-pointer" onClick={() => navigate('/privacy-policy')}>Privacy Policy</a> regarding mental health data sharing.
+                                        </p>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -193,7 +262,7 @@ export default function CoachDirectory() {
 
                 ) : (
 
-                    /* --- PUBLIC DIRECTORY GRID VIEW --- */
+                    /* --- USER DIRECTORY GRID VIEW --- */
                     <div className="flex flex-col lg:flex-row gap-12 animate-fade-in">
                         {/* Sidebar Filters */}
                         <aside className="w-full lg:w-72 flex-shrink-0">
@@ -333,18 +402,13 @@ export default function CoachDirectory() {
                                                 </div>
 
                                                 <div className="mt-auto flex flex-col gap-3">
-                                                    {/* 🌟 LOCKED: Triggers Login Modal */}
+                                                    {/* 🌟 UNLOCKED: Both buttons open the profile so the user can fill out the form */}
                                                     <button
-                                                        onClick={() => {
-                                                            setModalAction('request');
-                                                            setIsLoginModalOpen(true);
-                                                        }}
+                                                        onClick={() => setSelectedCoach(coach)}
                                                         className="w-full py-3 rounded-full bg-primary text-on-primary font-label-sm text-sm font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                                                     >
-                                                        Request Session <Lock className="w-3 h-3" />
+                                                        Request Session
                                                     </button>
-
-                                                    {/* 🌟 UNLOCKED: Shows the profile inside this page */}
                                                     <button
                                                         onClick={() => setSelectedCoach(coach)}
                                                         className="w-full py-3 rounded-full border-1.5 border-primary text-primary font-label-sm text-sm font-bold hover:bg-primary/5 transition-all cursor-pointer"
@@ -361,34 +425,6 @@ export default function CoachDirectory() {
                     </div>
                 )}
             </main>
-
-            {/* 🌟 LOGIN PROMPT MODAL */}
-            {isLoginModalOpen && (
-                <div onClick={(e) => { if (e.target === e.currentTarget) setIsLoginModalOpen(false) }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="glass-card w-full max-w-[400px] p-8 rounded-2xl shadow-2xl transition-all duration-300 transform flex flex-col text-center bg-surface border border-outline-variant/10">
-
-                        <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                            {modalAction === 'request' ? <Lock className="w-7 h-7" /> : <UserCheck className="w-7 h-7" />}
-                        </div>
-
-                        <h3 className="font-headline-md text-2xl font-bold text-on-surface mb-3">
-                            Sign in to book a session
-                        </h3>
-                        <p className="text-on-surface-variant font-body-md mb-8">
-                            You need an account to request private sessions with our vetted coaches. Your privacy is our priority.
-                        </p>
-
-                        <div className="flex flex-col gap-3 w-full">
-                            <button onClick={() => navigate('/login')} className="w-full py-3 bg-primary text-on-primary rounded-full font-label-sm text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer">
-                                Login / Sign Up
-                            </button>
-                            <button onClick={() => setIsLoginModalOpen(false)} className="w-full py-3 text-outline font-label-sm text-sm font-bold hover:text-primary transition-colors cursor-pointer">
-                                Maybe Later
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -39,10 +39,10 @@ export default function CoachDashboard() {
                     setCoachInfo({
                         name: profileData.name || 'Dr. Aris',
                         avatarUrl: profileData.avatarUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDBfL93zvogk848jRg7EFYBwbzIIgpR0jYdwaG_U131VOHXqsBRnXyU6gObKATqAtEyKKN849eA-BXpCxcmrubrGdyF7iY8p5mTwMtbWQt0g1pwWsGLBMQFzJRwKCRZGt9QtlJR51o3Dbjvg1RW8izRE1VQF9aLkLmrAUWZaE56iqYcSLrFkOgVo9_itc3ANI6Nz5xRr7tZo14aw_K2tiJySUYg_NMMwSIy5FpfORiJZIo88uQQczeTqKVLKI-LOrqhiuJNGjAOGGBO',
-                        activeJourneys: 0, // corrected below once live session data is fetched
+                        activeJourneys: 0, 
                         sessionsTodayCount: profileData.sessionsTodayCount || 0,
                         totalClients: profileData.sessions_count || 0,
-                        rating: profileData.rating || 5.0
+                        rating: profileData.rating ? parseFloat(profileData.rating) : 5.0
                     });
                 }
 
@@ -50,9 +50,8 @@ export default function CoachDashboard() {
                 const sessionsRes = await fetch(API_ENDPOINTS.SESSIONS.GET_LISTING, { headers });
                 if (sessionsRes.ok) {
                     const sessionsData = await sessionsRes.json();
-                    console.log("Raw Session Data from Backend:", sessionsData); // Inspect data fields
+                    console.log("Raw Session Data from Backend:", sessionsData); 
 
-                    // Safe mapping that handles casing variations (lowercase/uppercase/missing data)
                     const active = sessionsData.filter(s => {
                         const currentStatus = (s.status || '').toLowerCase().trim();
                         return currentStatus === 'active';
@@ -65,16 +64,14 @@ export default function CoachDashboard() {
 
                     setActiveSessions(active);
                     setPendingRequests(pending);
-                    // Now that we know the real count, correct the sidebar's "active journeys" stat
                     setCoachInfo(prev => ({ ...prev, activeJourneys: active.length }));
                 }
 
-                // 3. Fetch Mod Flagged Posts
                 // 3. Fetch Mod Queue directly
                 const postsRes = await fetch(API_ENDPOINTS.POSTS.GET_MOD_QUEUE, { headers });
                 if (postsRes.ok) {
                     const flagged = await postsRes.json();
-                    setFlaggedPosts(flagged); // No extra .filter() layout filtering needed on frontend!
+                    setFlaggedPosts(flagged); 
                 }
             } catch (error) {
                 console.error("Error loading coach dashboard analytics:", error);
@@ -101,7 +98,6 @@ export default function CoachDashboard() {
             });
 
             if (res.ok) {
-                // Instantly filter out or push state changes locally to avoid structural refresh delays
                 if (newStatus === 'accepted') {
                     const acceptedItem = pendingRequests.find(req => (req.id || req._id) === sessionId);
                     setPendingRequests(prev => prev.filter(req => (req.id || req._id) !== sessionId));
@@ -117,18 +113,23 @@ export default function CoachDashboard() {
         }
     };
 
-    // Sign Out Action Handler — clears session and returns to login
     const handleLogout = () => {
         localStorage.clear();
         navigate('/login');
     };
 
-    // Smart string utility to resolve name combinations cleanly
+    // Smart string utility matched directly to use Prisma include properties
     const resolveClientName = (item, defaultFallback = 'Anonymous User') => {
         if (!item) return defaultFallback;
+        // Direct post string match
+        if (item.display_name) return item.display_name;
+        // Include relations structure parsing
+        if (item.user && item.user.display_name_pool && item.user.display_name_pool.length > 0) {
+            return item.user.display_name_pool[0];
+        }
         const name = item.clientName || item.userName || item.username || item.authorName;
         if (name) return name;
-        // If an explicit sequential database context tracking counter or mongo ID exists, append it 
+        
         const identifier = item.id || item._id;
         return identifier ? `Anonymous User #${String(identifier).slice(-4)}` : defaultFallback;
     };
@@ -151,11 +152,8 @@ export default function CoachDashboard() {
         <div className="min-h-screen flex flex-col bg-background font-body-md text-on-surface overflow-hidden">
             <Navbar />
             <div className="flex flex-1 pt-16 lg:mb-10">
-                {/* Sidebar Navigation */}
-                
-
                 {/* Main Content Area */}
-                <main className="w-full lg:ml-64 flex-1 p-4 md:p-8 overflow-y-auto pb-28 lg:pb-8">
+                <main className="w-full flex-1 p-4 md:p-8 overflow-y-auto pb-28 lg:pb-8">
                     <div className="max-w-6xl mx-auto space-y-10">
                         {/* Welcome Section */}
                         <section aria-labelledby="welcome-heading">
@@ -165,7 +163,7 @@ export default function CoachDashboard() {
                             </p>
                         </section>
 
-                        {/* Metrics: 3-column Layout */}
+                        {/* Metrics Layout */}
                         <section aria-label="Quick statistics" className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
                             <div className="glass-card p-6 rounded-lg flex flex-col gap-2 border border-outline-variant/20 transition-all hover:translate-y-[-4px]">
                                 <span className="material-symbols-outlined text-primary text-[32px]">calendar_today</span>
@@ -184,18 +182,22 @@ export default function CoachDashboard() {
                             </div>
                         </section>
 
+                        {/* Main Grid Split */}
                         <div className="grid grid-cols-12 gap-gutter">
+
                             {/* Left/Center Column */}
                             <div className="col-span-12 lg:col-span-8 space-y-8">
-                                {/* Active Sessions */}
+
+                                {/* Dynamic Active Sessions */}
                                 <section className="space-y-4">
                                     <h3 className="font-headline-md text-headline-md text-on-surface">Active Sessions</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {activeSessions.length > 0 ? (
                                             activeSessions.map((session) => {
                                                 const solvedName = resolveClientName(session, 'Active Client');
+                                                const sessionId = session.id || session._id;
                                                 return (
-                                                    <div key={session.id || session._id} className="glass-card p-4 rounded-lg border border-primary/20 flex items-center justify-between group hover:bg-white/30 transition-all">
+                                                    <div key={sessionId} className="glass-card p-4 rounded-lg border border-primary/20 flex items-center justify-between group hover:bg-white/30 transition-all">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-on-primary-container">
                                                                 {getInitials(solvedName)}
@@ -208,7 +210,7 @@ export default function CoachDashboard() {
                                                             </div>
                                                         </div>
                                                         <button
-                                                            onClick={() => navigate('/coach-chat', { state: { sessionId: session.id || session._id } })}
+                                                            onClick={() => navigate('/coach-chat', { state: { sessionId } })}
                                                             className="bg-primary text-on-primary px-4 py-2 rounded-full font-label-sm text-label-sm font-bold hover:shadow-lg transition-all active:scale-95 cursor-pointer"
                                                         >
                                                             Join
@@ -224,51 +226,58 @@ export default function CoachDashboard() {
                                     </div>
                                 </section>
 
-                                {/* Flagged Wall Posts */}
+                                {/* Dynamic Active Crisis Alerts */}
                                 <section aria-labelledby="flagged-posts-title" className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-headline-md text-headline-md text-on-surface" id="flagged-posts-title">Flagged Wall Posts</h3>
-                                        <button className="text-primary font-label-sm text-label-sm hover:underline cursor-pointer">View All</button>
+                                        <h3 className="font-headline-md text-headline-md text-on-surface" id="flagged-posts-title">Active Crisis Alerts</h3>
+                                        <div aria-label={`${flaggedPosts.length} active alerts`} className="bg-error text-white text-[10px] px-2 py-0.5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                                            {flaggedPosts.length} HIGH PRIORITY
+                                        </div>
                                     </div>
 
                                     {flaggedPosts.length > 0 ? (
                                         flaggedPosts.map((post) => {
                                             const solvedName = resolveClientName(post, 'Anonymous User');
                                             return (
-                                                <article key={post.id || post._id} className="glass-card p-6 rounded-lg border-l-4 border-error relative overflow-hidden group shadow-sm">
+                                                <article key={post.id || post._id} className="glass-card p-6 rounded-lg border-l-4 border-error relative overflow-hidden group shadow-[0_0_15px_rgba(176,37,0,0.1)]">
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-[12px]">
-                                                                {getInitials(solvedName)}
+                                                            <div className="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold shrink-0">
+                                                                <span className="material-symbols-outlined text-[20px]">warning</span>
                                                             </div>
                                                             <div>
                                                                 <p className="font-label-sm text-label-sm font-bold">{solvedName}</p>
-                                                                <p className="text-[12px] text-on-surface-variant">Flagged for: {post.emotion || 'Distress Pattern'}</p>
+                                                                <p className="text-[12px] text-on-surface-variant">Flagged for: {post.emotion || post.flag_reason || 'Severe Distress Pattern'}</p>
                                                             </div>
                                                         </div>
-                                                        <div className="bg-error/10 text-error px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1">
-                                                            <span className="material-symbols-outlined text-[14px]">priority_high</span> {post.riskLevel || 'High Risk'}
+                                                        <div className="bg-error text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
+                                                            {post.flag_level || post.status || 'Crisis'}
                                                         </div>
                                                     </div>
-                                                    <blockquote className="font-body-md text-body-md text-on-surface leading-relaxed mb-6 italic">
-                                                        "{post.content || post.text}"
+                                                    <blockquote className="font-body-md text-body-md text-on-surface leading-relaxed mb-6 italic border-l-2 border-outline-variant/30 pl-4 ml-2">
+                                                        "{post.content || post.text || post.message}"
                                                     </blockquote>
                                                     <div className="flex flex-wrap gap-3">
-                                                        <button className="bg-primary text-on-primary px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:shadow-lg transition-all cursor-pointer">Reach Out Now</button>
-                                                        <button className="bg-surface-variant text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:bg-surface-container-high transition-all cursor-pointer">Dismiss</button>
+                                                        <button className="bg-error text-on-error px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:brightness-110 transition-all cursor-pointer">
+                                                            Intervene Now
+                                                        </button>
+                                                        <button className="bg-surface-variant text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm font-bold hover:bg-surface-container-high transition-all cursor-pointer">
+                                                            Dismiss
+                                                        </button>
                                                     </div>
                                                 </article>
                                             );
                                         })
                                     ) : (
-                                        <div className="glass-card p-6 rounded-lg border border-outline-variant/10 text-center text-on-surface-variant">
-                                            No wall expressions flagged for review.
+                                        <div className="glass-card p-8 rounded-lg border border-outline-variant/10 text-center text-on-surface-variant">
+                                            <span className="material-symbols-outlined text-4xl text-outline-variant/50 mb-2 block">verified</span>
+                                            No active crisis alerts requiring immediate intervention.
                                         </div>
                                     )}
                                 </section>
                             </div>
 
-                            {/* Sidebar Widgets */}
+                            {/* 🌟 FIXED Layout: Sidebar Widgets moved completely outside the left column container */}
                             <aside className="col-span-12 lg:col-span-4 space-y-6">
                                 {/* Upcoming Sessions */}
                                 <section aria-labelledby="upcoming-sessions-title" className="bg-surface-container-low rounded-lg p-6 shadow-sm border border-outline-variant/10">
@@ -288,15 +297,26 @@ export default function CoachDashboard() {
                                             </div>
                                             <span className="material-symbols-outlined text-[18px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">forum</span>
                                         </div>
+                                        <div className="flex items-center gap-4 group cursor-pointer p-2 hover:bg-surface-container-high rounded-lg transition-colors">
+                                            <div className="w-12 h-12 rounded-lg bg-secondary-container flex flex-col items-center justify-center text-on-secondary-container font-bold shrink-0">
+                                                <span className="text-[10px]">OCT</span>
+                                                <span className="text-[18px] leading-none">24</span>
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="font-label-sm text-label-sm font-bold truncate">Patient Soul</p>
+                                                <p className="text-[12px] text-on-surface-variant">01:00 PM • 50 mins</p>
+                                            </div>
+                                            <span className="material-symbols-outlined text-[18px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">forum</span>
+                                        </div>
                                     </div>
                                     <button className="w-full mt-6 py-2 border border-outline text-on-surface font-label-sm text-label-sm rounded-full hover:bg-surface-container transition-colors cursor-pointer">Full Schedule</button>
                                 </section>
 
-                                {/* Pending Requests */}
+                                {/* Dynamic Pending Requests */}
                                 <section aria-labelledby="pending-requests-title" className="bg-surface-container-low rounded-lg p-6 shadow-sm border border-outline-variant/10">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="font-label-sm text-label-sm font-bold uppercase tracking-widest text-on-surface-variant" id="pending-requests-title">Requests</h4>
-                                        <div aria-label={`${pendingRequests.length} pending requests`} className="bg-error text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center">
+                                        <div aria-label={`${pendingRequests.length} pending requests`} className="bg-error text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                                             {pendingRequests.length}
                                         </div>
                                     </div>
@@ -304,24 +324,32 @@ export default function CoachDashboard() {
                                         {pendingRequests.length > 0 ? (
                                             pendingRequests.map((req) => {
                                                 const solvedName = resolveClientName(req, 'Anonymous User');
+                                                const reqId = req.id || req._id;
                                                 return (
-                                                    <div key={req.id || req._id} className="p-4 bg-surface-container rounded-lg border border-primary/10 space-y-3">
+                                                    <div key={reqId} className="p-4 bg-surface-container rounded-lg border border-primary/10 space-y-3">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-bold text-[12px]">
                                                                 {getInitials(solvedName)}
                                                             </div>
                                                             <p className="font-label-sm text-label-sm font-bold">{solvedName}</p>
                                                         </div>
-                                                        <p className="text-[12px] text-on-surface-variant">Matching for: {req.focusArea || 'Grief counseling, Mindfulness'}</p>
+                                                        <p className="text-[12px] text-on-surface-variant">Context: {req.context_message || 'Inbound Request'}</p>
+
                                                         <div className="flex gap-2">
-                                                            <button 
-                                                                onClick={() => handleUpdateSessionStatus(req.id || req._id, 'accepted')}
+                                                            <button
+                                                                onClick={() => handleUpdateSessionStatus(reqId, 'accepted')}
                                                                 className="flex-1 py-1.5 bg-primary text-on-primary text-[11px] rounded-full font-bold hover:opacity-90 transition-opacity cursor-pointer"
                                                             >
                                                                 Accept
                                                             </button>
-                                                            <button 
-                                                                onClick={() => handleUpdateSessionStatus(req.id || req._id, 'declined')}
+                                                            <button
+                                                                onClick={() => navigate('/coach-chat', { state: { sessionId: reqId } })}
+                                                                className="flex-1 py-1.5 bg-secondary-container text-on-secondary-container font-bold text-[11px] rounded-full hover:brightness-95 transition-all cursor-pointer"
+                                                            >
+                                                                Coach Chat
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleUpdateSessionStatus(reqId, 'declined')}
                                                                 className="flex-1 py-1.5 border border-outline text-on-surface text-[11px] rounded-full hover:bg-surface-variant transition-colors cursor-pointer"
                                                             >
                                                                 Decline
@@ -347,29 +375,10 @@ export default function CoachDashboard() {
                                     </figcaption>
                                 </figure>
                             </aside>
+
                         </div>
                     </div>
                 </main>
-            </div>
-
-            {/* Coach Mobile Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 w-full lg:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
-                <button onClick={() => navigate('/coach-dashboard')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1.5 cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">dashboard</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Dashboard</span>
-                </button>
-                <button onClick={() => navigate('/coach-chat')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">forum</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Chats</span>
-                </button>
-                <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">view_day</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">local_library</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
             </div>
         </div>
     );

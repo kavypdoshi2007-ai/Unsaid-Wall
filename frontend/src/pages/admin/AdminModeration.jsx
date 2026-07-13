@@ -1,5 +1,5 @@
 import React from 'react';
-
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 export default function AdminModeration() {
     const posts = [
         { id: 1, user: 'Anonymous #8821', flag: 'Harmful Speech', emotion: 'Rage', content: "I can't believe how everyone just pretends..." },
@@ -8,6 +8,7 @@ export default function AdminModeration() {
 
     return (
         <div className="bg-background text-on-surface min-h-screen">
+            <Navbar />
             <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
                 <div className="flex justify-between items-center px-container-padding h-16 w-full max-w-7xl mx-auto">
                     {/* Left: Logo */}

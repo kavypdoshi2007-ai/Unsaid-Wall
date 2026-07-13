@@ -92,7 +92,7 @@ export default function PrivateJournal() {
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-wider text-outline">What is your baseline emotional posture?</label>
                         <div className="flex flex-wrap gap-2">
-                            {['sad', 'overwhelmed', 'anxious', 'lonely', 'hopeful'].map((emo) => (
+                            {['sad', 'alone', 'anxious', 'angry', "numb" , "overwhelmed" , 'hopeful'].map((emo) => (
                                 <button
                                     key={emo}
                                     type="button"

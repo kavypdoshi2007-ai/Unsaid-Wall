@@ -1,478 +1,351 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS } from '../../config/api'; // Central configuration endpoints
+import { API_ENDPOINTS } from '../../config/api';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
-export default function GuestWall() {
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+export default function EmotionJournal() {
     const navigate = useNavigate();
 
-    // --- Dynamic Backend States ---
-    const [posts, setPosts] = useState([]);
+    // --- Dynamic State Trees ---
+    const [entries, setEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [barHeights, setBarHeights] = useState({ sad: '0%', calm: '0%', anxious: '0%', joy: '0%', tired: '0%' });
+    const [chartCounts, setChartCounts] = useState({ sad: 0, calm: 0, anxious: 0, joy: 0, tired: 0 });
 
-    // --- User Session Parsing States ---
-    const token = localStorage.getItem('token');
-    const [userRole, setUserRole] = useState('guest');
-    const [currentUserId, setCurrentUserId] = useState(null);
+    const TOKEN_KEY = 'token';
 
-    // --- Composer Form State (For logged-in users) ---
-    const [isComposerOpen, setIsComposerOpen] = useState(false);
-    const [postText, setPostText] = useState('');
-    const [activeLang, setActiveLang] = useState('en');
-    const [previewUsername, setPreviewUsername] = useState('Generating anonymous identity...');
+    // Emoji Mapping Dictionary for Quick Visual Recognition
+    // Emoji/Icon Mapping Dictionary using Material Symbols
+    const EMON_MAP = {
+        sad: 'sentiment_dissatisfied',
+        calm: 'self_improvement',
+        anxious: 'bolt',
+        joy: 'sunny',
+        tired: 'bedtime',
+        fallback: 'edit_note'
+    };
+    // --- 🌟 NEW: Emotion Normalization Engine ---
+    // This categorizes ANY emotion from the backend into your 5 core chart buckets
+    const normalizeEmotion = (rawEmotion) => {
+        if (!rawEmotion) return 'calm';
+        const e = String(rawEmotion).toLowerCase().trim();
 
-    // --- Inline Coach Comment State ---
-    const [commentInputs, setCommentInputs] = useState({}); // format: { [postId]: 'text' }
+        if (['sad', 'depressed', 'down', 'lonely', 'numb', 'grief', 'cry'].some(k => e.includes(k))) return 'sad';
+        if (['anxious', 'stressed', 'overwhelmed', 'worried', 'angry', 'fear', 'nervous', 'panic'].some(k => e.includes(k))) return 'anxious';
+        if (['joy', 'happy', 'excited', 'hopeful', 'great', 'good', 'grateful'].some(k => e.includes(k))) return 'joy';
+        if (['tired', 'exhausted', 'fatigue', 'drained', 'sleepy', 'burnout'].some(k => e.includes(k))) return 'tired';
 
-    // --- Decode User Credentials ---
+        return 'calm'; // Default bucket for calm, neutral, fine, okay, etc.
+    };
+
+    // --- Cryptographic JWT ID Extractor Helper ---
+    function getActiveUserId() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token || token === "null" || token === "undefined") return null;
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(window.atob(base64));
+            return payload.id || payload.userId || payload.user_id;
+        } catch (e) {
+            console.error("Failed to safely parse incoming JWT authentication segments:", e);
+            return null;
+        }
+    }
+
+    // --- Auth Headers Helper ---
+    function getAuthHeaders() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return null;
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
+        };
+    }
+
+    // --- Lifecycle Hook: Pull Connected Journal Storage Logs ---
     useEffect(() => {
-        if (token) {
+        async function loadJournalDashboard() {
+            const headers = getAuthHeaders();
+            const userId = getActiveUserId();
+
+            if (!headers || !userId) {
+                setError("Authentication Error: Invalid or expired session token. Please log back in.");
+                setLoading(false);
+                return;
+            }
+
             try {
-                const base64Url = token.split('.')[1];
-                const parsedToken = JSON.parse(atob(base64Url));
-                setUserRole(parsedToken.role || 'user');
-                setCurrentUserId(parsedToken.id || parsedToken.userId || parsedToken.user_id || null);
-            } catch (e) {
-                console.error("Failed parsing user data from token:", e);
-            }
-        }
-    }, [token]);
+                // Past Memories now shows the user's own Wall posts, not a separate private journal.
+                const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
+                    method: 'GET',
+                    headers: headers
+                });
 
-    // --- Lifecycle Hook: Fetch Live Feed ---
-    const fetchCommunityFeed = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
-                method: 'GET',
-                headers: {
-                    'Authorization': token ? `Bearer ${token}` : '', // Passthrough authentication context safely
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
+                if (!response.ok) {
+                    throw new Error(`Server returned status code: ${response.status}`);
                 }
-            });
 
-            if (!response.ok) {
-                throw new Error(`Server responded with connection error status: ${response.status}`);
-            }
-            const data = await response.json();
-            setPosts(data);
-        } catch (err) {
-            console.error("Expression wall timeline network failure:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+                const rawData = await response.json();
 
-    useEffect(() => {
-        fetchCommunityFeed();
-    }, [token]);
-
-    // --- Post Creator Modal Control Box ---
-    const handleOpenComposer = async () => {
-        if (!token) {
-            setIsAuthModalOpen(true);
-            return;
-        }
-        setIsComposerOpen(true);
-        setPreviewUsername('Generating anonymous identity...');
-        try {
-            const response = await fetch(API_ENDPOINTS.POSTS.PREVIEW_USERNAME, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true'
+                // Parse out payloads cleanly
+                let allPosts = [];
+                if (Array.isArray(rawData)) {
+                    allPosts = rawData;
+                } else if (rawData && Array.isArray(rawData.data)) {
+                    allPosts = rawData.data;
+                } else if (rawData && Array.isArray(rawData.posts)) {
+                    allPosts = rawData.posts;
+                } else if (rawData && typeof rawData === 'object') {
+                    const foundArray = Object.values(rawData).find(val => Array.isArray(val));
+                    if (foundArray) allPosts = foundArray;
                 }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setPreviewUsername(data.display_name);
-            } else {
-                setPreviewUsername('AnonymousUser#00');
+
+                // GET_FEED returns everyone's posts — keep only this user's own.
+                // Field name is unconfirmed server-side, so check every likely shape.
+                const myPosts = allPosts.filter(post => {
+                    const postUserId =
+                        post.userId ?? post.user_id ?? post.authorId ?? post.author_id ??
+                        post.user?.id ?? post.user?._id ?? post.author?.id ?? post.author?._id;
+                    return postUserId !== undefined && String(postUserId) === String(userId);
+                });
+
+                // Sort entries to guarantee latest dates appear first on top
+                const sortedEntries = myPosts.sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || a.timestamp || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || b.timestamp || 0);
+                    return dateB - dateA; // Descending Order (Newest First)
+                });
+
+                setEntries(sortedEntries);
+                calculateEmotionalPulse(sortedEntries); // Chart reflects the same posts shown in Past Memories
+
+            } catch (err) {
+                console.error("Dashboard Loading Error:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error("Error fetching preview username:", error);
-            setPreviewUsername('AnonymousUser#00');
-        }
-    };
-
-    const handlePostSubmit = async () => {
-        if (!postText.trim()) return;
-
-        try {
-            const response = await fetch(API_ENDPOINTS.POSTS.CREATE, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    content: postText,
-                    language: activeLang,
-                    emotion: 'HEALING', // Default general tag
-                    display_name: previewUsername
-                })
-            });
-
-            if (response.ok) {
-                setPostText('');
-                setIsComposerOpen(false);
-                fetchCommunityFeed(); // Refresh stream
-            }
-        } catch (error) {
-            console.error("Error submitting expression:", error);
-        }
-    };
-
-    // --- Interactive Reactions Network Synchronization Loop ---
-    const handleToggleReaction = async (postId, reactionType) => {
-        if (!token) {
-            setIsAuthModalOpen(true);
-            return;
         }
 
-        // Optimistic UI Render Step
-        const updatedPosts = posts.map(post => {
-            if (post.id !== postId) return post;
-            let reactions = Array.isArray(post.reactions) ? [...post.reactions] : [];
-            const existingReactionIdx = reactions.findIndex(r => r.reaction_type === reactionType && (r.user_id === currentUserId || r.userHasReacted));
+        loadJournalDashboard();
+    }, []);
 
-            if (existingReactionIdx > -1) {
-                const target = reactions[existingReactionIdx];
-                if (Number(target.count) > 1) {
-                    reactions[existingReactionIdx] = { ...target, count: Number(target.count) - 1, userHasReacted: false };
-                } else {
-                    reactions.splice(existingReactionIdx, 1);
-                }
-            } else {
-                reactions.push({ reaction_type: reactionType, count: 1, userHasReacted: true, user_id: currentUserId });
-            }
-            return { ...post, reactions };
+    // --- Emotion calculation function ---
+    // Reads whichever field the wall post uses for its emotion/vibe value.
+    const calculateEmotionalPulse = (journalEntries) => {
+        const counts = { sad: 0, calm: 0, anxious: 0, joy: 0, tired: 0 };
+
+        journalEntries.forEach(entry => {
+            const emotionValue = entry.emotion ?? entry.vibe ?? entry.mood ?? entry.feeling;
+            const bucket = normalizeEmotion(emotionValue);
+            counts[bucket]++;
         });
-        setPosts(updatedPosts);
 
-        try {
-            await fetch(API_ENDPOINTS.REACTIONS.TOGGLE, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ post_id: postId, reaction_type: reactionType })
-            });
+        const max = Math.max(...Object.values(counts), 1);
 
-            // Fetch absolute source-of-truth count for this post card node
-            const syncResponse = await fetch(API_ENDPOINTS.REACTIONS.GET_BY_POST(postId), {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
-            });
+        const newHeights = {
+            sad: `${(counts.sad / max) * 100}%`,
+            calm: `${(counts.calm / max) * 100}%`,
+            anxious: `${(counts.anxious / max) * 100}%`,
+            joy: `${(counts.joy / max) * 100}%`,
+            tired: `${(counts.tired / max) * 100}%`
+        };
 
-            if (syncResponse.ok) {
-                const freshReactions = await syncResponse.json();
-                setPosts(prev => prev.map(p => p.id === postId ? { ...p, reactions: freshReactions } : p));
-            }
-        } catch (err) {
-            console.error("Failed persisting interaction data event:", err);
-            fetchCommunityFeed(); // Rollback to server snapshot state on network crash
-        }
+        setChartCounts(counts);
+        setBarHeights(newHeights);
     };
 
-    // --- Post Coach Guidance Comments ---
-    const submitCoachComment = async (postId) => {
-        const text = commentInputs[postId]?.trim();
-        if (!text) return;
-
-        try {
-            const response = await fetch(API_ENDPOINTS.POSTS.ADD_COMMENT(postId), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ content: text })
-            });
-
-            if (response.ok) {
-                const newComment = await response.json();
-                setCommentInputs(prev => ({ ...prev, [postId]: '' })); // Clear input field safely
-
-                // Append comment layout array directly to view node without structural fetch reloads
-                setPosts(prev => prev.map(post => {
-                    if (post.id !== postId) return post;
-                    const existingComments = Array.isArray(post.comments) ? post.comments : [];
-                    return { ...post, comments: [...existingComments, newComment] };
-                }));
-            }
-        } catch (error) {
-            console.error("Failed executing comment submission:", error);
-        }
+    // --- Handle Entry Deletion ---
+    // NOTE: api.js currently has no delete route for Wall posts (only JOURNAL.DELETE_ENTRY
+    // exists, which would delete the wrong resource). This is a placeholder until a
+    // POSTS.DELETE(postId) endpoint is added on the backend.
+    const handleDeleteJournalRecord = async (id) => {
+        alert("Deleting Wall posts isn't supported yet — the backend needs a POSTS delete endpoint added first.");
+        // Once that endpoint exists, swap this in:
+        //
+        // if (!confirm("Are you sure you want to permanently delete this post?")) return;
+        // const headers = getAuthHeaders();
+        // if (!headers) return alert("Missing session authentication token.");
+        // try {
+        //     const response = await fetch(API_ENDPOINTS.POSTS.DELETE(id), { method: 'DELETE', headers });
+        //     if (!response.ok) throw new Error('Deletion processing aborted.');
+        //     const remaining = entries.filter(e => (e.id || e._id) !== id);
+        //     setEntries(remaining);
+        //     calculateEmotionalPulse(remaining);
+        // } catch (err) {
+        //     alert(`Error deleting entry: ${err.message}`);
+        // }
     };
 
-    // --- Helper to match, compile and parse specific backend interactions ---
-    const getReactionDetails = (post, type) => {
-        let count = 0;
-        let reacted = false;
-        if (post.reactions && Array.isArray(post.reactions)) {
-            post.reactions.forEach(r => {
-                if (r.reaction_type === type || r.type === type) {
-                    count += typeof r.count !== 'undefined' ? Number(r.count) : 1;
-                    if (currentUserId && (r.user_id === currentUserId || r.userHasReacted === true)) {
-                        reacted = true;
-                    }
-                }
-            });
-        }
-        return { count, reacted };
+    const formatTimestamp = (entry) => {
+        const rawDate = entry.created_at || entry.createdAt || entry.timestamp;
+        if (!rawDate) return 'Recent';
+        return new Date(rawDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
-    const handleProtectedNav = (path) => {
-        if (!token) {
-            setIsAuthModalOpen(true);
-        } else {
-            navigate(path);
-        }
-    };
-
-    const handleMouseMove = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
-        e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
-    };
-
-    const formatPostTime = (isoString) => {
-        if (!isoString) return 'Just now';
-        const postDate = new Date(isoString);
-        const now = new Date();
-        const diffMs = now - postDate;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        return postDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
-    const getCategoryStyles = (category) => {
-        switch (String(category).toLowerCase()) {
-            case 'loneliness': return 'bg-tertiary-container/30 text-on-tertiary-container';
-            case 'hope': return 'bg-secondary-container/30 text-on-secondary-container';
-            case 'grief': return 'bg-error-container/20 text-error';
-            case 'anxiety': return 'bg-primary-container/30 text-primary';
-            default: return 'bg-surface-container-high text-on-surface-variant';
-        }
+    const formatShortDate = (entry) => {
+        const rawDate = entry.created_at || entry.createdAt || entry.timestamp;
+        if (!rawDate) return 'Today';
+        return new Date(rawDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     return (
-        <div
-            className="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen"
-            style={{
-                backgroundColor: '#dfffde',
-                backgroundImage: 'radial-gradient(at 0% 0%, rgba(125, 241, 104, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(5, 235, 249, 0.1) 0px, transparent 50%)'
-            }}
-        ><Navbar />
+        <div className="font-body-md text-body-md overflow-x-hidden bg-background text-on-surface min-h-screen relative pb-24">
+            <Navbar />
 
-            <main className="pt-20 pb-32 px-4 max-w-720 mx-auto space-y-6">
-                {/* Pinned Announcement */}
-                <section className="glass-card rounded-xl p-5 border-l-4 border-l-primary relative overflow-hidden bg-surface shadow-sm">
-                    <div className="absolute top-0 right-0 p-2 opacity-10">
-                        <span className="material-symbols-outlined text-6xl">campaign</span>
+            {/* MAIN CONTENT SPACE */}
+            <main className="pt-24 px-6 max-w-[1200px] mx-auto">
+                <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
+                    <section className="space-y-4 max-w-2xl">
+                        <h2 className="font-display-lg text-primary">Your Safe Space.</h2>
+                        <p className="text-on-surface-variant text-lg leading-relaxed">
+                            Your garden of thoughts has seen a mix of sun and clouds. You've sat with <span className="font-bold text-primary">Quiet Sadness</span> {chartCounts.sad} {chartCounts.sad === 1 ? 'time' : 'times'}, but your <span className="font-bold text-secondary">Calm</span> is growing back. Remember, every word you leave here is a seed for tomorrow's healing.
+                        </p>
+                    </section>
+
+                    <div className="w-full lg:w-80 space-y-4 shrink-0">
+                        <button onClick={() => navigate('/private-journal')} className="w-full bg-primary text-white p-6 rounded-lg flex items-center justify-between active:scale-[0.98] hover:bg-primary/90 transition-all duration-200 text-left shadow-lg shadow-primary/20 cursor-pointer">
+                            <div className="space-y-1">
+                                <p className="font-bold text-lg">Start Private Entry</p>
+                                <p className="text-white/80 text-sm">Clear your mind now.</p>
+                            </div>
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <span className="material-symbols-outlined">edit_note</span>
+                            </div>
+                        </button>
                     </div>
-                    <div className="flex gap-3 items-start relative z-10">
-                        <div className="bg-primary-container p-2 rounded-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-on-primary-container text-xl">campaign</span>
-                        </div>
-                        <div className="space-y-1">
-                            <h2 className="font-headline-md text-sm font-bold text-primary">Community Guidelines Updated</h2>
-                            <p className="font-body-md text-sm text-on-surface-variant">We've added new resources for the Healing community. Please take a look at the updated moderation policy.</p>
-                        </div>
+                </div>
+
+                {loading ? (
+                    <div className="text-center py-20 text-outline italic animate-pulse">
+                        Syncing secure personal journal logs...
                     </div>
-                </section>
+                ) : error ? (
+                    <div className="bg-error/10 border border-error text-error p-6 rounded-lg text-center text-sm">
+                        Could not build network database connections: {error}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Content Column */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Dynamic Post Feed Mapping */}
-                <div className="space-y-6">
-                    {loading ? (
-                        <div className="text-center py-16 text-outline font-body-lg italic animate-pulse">
-                            Synchronizing public wall streams...
-                        </div>
-                    ) : error ? (
-                        <div className="bg-error-container/20 text-error p-6 rounded-xl border border-error/10 text-center text-sm">
-                            Could not establish connection to live dataset nodes: {error}
-                        </div>
-                    ) : posts.length > 0 ? (
-                        posts.map((post) => {
-                            const postCategory = post.category || post.emotion || 'Healing';
-                            const postId = post.id || post._id;
-
-                            const hr = getReactionDetails(post, 'HEAR_YOU');
-                            const na = getReactionDetails(post, 'NOT_ALONE');
-                            const st = getReactionDetails(post, 'STRENGTH');
-                            const wp = getReactionDetails(post, 'WILL_PASS');
-
-                            return (
-                                <article
-                                    key={postId}
-                                    onMouseMove={handleMouseMove}
-                                    className="glass-card p-6 rounded-lg space-y-4 shadow-[0px_4px_20px_rgba(5,139,3,0.03)] group transition-all duration-300"
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-sm text-on-surface">{post.display_name || 'AnonymousUser'}</span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryStyles(postCategory)}`}>
-                                                {postCategory}
-                                            </span>
-                                        </div>
-                                        <span className="text-outline text-xs">
-                                            {formatPostTime(post.created_at || post.createdAt)}
-                                        </span>
+                                {/* Emotion Bar Chart */}
+                                <section className="bg-white/60 backdrop-blur-xl p-8 rounded-lg space-y-8 border border-primary/10">
+                                    <div className="flex justify-between items-end">
+                                        <h3 className="font-headline-md text-primary">Emotional Pulse</h3>
+                                        <span className="text-label-sm text-on-surface-variant">All Time</span>
                                     </div>
-                                    <p className="font-body-lg text-on-surface-variant leading-relaxed whitespace-pre-wrap font-serif text-base">
-                                        {post.content || post.text}
-                                    </p>
-
-                                    {/* Action Interactivity Bar */}
-                                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-outline-variant/5 text-xs">
-                                        <button onClick={() => handleToggleReaction(postId, 'HEAR_YOU')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${hr.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${hr.reacted ? '1' : '0'}` }}>sentiment_satisfied</span>
-                                            <span>Hear You ({hr.count})</span>
-                                        </button>
-
-                                        <button onClick={() => handleToggleReaction(postId, 'NOT_ALONE')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${na.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${na.reacted ? '1' : '0'}` }}>favorite</span>
-                                            <span>Not Alone ({na.count})</span>
-                                        </button>
-
-                                        <button onClick={() => handleToggleReaction(postId, 'STRENGTH')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${st.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${st.reacted ? '1' : '0'}` }}>fitness_center</span>
-                                            <span>Strength ({st.count})</span>
-                                        </button>
-
-                                        <button onClick={() => handleToggleReaction(postId, 'WILL_PASS')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer ${wp.reacted ? 'text-primary bg-primary-container/40' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>
-                                            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: `'FILL' ${wp.reacted ? '1' : '0'}` }}>air</span>
-                                            <span>Will Pass ({wp.count})</span>
-                                        </button>
+                                    <div className="flex items-end justify-between gap-4 px-2" style={{ height: '192px' }}>
+                                        {[
+                                            { key: 'sad', color: 'bg-tertiary-container', label: `Sad (${chartCounts.sad})` },
+                                            { key: 'calm', color: 'bg-secondary-container', label: `Calm (${chartCounts.calm})` },
+                                            { key: 'anxious', color: 'bg-error-container/30 border border-error-container', label: `Anx (${chartCounts.anxious})` },
+                                            { key: 'joy', color: 'bg-primary-container', label: `Joy (${chartCounts.joy})` },
+                                            { key: 'tired', color: 'bg-surface-container-highest', label: `Tired (${chartCounts.tired})` },
+                                        ].map(stat => (
+                                            <div key={stat.key} className="flex-1 flex flex-col items-center gap-2" style={{ height: '100%' }}>
+                                                <div className="w-full flex flex-col justify-end" style={{ flex: 1 }}>
+                                                    <div
+                                                        className={`w-full ${stat.color} rounded-t-full transition-all duration-1000 ease-out`}
+                                                        style={{ height: barHeights[stat.key] || '0%' }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-label-sm text-on-surface-variant whitespace-nowrap text-[11px]">{stat.label}</span>
+                                            </div>
+                                        ))}
                                     </div>
+                                </section>
 
-                                    {/* Coach Comment Feed Thread */}
-                                    {((post.comments && post.comments.length > 0) || userRole === 'coach') && (
-                                        <div className="mt-4 pt-3 border-t border-outline-variant/20">
-                                            <h4 className="text-[10px] font-bold text-outline uppercase tracking-wider mb-2 flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-sm">forum</span> Coach Guidance
-                                            </h4>
+                                {/* Recent Frequency Blocks */}
+                                <section className="bg-white/60 backdrop-blur-xl p-8 rounded-lg space-y-6 border border-primary/10">
+                                    <h3 className="font-headline-md text-primary">Recent Frequency</h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {entries.slice(0, 5).map((entry, index) => {
+                                            const emoKey = normalizeEmotion(entry.emotion);
+                                            const activeEmoji = EMON_MAP[emoKey] || EMON_MAP.fallback;
 
-                                            <div className="space-y-2">
-                                                {post.comments?.map((comment, index) => (
-                                                    <div key={index} className="bg-primary-container/20 p-3 rounded-xl border border-primary-container/10">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <span className="text-xs font-bold text-primary flex items-center gap-1">
-                                                                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                                                                Coach {comment.user?.coach_profile?.name || 'Verified Professional'}
-                                                            </span>
-                                                            <span className="text-[10px] text-outline">
-                                                                {formatPostTime(comment.created_at)}
+                                            return (
+                                                <div key={entry.id || entry._id || index} className="p-3 rounded-2xl text-center flex flex-col justify-between h-28 bg-white border border-outline-variant/10 shadow-sm">
+                                                    <span className="text-[9px] uppercase font-bold text-outline tracking-wider">{formatShortDate(entry)}</span>
+
+                                                    {/* The new Icon Block */}
+                                                    <div className="flex items-center justify-center my-auto">
+                                                        <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
+                                                            <span className="material-symbols-outlined text-primary text-xl">
+                                                                {activeEmoji}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm text-on-surface-variant ml-1">{comment.content}</p>
                                                     </div>
-                                                ))}
-                                            </div>
 
-                                            {/* Actionable interface reserved exclusively for coaches */}
-                                            {userRole === 'coach' && (
-                                                <div className="mt-3 pt-3 border-t border-outline-variant/10">
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            value={commentInputs[postId] || ''}
-                                                            onChange={(e) => setCommentInputs(prev => ({ ...prev, [postId]: e.target.value }))}
-                                                            placeholder="Write professional guidance..."
-                                                            className="w-full text-xs rounded-xl border-outline-variant/40 bg-surface-container-low px-3 py-2 text-on-surface outline-none focus:ring-1 focus:ring-primary"
-                                                        />
-                                                        <button onClick={() => submitCoachComment(postId)} className="bg-primary hover:opacity-90 text-on-primary font-bold px-3 py-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer">
-                                                            <span className="material-symbols-outlined text-sm">send</span>
+                                                    <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tight truncate capitalize">
+                                                        {entry.emotion || 'Log'}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            </div>
+
+                            {/* Complete Dynamic Feed Render Output (Newest First on Top) */}
+                            <section className="space-y-6 pt-4">
+                                <h3 className="font-headline-md text-primary">Past Memories</h3>
+                                <div className="grid grid-cols-1 gap-6">
+                                    {entries.length > 0 ? (
+                                        entries.map(entry => {
+                                            return (
+                                                <article key={entry.id || entry._id} className="bg-white/60 backdrop-blur-xl p-8 rounded-lg relative overflow-hidden group hover:shadow-md transition-all border border-primary/10">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="material-symbols-outlined text-outline text-lg">lock</span>
+                                                            <time className="text-label-sm text-outline uppercase tracking-wider font-semibold text-xs">{formatTimestamp(entry)}</time>
+                                                        </div>
+                                                        <div className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase w-fit">
+                                                            {entry.emotion || 'Reflection'} {entry.intensity ? `(${entry.intensity})` : ''}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-base text-on-surface leading-relaxed italic whitespace-pre-wrap">
+                                                        "{entry.note || entry.entry || entry.content || entry.text || entry.postText}"
+                                                    </p>
+                                                    <div className="mt-4 flex justify-end">
+                                                        <button
+                                                            onClick={() => handleDeleteJournalRecord(entry.id || entry._id)}
+                                                            className="text-xs font-bold text-error/80 hover:text-error hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm">delete</span> Purge Entry
                                                         </button>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                                </article>
+                                            );
+                                        })
+                                    ) : (
+                                        <p className="text-on-surface-variant italic text-sm">No data entries captured yet. Start a Private Entry to seed your journal layout grid!</p>
                                     )}
-                                </article>
-                            );
-                        })
-                    ) : (
-                        <div className="text-center py-12 text-on-surface-variant bg-surface-container-low border border-outline-variant/20 rounded-xl italic">
-                            The wall is completely silent. Be the first to express.
+                                </div>
+                            </section>
                         </div>
-                    )}
-                </div>
+
+                        {/* Right Sidebar Column */}
+                        <aside className="space-y-8">
+                            <section className="bg-white/60 backdrop-blur-xl p-6 rounded-lg bg-primary-container/20 border-primary/10">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-primary">psychology</span>
+                                    </div>
+                                    <h4 className="font-bold text-primary">AI Insights Sandbox</h4>
+                                </div>
+                                <p className="text-on-surface-variant text-sm leading-relaxed mb-4">
+                                    These insights are calculated from your public Wall posts, and stay visible only to you here.
+                                </p>
+                            </section>
+                        </aside>
+                    </div>
+                )}
             </main>
-
-            {/* Floating Action Button */}
-            <button onClick={handleOpenComposer} className="fixed bottom-24 right-6 bg-primary text-on-primary p-4 rounded-full shadow-lg flex items-center gap-2 active:scale-95 transition-transform z-40 group cursor-pointer">
-                <span className="material-symbols-outlined">edit_note</span>
-                <span className="font-label-sm pr-2">Share Something</span>
-            </button>
-
-            {/* Full-Sheet Composer Modal Drawer for Authenticated Writing */}
-            <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-transform duration-500 ease-out flex flex-col ${isComposerOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div className="mt-auto w-full max-w-[720px] mx-auto bg-surface rounded-t-2xl shadow-2xl relative border-t border-outline-variant/20">
-                    <div className="w-12 h-1.5 bg-outline-variant/40 rounded-full mx-auto my-4 cursor-pointer" onClick={() => setIsComposerOpen(false)}></div>
-                    <div className="px-6 pb-10 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-headline-md font-bold text-xl text-on-surface">New Expression</h2>
-                            <div className="flex bg-surface-container-low p-1 rounded-full border border-outline-variant/30">
-                                {['en', 'hi', 'gu'].map(lang => (
-                                    <button key={lang} onClick={() => setActiveLang(lang)} className={`px-3 py-1 rounded-full text-xs uppercase font-bold transition-all ${activeLang === lang ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>{lang}</button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <textarea value={postText} onChange={(e) => setPostText(e.target.value)} maxLength={280} className="w-full h-40 p-5 bg-surface-container-lowest border border-outline-variant/30 rounded-xl font-body-lg text-on-surface outline-none resize-none focus:border-primary" placeholder="Type your thoughts here... no judgment, just space."></textarea>
-                            <div className="absolute bottom-4 right-4 text-xs text-outline">{postText.length} / 280</div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <button onClick={handlePostSubmit} className="w-full h-12 bg-primary text-on-primary font-bold rounded-full shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                <span>Post Expression</span>
-                                <span className="material-symbols-outlined text-sm">send</span>
-                            </button>
-                            <p className="text-center text-xs text-on-surface-variant">
-                                Posting anonymously as <span className="font-bold text-primary">{previewUsername}</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Authentication Guard Alert Window */}
-            {isAuthModalOpen && (
-                <div onClick={(e) => { if (e.target === e.currentTarget) setIsAuthModalOpen(false) }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="glass-card w-full max-w-[400px] p-8 rounded-2xl shadow-2xl flex flex-col text-center bg-surface border border-outline-variant/10">
-                        <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6 shrink-0">
-                            <span className="material-symbols-outlined text-3xl">lock</span>
-                        </div>
-
-                        <h3 className="font-headline-md text-2xl font-bold text-on-surface mb-3">Community Space</h3>
-                        <p className="text-on-surface-variant font-body-md mb-8 text-sm leading-relaxed">
-                            To protect the safety and anonymity of our wall, please login or register to share your thoughts or send empathy.
-                        </p>
-
-                        <div className="flex flex-col gap-3 w-full">
-                            <button onClick={() => navigate('/login')} className="w-full py-3 bg-primary text-on-primary rounded-full font-label-sm text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer">
-                                Login / Register
-                            </button>
-                            <button onClick={() => setIsAuthModalOpen(false)} className="w-full py-3 text-outline font-label-sm text-sm font-bold hover:text-primary transition-colors cursor-pointer">
-                                Maybe Later
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

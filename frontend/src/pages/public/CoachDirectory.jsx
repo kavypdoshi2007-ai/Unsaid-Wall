@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Filter, ChevronDown, Lock, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import { API_ENDPOINTS } from '../../config/api';
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 
 export default function CoachDirectory() {
     const [coaches, setCoaches] = useState([]);
@@ -82,23 +83,7 @@ export default function CoachDirectory() {
 
     return (
         <div className="bg-background text-on-surface antialiased custom-scrollbar min-h-screen">
-
-            {/* 🌟 PUBLIC DESKTOP NAVBAR (No Journal, No Sessions) */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0px_4px_20px_rgba(5,139,3,0.05)] border-b border-outline-variant/10">
-                <div className="flex items-center justify-between px-6 h-16 w-full max-w-screen-xl mx-auto">
-                    <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform hover:opacity-80">
-                        <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <h1 className="font-display-lg-mobile text-display-lg-mobile text-primary tracking-tight font-bold">Unsaid Wall</h1>
-                    </div>
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/guest-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
-                        <button onClick={() => { setSelectedCoach(null); navigate('/coach-directory'); }} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                        <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">Login / Register</button>
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             <main className="max-w-screen-xl mx-auto px-container-padding py-12 pt-28">
 
                 {/* 🌟 CONDITIONAL RENDERING: Show Profile if selected, otherwise show Grid */}
@@ -376,24 +361,6 @@ export default function CoachDirectory() {
                     </div>
                 )}
             </main>
-
-            {/* 🌟 PUBLIC MOBILE NAVBAR (No Journal, No Sessions) */}
-            <nav className="fixed bottom-0 left-0 w-full md:hidden bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl shadow-[0px_-4px_24px_rgba(5,139,3,0.08)] z-50 rounded-t-xl">
-                <div className="flex justify-around items-center px-4 py-3 pb-safe max-w-screen-xl mx-auto">
-                    <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined">grid_view</span>
-                        <span className="font-label-sm text-[10px]">Wall</span>
-                    </button>
-                    <button onClick={() => { setSelectedCoach(null); navigate('/coach-directory'); }} className="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1.5 cursor-pointer">
-                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
-                        <span className="font-label-sm text-[10px]">Coaches</span>
-                    </button>
-                    <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-5 py-1.5 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined">local_library</span>
-                        <span className="font-label-sm text-[10px]">Resources</span>
-                    </button>
-                </div>
-            </nav>
 
             {/* 🌟 LOGIN PROMPT MODAL */}
             {isLoginModalOpen && (
