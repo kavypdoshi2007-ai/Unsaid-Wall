@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 
 export default function ResourceLibrary() {
     const navigate = useNavigate();
+    const [userRole, setUserRole] = useState('guest');
 
     // --- Dynamic Backend & UI States ---
     const [resources, setResources] = useState([]);
@@ -24,7 +26,6 @@ export default function ResourceLibrary() {
 
     // --- User Session Parsing States ---
     const token = localStorage.getItem('token');
-    const [userRole, setUserRole] = useState('guest');
 
     // --- Decode User Credentials ---
     useEffect(() => {
@@ -143,23 +144,7 @@ export default function ResourceLibrary() {
 
     return (
         <div className="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen">
-            {/* Top Navigation Bar */}
-            {/* FIX: Replaced max-w-720 with max-w-7xl and added standard px-6 md:px-12 padding */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant/10">
-                <div className="flex items-center justify-between px-6 md:px-12 h-16 w-full max-w-7xl mx-auto">
-                    <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform hover:opacity-80">
-                        <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <span className="font-display-lg text-lg font-bold tracking-tight text-primary">Unsaid Wall</span>
-                    </div>
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/guest-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">TheWall</button>
-                        <button onClick={() => navigate('/coach-directory')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Resource Library</button>
-                        <button onClick={() => navigate('/login')} className="py-2 px-4 bg-primary text-on-primary rounded-full font-label-sm font-bold hover:opacity-90 transition-opacity ml-4 cursor-pointer">Login/Register</button>
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             {/* Main Container Layout */}
             {/* FIX: Replaced max-w-720 with max-w-5xl to constrain reading width, added px-6 md:px-8 */}
             <main className="pt-32 pb-32 px-6 md:px-8 w-full max-w-5xl mx-auto space-y-8">
@@ -324,28 +309,6 @@ export default function ResourceLibrary() {
                     )}
                 </section>
             </main>
-
-            {/* Bottom Menu Navigation Bar Ribbon (Mobile Viewport Layout) */}
-            <nav className="fixed bottom-0 left-0 w-full md:hidden bg-surface/90 dark:bg-inverse-surface/90 backdrop-blur-xl shadow-[0px_-4px_24px_rgba(0,0,0,0.08)] z-50 rounded-t-xl border-t border-outline-variant/10">
-                <div className="flex justify-around items-center px-4 py-2 pb-6 max-w-5xl mx-auto">
-                    <button onClick={() => navigate('/guest-wall')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-3 py-2 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined mb-1">grid_view</span>
-                        <span className="font-label-sm text-[10px]">TheWall</span>
-                    </button>
-                    <button onClick={() => navigate('/login')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-3 py-2 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined mb-1">auto_stories</span>
-                        <span className="font-label-sm text-[10px]">Journal</span>
-                    </button>
-                    <button onClick={() => navigate('/coach-directory')} className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-3 py-2 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined mb-1">psychology</span>
-                        <span className="font-label-sm text-[10px]">Coaches</span>
-                    </button>
-                    <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-6 py-2 cursor-pointer shadow-sm">
-                        <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>local_library</span>
-                        <span className="font-label-sm text-[10px]">Resource Library</span>
-                    </button>
-                </div>
-            </nav>
         </div>
     );
 }

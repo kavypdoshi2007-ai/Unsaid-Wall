@@ -110,6 +110,11 @@ const postController = {
 
             // Map Hugging Face model outputs directly to your Prisma EmotionType enums
             switch (rawLabel) {
+              case 'joy':
+              case 'love':
+              case 'hopeful': // Added explicit model text variance support
+                detectedEmotion = 'HOPEFUL';
+                break;
               case 'sadness':
                 detectedEmotion = 'SAD';
                 break;
@@ -119,10 +124,6 @@ const postController = {
               case 'fear':
               case 'anxiety':
                 detectedEmotion = 'ANXIOUS';
-                break;
-              case 'joy':
-              case 'love':
-                detectedEmotion = 'HOPEFUL';
                 break;
               case 'surprise':
                 detectedEmotion = 'CONFUSED';
@@ -150,7 +151,7 @@ const postController = {
             const textLower = content.toLowerCase();
 
             // Crisis escalation block if the post is extremely negative and matches critical states
-            if (sentimentLabel === 'negative' && sentimentScore >= 0.96 && (detectedEmotion === 'SAD' || detectedEmotion === 'ANGRY' || detectedEmotion === 'OVERWHELMED')) {
+            if (sentimentLabel === 'negative' && sentimentScore >= 0.98 && detectedEmotion === 'SAD' && detectedEmotion === 'OVERWHELMED') {
               
               // Check for fatigue nuance exceptions
               const fatigueKeywords = ["tired", "exhausted", "sleepy", "drained"];
@@ -181,7 +182,12 @@ const postController = {
 
         // Contextual sub-parsing keyword overrides (Runs safely right after model steps)
         const textLower = content.toLowerCase();
-        if (textLower.includes('lonely') || textLower.includes('alone') || textLower.includes('isolated')) {
+        if (textLower.includes('hopeful') || textLower.includes('hope') || textLower.includes('happy') || textLower.includes('glad') || textLower.includes('excited')) {
+          detectedEmotion = 'HOPEFUL';
+          is_flagged = false;
+          flag_level = 'safe';
+          is_hidden = false;
+        } else if (textLower.includes('lonely') || textLower.includes('alone') || textLower.includes('isolated')) {
           detectedEmotion = 'LONELY';
         } else if (textLower.includes('overwhelmed') || textLower.includes('too much') || textLower.includes('pressure')) {
           detectedEmotion = 'OVERWHELMED';

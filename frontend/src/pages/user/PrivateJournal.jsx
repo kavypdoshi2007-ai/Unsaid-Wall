@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api'; // Central configuration endpoints[cite: 6]
-
+import Navbar from '../../components/Navbar';
 export default function PrivateJournal() {
     const navigate = useNavigate();
     const [entryText, setEntryText] = useState('');
-    const [selectedEmotion, setSelectedEmotion] = useState('calm'); 
+    const [selectedEmotion, setSelectedEmotion] = useState('calm');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const TOKEN_KEY = 'token';
@@ -58,9 +58,9 @@ export default function PrivateJournal() {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({
-                    emotion: selectedEmotion, 
+                    emotion: selectedEmotion,
                     intensity: 'med',
-                    note: entryText.trim() 
+                    note: entryText.trim()
                 })
             });
 
@@ -80,24 +80,7 @@ export default function PrivateJournal() {
 
     return (
         <div className="bg-background text-on-surface min-h-screen pb-24">
-            {/* HEADER */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
-                <div className="flex justify-between items-center px-container-padding h-16 w-full max-w-7xl mx-auto">
-                    <div onClick={() => navigate('/user-wall')} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <span className="font-headline-md text-[20px] font-bold text-primary tracking-tight">Unsaid Wall</span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
-                        <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Journal</button>
-                        <button onClick={() => navigate('/coach-profile')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/my-sessions')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Sessions</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             <main className="pt-24 px-container-padding max-w-[720px] mx-auto space-y-8">
                 <section className="space-y-4">
                     <div>
@@ -109,7 +92,7 @@ export default function PrivateJournal() {
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-wider text-outline">What is your baseline emotional posture?</label>
                         <div className="flex flex-wrap gap-2">
-                            {['sad', 'calm', 'anxious', 'joy' , 'hopeful'].map((emo) => (
+                            {['sad', 'overwhelmed', 'anxious', 'lonely', 'hopeful'].map((emo) => (
                                 <button
                                     key={emo}
                                     type="button"
@@ -146,30 +129,6 @@ export default function PrivateJournal() {
                     </div>
                 </section>
             </main>
-
-            {/* Mobile Bottom Bar navigation UI component */}
-            <div className="fixed bottom-0 left-0 w-full md:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
-                <button onClick={() => navigate('/user-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_awesome</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/emotion-journal')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_stories</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Journal</span>
-                </button>
-                <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">psychology</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Coaches</span>
-                </button>
-                <button onClick={() => navigate('/my-sessions')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">forum</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Sessions</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">local_library</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
-            </div>
         </div>
     );
 }

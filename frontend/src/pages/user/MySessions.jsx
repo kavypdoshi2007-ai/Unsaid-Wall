@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { API_ENDPOINTS } from '../../config/api'; // Adjust the import path based on your folder structure
-
+import { API_ENDPOINTS } from '../../config/api';
+import Navbar from '../../components/Navbar'; // Adjust path as needed
 export default function MySessions() {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
@@ -20,10 +20,10 @@ export default function MySessions() {
     });
 
     const socketRef = useRef(null);
-    const endOfMessagesRef = useRef(null);
+    const chatContainerRef = useRef(null); // 🌟 Add this line
     const token = localStorage.getItem('token');
 
-    
+
 
     // 1. DISCOVER ACTIVE USER SESSIONS ON ENGINE BOOT
     useEffect(() => {
@@ -78,9 +78,9 @@ export default function MySessions() {
         if (!token || !activeSessionId) return;
 
         // Establish connection matching the backend root parameters
-        socketRef.current = io('https://diminish-waving-shore.ngrok-free.dev', { 
+        socketRef.current = io('https://diminish-waving-shore.ngrok-free.dev', {
             transports: ['websocket'],
-            auth: { token } 
+            auth: { token }
         });
 
         // Notify server rooms about connection channel assignment
@@ -138,7 +138,12 @@ export default function MySessions() {
 
     // 4. SCROLL ANCHOR MANAGEMENT ENGINE
     useEffect(() => {
-        endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     }, [messages]);
 
     // 5. OUTBOUND FORM DISPATCH SUBMIT TERMINAL
@@ -211,24 +216,7 @@ export default function MySessions() {
 
     return (
         <div className="font-body-md text-on-surface bg-background h-screen flex flex-col overflow-hidden">
-
-            {/* CLEANED HEADER */}
-            <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
-                <div className="flex justify-between items-center px-container-padding h-16 w-full max-w-7xl mx-auto">
-                    <div onClick={() => navigate('/user-wall')} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
-                        <span className="font-headline-md text-[20px] font-bold text-primary tracking-tight">Unsaid Wall</span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-6">
-                        <button onClick={() => navigate('/user-wall')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Wall</button>
-                        <button onClick={() => navigate('/emotion-journal')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Journal</button>
-                        <button onClick={() => navigate('/coach-profile')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Coaches</button>
-                        <button onClick={() => navigate('/my-sessions')} className="font-label-sm font-semibold text-primary bg-primary-container/20 px-4 py-2 rounded-full cursor-pointer">Sessions</button>
-                        <button onClick={() => navigate('/resources')} className="font-label-sm font-semibold text-outline hover:opacity-80 transition-opacity cursor-pointer">Resources</button>
-                    </div>
-                </div>
-            </header>
+            <Navbar />
 
             {/* CONTAINER CONTAINER */}
             <main className="flex-1 flex overflow-hidden pt-16">
@@ -296,13 +284,10 @@ export default function MySessions() {
                                 </p>
                             </div>
                         </div>
-                        {activeSessionId && (
-                            <button onClick={handleEndSession} className="px-4 py-2 text-xs font-bold bg-error/10 text-error hover:bg-error hover:text-white rounded-full transition-all cursor-pointer">End Session</button>
-                        )}
                     </header>
 
                     {/* Chat Feed Window Block */}
-                    <div className="flex-1 overflow-y-auto p-8 space-y-6 pb-24 md:pb-8">
+                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-6 pb-24 md:pb-8">
                         {!activeSessionId ? (
                             <div className="text-center text-xs text-on-surface-variant/55 pt-12">
                                 Looking for verified session pathways... Request one from the Coaches panel if empty.
@@ -338,36 +323,35 @@ export default function MySessions() {
                                 );
                             })
                         )}
-                        <div ref={endOfMessagesRef} />
                     </div>
 
                     {/* Message Composition Area */}
-                <form onSubmit={sendMessage} className="p-6 bg-white/40 backdrop-blur-xl border-t border-outline-variant/10 shrink-0 pb-[90px] md:pb-6">
-                    <div className="flex items-center gap-3 bg-surface-container-lowest border border-primary/20 rounded-2xl p-2 pr-4 shadow-inner">
-                        <input
-                            // ✅ FIX: Disable input if session doesn't exist OR if it isn't explicitly active
-                            disabled={!activeSessionId || activeSession?.status !== 'active'}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 px-4 outline-none text-on-surface disabled:opacity-50"
-                            placeholder={
-                                !activeSessionId 
-                                    ? "Waiting for channel verification options..." 
-                                    : activeSession?.status !== 'active'
-                                        ? `This session is ${activeSession?.status || 'closed'}.`
-                                        : "Share what's on your mind..."
-                            }
-                        />
-                        <button 
-                            type="submit" 
-                            // ✅ FIX: Disable the submit button matching the new guard logic
-                            disabled={!activeSessionId || activeSession?.status !== 'active'} 
-                            className="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer disabled:opacity-50"
-                        >
-                            <span className="material-symbols-outlined">send</span>
-                        </button>
-                    </div>
-                </form>
+                    <form onSubmit={sendMessage} className="p-6 bg-white/40 backdrop-blur-xl border-t border-outline-variant/10 shrink-0 pb-[90px] md:pb-6">
+                        <div className="flex items-center gap-3 bg-surface-container-lowest border border-primary/20 rounded-2xl p-2 pr-4 shadow-inner">
+                            <input
+                                // ✅ FIX: Disable input if session doesn't exist OR if it isn't explicitly active
+                                disabled={!activeSessionId || activeSession?.status !== 'active'}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 px-4 outline-none text-on-surface disabled:opacity-50"
+                                placeholder={
+                                    !activeSessionId
+                                        ? "Waiting for channel verification options..."
+                                        : activeSession?.status !== 'active'
+                                            ? `This session is ${activeSession?.status || 'closed'}.`
+                                            : "Share what's on your mind..."
+                                }
+                            />
+                            <button
+                                type="submit"
+                                // ✅ FIX: Disable the submit button matching the new guard logic
+                                disabled={!activeSessionId || activeSession?.status !== 'active'}
+                                className="w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                <span className="material-symbols-outlined">send</span>
+                            </button>
+                        </div>
+                    </form>
                 </section>
 
                 {/* Profile Meta Sidebar */}
@@ -385,31 +369,6 @@ export default function MySessions() {
                     )}
                 </aside>
             </main>
-
-            {/* Mobile Bottom Navigation Bar */}
-            <div className="fixed bottom-0 left-0 w-full md:hidden z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] rounded-t-xl">
-                <button onClick={() => navigate('/user-wall')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_awesome</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Wall</span>
-                </button>
-                <button onClick={() => navigate('/emotion-journal')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">auto_stories</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Journal</span>
-                </button>
-                <button onClick={() => navigate('/coach-profile')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">psychology</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Coaches</span>
-                </button>
-                <button onClick={() => navigate('/my-sessions')} className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1.5 cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">forum</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Sessions</span>
-                </button>
-                <button onClick={() => navigate('/resources')} className="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1 hover:text-primary transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined mb-1 text-xl">local_library</span>
-                    <span className="font-label-sm text-[10px] font-semibold">Resources</span>
-                </button>
-            </div>
-
         </div>
     );
 }

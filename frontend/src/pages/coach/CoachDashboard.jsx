@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
 import { API_ENDPOINTS } from '../../config/api'; // Corrected path to config folder
 
 export default function CoachDashboard() {
@@ -148,66 +149,10 @@ export default function CoachDashboard() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background font-body-md text-on-surface overflow-hidden">
-            {/* Header */}
-            <header className="fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 z-50 flex items-center px-4 md:px-6 justify-between">
-                <div className="flex items-center gap-4">
-                    <h1 className="font-display-lg text-[24px] font-bold text-primary">Unsaid Wall</h1>
-                    <span aria-hidden="true" className="hidden sm:block h-4 w-px bg-outline-variant/30"></span>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
-                        <span className="material-symbols-outlined text-[18px] text-on-secondary-container">verified_user</span>
-                        <span className="font-label-sm text-label-sm text-on-secondary-container">Practitioner Workspace</span>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3 md:gap-6">
-                    <div className="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20">
-                        <span className="hidden sm:inline font-label-sm text-label-sm text-on-surface-variant">Availability</span>
-                        <button
-                            aria-label="Toggle availability status"
-                            onClick={() => setIsAvailable(!isAvailable)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer ${isAvailable ? 'bg-primary' : 'bg-on-surface-variant'}`}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAvailable ? 'translate-x-6' : 'translate-x-1'}`}></span>
-                        </button>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center overflow-hidden ring-2 ring-primary/10 shrink-0">
-                        <img alt={coachInfo.name} className="w-full h-full object-cover" src={coachInfo.avatarUrl} />
-                    </div>
-                </div>
-            </header>
-
+            <Navbar />
             <div className="flex flex-1 pt-16 lg:mb-10">
                 {/* Sidebar Navigation */}
-                <nav className="hidden lg:flex fixed left-0 top-16 h-[calc(100vh-104px)] w-64 bg-surface-container flex-col py-6 space-y-2 z-40 border-r border-outline-variant/10 overflow-y-auto">
-                    <div className="px-6 mb-8">
-                        <p className="font-headline-md text-headline-md text-secondary leading-tight">Coach Workspace</p>
-                        <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">Managing {coachInfo.activeJourneys} active journeys</p>
-                    </div>
-                    <ul className="space-y-1 px-2">
-                        <li>
-                            <button onClick={() => navigate('/coach-dashboard')} className="w-full flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-xl font-label-sm text-label-sm text-left transition-all cursor-pointer">
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span> Dashboard
-                            </button>
-                        </li>
-                        <li>
-                            <button onClick={() => navigate('/guest-wall')} className="w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant rounded-xl transition-all font-label-sm text-label-sm text-left cursor-pointer">
-                                <span className="material-symbols-outlined">forum</span> Client Wall
-                            </button>
-                        </li>
-                    </ul>
-                    <div className="mt-auto px-4 pt-6 border-t border-outline-variant/10 space-y-6">
-                        <button onClick={() => navigate('/coach-chat')} className="w-full py-3 bg-primary text-on-primary rounded-full font-label-sm text-label-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95 cursor-pointer">
-                            <span className="material-symbols-outlined text-[20px]">add</span> Start Session
-                        </button>
-                        <div className="flex flex-col gap-1">
-                            <button onClick={() => navigate('/help-center')} className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors cursor-pointer">
-                                <span className="material-symbols-outlined text-[20px]">help</span> Help Center
-                            </button>
-                            <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 font-label-sm text-label-sm transition-colors cursor-pointer">
-                                <span className="material-symbols-outlined text-[20px]">logout</span> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </nav>
+                
 
                 {/* Main Content Area */}
                 <main className="w-full lg:ml-64 flex-1 p-4 md:p-8 overflow-y-auto pb-28 lg:pb-8">

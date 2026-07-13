@@ -7,6 +7,17 @@ const authMiddleware = require('../middleware/authMiddleware');
 //router.post('/register-request', userController.requestPhoneRegisterOtp);
 //router.post('/register-verify', userController.verifyPhoneRegisterOtp);
 router.get('/', userController.getAllUsers);
+
+router.get('/me', authMiddleware, (req, res, next) => {
+    // 🟢 Guard clause: check if the middleware failed to populate req.user
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: "Unauthorized access: Invalid user token session." });
+    }
+    
+    req.params.id = req.user.id; 
+    userController.getUserById(req, res, next);
+});
+
 router.get('/:id', authMiddleware, userController.getUserById);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
@@ -14,9 +25,5 @@ router.delete('/:id', userController.deleteUser);
 router.post('/login', userController.loginUser);
 router.post('/register', userController.registerUser);
 
-router.get('/me', authMiddleware, (req, res, next) => {
-    req.params.id = req.user.id; 
-    userController.getUserById(req, res, next);
-});
 
 module.exports = router;
