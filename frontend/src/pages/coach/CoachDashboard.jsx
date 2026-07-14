@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import { API_ENDPOINTS } from '../../config/api'; // Corrected path to config folder
+import { API_ENDPOINTS } from '../../config/api'; 
 
 export default function CoachDashboard() {
     const navigate = useNavigate();
@@ -17,11 +17,13 @@ export default function CoachDashboard() {
         rating: 5.0
     });
     const [activeSessions, setActiveSessions] = useState([]);
+    const [scheduledSessions, setScheduledSessions] = useState([]); 
     const [flaggedPosts, setFlaggedPosts] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [statusUpdating, setStatusUpdating] = useState(false);
 
-    // Fetch live session data from endpoints
+    // Fetch live data from endpoints
     useEffect(() => {
         const fetchDashboardData = async () => {
             const token = localStorage.getItem('token');
@@ -44,13 +46,16 @@ export default function CoachDashboard() {
                         totalClients: profileData.sessions_count || 0,
                         rating: profileData.rating ? parseFloat(profileData.rating) : 5.0
                     });
+                    
+                    if (profileData.availability) {
+                        setIsAvailable(profileData.availability === 'available');
+                    }
                 }
 
-                // 2. Fetch Live Sessions Queue
+                // 2. Fetch Sessions Queue
                 const sessionsRes = await fetch(API_ENDPOINTS.SESSIONS.GET_LISTING, { headers });
                 if (sessionsRes.ok) {
                     const sessionsData = await sessionsRes.json();
-                    console.log("Raw Session Data from Backend:", sessionsData); 
 
                     const active = sessionsData.filter(s => {
                         const currentStatus = (s.status || '').toLowerCase().trim();
@@ -62,8 +67,14 @@ export default function CoachDashboard() {
                         return currentStatus === 'pending';
                     });
 
+                    const scheduled = sessionsData.filter(s => {
+                        const currentStatus = (s.status || '').toLowerCase().trim();
+                        return currentStatus === 'scheduled' || currentStatus === 'booked';
+                    });
+
                     setActiveSessions(active);
                     setPendingRequests(pending);
+                    setScheduledSessions(scheduled);
                     setCoachInfo(prev => ({ ...prev, activeJourneys: active.length }));
                 }
 
@@ -83,18 +94,65 @@ export default function CoachDashboard() {
         fetchDashboardData();
     }, []);
 
-    // Session status state transition updates
+    const toggleCoachAvailability = async () => {
+        if (statusUpdating) return;
+        setStatusUpdating(true);
+        
+        const nextState = !isAvailable;
+        const targetStatus = nextState ? 'available' : 'busy';
+
+        // Optimistically update frontend toggle feedback immediately
+        setIsAvailable(nextState);
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsAvailable(!nextState);
+                setStatusUpdating(false);
+                return;
+            }
+
+            const targetUrl = typeof API_ENDPOINTS.COACHES.GET_MY_PROFILE === 'function' 
+                ? API_ENDPOINTS.COACHES.GET_MY_PROFILE() 
+                : API_ENDPOINTS.COACHES.GET_MY_PROFILE;
+
+            const res = await fetch(targetUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ availability: targetStatus })
+            });
+
+            if (!res.ok) {
+                // Safe Fallback: Backend fail parameters validation response check block
+                setIsAvailable(!nextState);
+                const errText = await res.text();
+                console.warn(`Backend dynamic payload update returned status (${res.status}):`, errText);
+            }
+        } catch (error) {
+            setIsAvailable(!nextState);
+            console.error("Network synchronization payload update error sequence:", error);
+        } finally {
+            setStatusUpdating(false);
+        }
+    };
+
     const handleUpdateSessionStatus = async (sessionId, newStatus) => {
         try {
             const token = localStorage.getItem('token');
+            const dbReadyStatus = newStatus === 'accepted' ? 'active' : newStatus.toLowerCase();
+
             const res = await fetch(API_ENDPOINTS.SESSIONS.UPDATE_STATUS(sessionId), {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'ngrok-skip-browser-warning': 'true'
                 },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ status: dbReadyStatus })
             });
 
             if (res.ok) {
@@ -113,17 +171,9 @@ export default function CoachDashboard() {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
-    };
-
-    // Smart string utility matched directly to use Prisma include properties
     const resolveClientName = (item, defaultFallback = 'Anonymous User') => {
         if (!item) return defaultFallback;
-        // Direct post string match
         if (item.display_name) return item.display_name;
-        // Include relations structure parsing
         if (item.user && item.user.display_name_pool && item.user.display_name_pool.length > 0) {
             return item.user.display_name_pool[0];
         }
@@ -152,15 +202,32 @@ export default function CoachDashboard() {
         <div className="min-h-screen flex flex-col bg-background font-body-md text-on-surface overflow-hidden">
             <Navbar />
             <div className="flex flex-1 pt-16 lg:mb-10">
-                {/* Main Content Area */}
                 <main className="w-full flex-1 p-4 md:p-8 overflow-y-auto pb-28 lg:pb-8">
                     <div className="max-w-6xl mx-auto space-y-10">
-                        {/* Welcome Section */}
-                        <section aria-labelledby="welcome-heading">
-                            <h2 className="font-display-lg text-display-lg text-on-surface" id="welcome-heading">Welcome back, {coachInfo.name}</h2>
-                            <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
-                                You have {activeSessions.length} chat sessions active and {flaggedPosts.length} flagged posts requiring review.
-                            </p>
+                        
+                        {/* Welcome Header Container with right-aligned dynamic small toggle switch option inline */}
+                        <section aria-labelledby="welcome-heading" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant/10 pb-4">
+                            <div>
+                                <h2 className="font-display-lg text-display-lg text-on-surface" id="welcome-heading">Welcome back, {coachInfo.name}</h2>
+                                <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
+                                    You have {activeSessions.length} chat sessions active and {flaggedPosts.length} flagged posts.
+                                </p>
+                            </div>
+
+                            {/* Small Toggle Switch on Right Side Top Row without taking extra layout lines */}
+                            <div className="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant/30 shrink-0 self-start sm:self-center shadow-sm">
+                                <span className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-outline-variant'}`} />
+                                <span className="text-[12px] font-bold tracking-tight text-on-surface-variant mr-1">
+                                    {isAvailable ? 'Available' : 'Busy'}
+                                </span>
+                                <button 
+                                    onClick={toggleCoachAvailability}
+                                    disabled={statusUpdating}
+                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAvailable ? 'bg-primary' : 'bg-outline-variant'} ${statusUpdating ? 'opacity-50' : ''}`}
+                                >
+                                    <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAvailable ? 'translate-x-4' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
                         </section>
 
                         {/* Metrics Layout */}
@@ -182,13 +249,10 @@ export default function CoachDashboard() {
                             </div>
                         </section>
 
-                        {/* Main Grid Split */}
                         <div className="grid grid-cols-12 gap-gutter">
-
-                            {/* Left/Center Column */}
+                            {/* Left Column */}
                             <div className="col-span-12 lg:col-span-8 space-y-8">
-
-                                {/* Dynamic Active Sessions */}
+                                {/* Active Sessions */}
                                 <section className="space-y-4">
                                     <h3 className="font-headline-md text-headline-md text-on-surface">Active Sessions</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -226,11 +290,11 @@ export default function CoachDashboard() {
                                     </div>
                                 </section>
 
-                                {/* Dynamic Active Crisis Alerts */}
+                                {/* Crisis Alerts */}
                                 <section aria-labelledby="flagged-posts-title" className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="font-headline-md text-headline-md text-on-surface" id="flagged-posts-title">Active Crisis Alerts</h3>
-                                        <div aria-label={`${flaggedPosts.length} active alerts`} className="bg-error text-white text-[10px] px-2 py-0.5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                                        <div className="bg-error text-white text-[10px] px-2 py-0.5 rounded-full flex items-center justify-center font-bold animate-pulse">
                                             {flaggedPosts.length} HIGH PRIORITY
                                         </div>
                                     </div>
@@ -277,46 +341,65 @@ export default function CoachDashboard() {
                                 </section>
                             </div>
 
-                            {/* 🌟 FIXED Layout: Sidebar Widgets moved completely outside the left column container */}
+                            {/* Sidebar Widgets */}
                             <aside className="col-span-12 lg:col-span-4 space-y-6">
-                                {/* Upcoming Sessions */}
+                                {/* Upcoming Card */}
                                 <section aria-labelledby="upcoming-sessions-title" className="bg-surface-container-low rounded-lg p-6 shadow-sm border border-outline-variant/10">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="font-label-sm text-label-sm font-bold uppercase tracking-widest text-on-surface-variant" id="upcoming-sessions-title">Upcoming</h4>
                                         <span className="material-symbols-outlined text-primary">event_upcoming</span>
                                     </div>
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-4 group cursor-pointer p-2 hover:bg-surface-container-high rounded-lg transition-colors">
-                                            <div className="w-12 h-12 rounded-lg bg-primary-container flex flex-col items-center justify-center text-on-primary-container font-bold shrink-0">
-                                                <span className="text-[10px]">OCT</span>
-                                                <span className="text-[18px] leading-none">24</span>
+                                        {scheduledSessions.length > 0 ? (
+                                            scheduledSessions.map((session) => {
+                                                const solvedName = resolveClientName(session, 'Scheduled Client');
+                                                const sessionId = session.id || session._id;
+                                                
+                                                let displayDay = "15";
+                                                let displayMonth = "JUL";
+                                                let displayTime = "Scheduled";
+                                                
+                                                if (session.createdAt || session.updatedAt) {
+                                                    const dateObj = new Date(session.createdAt || session.updatedAt);
+                                                    if (!isNaN(dateObj.getTime())) {
+                                                        displayDay = String(dateObj.getDate());
+                                                        displayMonth = dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                                        displayTime = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                                                    }
+                                                }
+
+                                                return (
+                                                    <div 
+                                                        key={`scheduled-${sessionId}`} 
+                                                        onClick={() => navigate('/coach-chat', { state: { sessionId } })}
+                                                        className="flex items-center gap-4 group cursor-pointer p-2 hover:bg-surface-container-high rounded-lg transition-colors"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-lg bg-primary-container flex flex-col items-center justify-center text-on-primary-container font-bold shrink-0">
+                                                            <span className="text-[10px]">{displayMonth}</span>
+                                                            <span className="text-[18px] leading-none">{displayDay}</span>
+                                                        </div>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <p className="font-label-sm text-label-sm font-bold truncate">{solvedName}</p>
+                                                            <p className="text-[12px] text-on-surface-variant">{displayTime} • 50 mins</p>
+                                                        </div>
+                                                        <span className="material-symbols-outlined text-[18px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">forum</span>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="p-4 bg-surface-container rounded-lg border border-outline-variant/10 text-center text-on-surface-variant text-[12px]">
+                                                No upcoming scheduled sessions.
                                             </div>
-                                            <div className="flex-1 overflow-hidden">
-                                                <p className="font-label-sm text-label-sm font-bold truncate">Gentle Rain</p>
-                                                <p className="text-[12px] text-on-surface-variant">10:30 AM • 50 mins</p>
-                                            </div>
-                                            <span className="material-symbols-outlined text-[18px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">forum</span>
-                                        </div>
-                                        <div className="flex items-center gap-4 group cursor-pointer p-2 hover:bg-surface-container-high rounded-lg transition-colors">
-                                            <div className="w-12 h-12 rounded-lg bg-secondary-container flex flex-col items-center justify-center text-on-secondary-container font-bold shrink-0">
-                                                <span className="text-[10px]">OCT</span>
-                                                <span className="text-[18px] leading-none">24</span>
-                                            </div>
-                                            <div className="flex-1 overflow-hidden">
-                                                <p className="font-label-sm text-label-sm font-bold truncate">Patient Soul</p>
-                                                <p className="text-[12px] text-on-surface-variant">01:00 PM • 50 mins</p>
-                                            </div>
-                                            <span className="material-symbols-outlined text-[18px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">forum</span>
-                                        </div>
+                                        )}
                                     </div>
                                     <button className="w-full mt-6 py-2 border border-outline text-on-surface font-label-sm text-label-sm rounded-full hover:bg-surface-container transition-colors cursor-pointer">Full Schedule</button>
                                 </section>
 
-                                {/* Dynamic Pending Requests */}
+                                {/* Pending Requests */}
                                 <section aria-labelledby="pending-requests-title" className="bg-surface-container-low rounded-lg p-6 shadow-sm border border-outline-variant/10">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="font-label-sm text-label-sm font-bold uppercase tracking-widest text-on-surface-variant" id="pending-requests-title">Requests</h4>
-                                        <div aria-label={`${pendingRequests.length} pending requests`} className="bg-error text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                        <div className="bg-error text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                                             {pendingRequests.length}
                                         </div>
                                     </div>
@@ -340,14 +423,9 @@ export default function CoachDashboard() {
                                                                 onClick={() => handleUpdateSessionStatus(reqId, 'accepted')}
                                                                 className="flex-1 py-1.5 bg-primary text-on-primary text-[11px] rounded-full font-bold hover:opacity-90 transition-opacity cursor-pointer"
                                                             >
-                                                                Accept
+                                                                Accept Live
                                                             </button>
-                                                            <button
-                                                                onClick={() => navigate('/coach-chat', { state: { sessionId: reqId } })}
-                                                                className="flex-1 py-1.5 bg-secondary-container text-on-secondary-container font-bold text-[11px] rounded-full hover:brightness-95 transition-all cursor-pointer"
-                                                            >
-                                                                Coach Chat
-                                                            </button>
+
                                                             <button
                                                                 onClick={() => handleUpdateSessionStatus(reqId, 'declined')}
                                                                 className="flex-1 py-1.5 border border-outline text-on-surface text-[11px] rounded-full hover:bg-surface-variant transition-colors cursor-pointer"
@@ -375,7 +453,6 @@ export default function CoachDashboard() {
                                     </figcaption>
                                 </figure>
                             </aside>
-
                         </div>
                     </div>
                 </main>

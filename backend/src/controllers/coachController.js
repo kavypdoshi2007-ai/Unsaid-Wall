@@ -99,7 +99,7 @@ const coachController = {
     }
   },
 
-  async getMyProfile(req, res, next) {
+  async getMyProfile(req, res) {
     try {
       const user_id = req.userData.id; // Sourced securely via your authorization token decoded payload
       const coachProfile = await prisma.coach.findFirst({
@@ -114,6 +114,22 @@ const coachController = {
       next(error);
     }
   },
+
+  async updateProfile(req, res, next) {
+  try {
+    const authenticatedUserId = req.userData.id;
+    const { availability } = req.body;
+
+    const updatedCoach = await prisma.coach.update({
+      where: { user_id: authenticatedUserId },
+      data: { availability }
+    });
+
+    return res.json(updatedCoach);
+  } catch (error) {
+    next(error);
+  }
+},
 
   // Handles session creation for both old and new users seamlessly
   async requestSession(req, res, next) {

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { io as socketIOClient } from 'socket.io-client';
 import { API_ENDPOINTS, BACKEND_URL } from '../../config/api';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
+
 // The API base is BACKEND_URL + '/api'; Socket.io runs on the bare host, not under /api
 const SOCKET_URL = BACKEND_URL.replace(/\/api\/?$/, '');
 
@@ -37,7 +38,12 @@ export default function CoachChat() {
 
     // Auto-scroll utility for modern interaction feedback
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     };
 
     // Fetch resources from database
@@ -64,7 +70,6 @@ export default function CoachChat() {
 
     // Fetch the latest post of the user directly from the database using their ID
     const fetchLatestUserPost = async (metaData) => {
-        // Extract the target client/user ID from your session metadata
         const targetUserId = metaData?.clientId || metaData?.userId || metaData?.client?._id || metaData?.user?.id || metaData?.client;
 
         if (!targetUserId) {
@@ -86,12 +91,8 @@ export default function CoachChat() {
                 const allPosts = await res.json();
 
                 if (Array.isArray(allPosts)) {
-                    // Look through feed array to find the first match for this user_id
                     const latestPostForUser = allPosts.find(post => {
-                        // Extract the post's user_id value (checking if it's an object with an ID or a string directly)
                         const postUserId = post.user_id?._id || post.user_id?.id || post.user_id;
-
-                        // Convert both sides to strings to safely handle formatting/type mismatches
                         return String(postUserId) === String(targetUserId);
                     });
 
@@ -106,6 +107,7 @@ export default function CoachChat() {
             console.error("Failed to fetch user's latest post via feed:", err);
         }
     };
+
     // 1. Initial Connection Setup and Context Tracking
     useEffect(() => {
         const initializationHandshake = async () => {
@@ -118,8 +120,6 @@ export default function CoachChat() {
 
             fetchResources();
 
-            // Decode our own user id from the JWT so we can tell "my messages" (sender_id === me)
-            // apart from the client's, since the Message model has no role flag of its own.
             let myId = null;
             if (token) {
                 try {
@@ -134,7 +134,6 @@ export default function CoachChat() {
             try {
                 let activeId = sessionId;
 
-                // Fallback: If no explicit session ID was directed, scan active sessions
                 if (!activeId) {
                     const trackingRes = await fetch(API_ENDPOINTS.SESSIONS.GET_LISTING, { headers });
                     if (trackingRes.ok) {
@@ -151,7 +150,6 @@ export default function CoachChat() {
                 }
 
                 if (activeId) {
-                    // Fetch Specific Live Session Attributes
                     const metaRes = await fetch(API_ENDPOINTS.SESSIONS.GET_BY_ID(activeId), { headers });
                     if (metaRes.ok) {
                         const metaData = await metaRes.json();
@@ -162,18 +160,16 @@ export default function CoachChat() {
                             setLastSavedNote(metaData.coach_notes);
                         }
 
-                        // PASS THE METADATA HERE to get the User ID dynamically from the DB
                         await fetchLatestUserPost(metaData);
                     }
 
-                    // Initial load for messages
                     await fetchMessages(activeId, myId);
                 }
             } catch (err) {
                 console.error("Error setting up backend workspace sync:", err);
             } finally {
                 setLoading(false);
-            };
+            }
         };
 
         initializationHandshake();
@@ -185,7 +181,7 @@ export default function CoachChat() {
 
         const syncInterval = setInterval(() => {
             fetchMessages(sessionId);
-        }, 8000); // Reduced frequency now that the socket handles instant delivery
+        }, 8000);
 
         return () => clearInterval(syncInterval);
     }, [sessionId]);
@@ -237,7 +233,7 @@ export default function CoachChat() {
         if (messages.length === 0) return;
         const latestId = messages[messages.length - 1].id;
 
-        if (latestId === lastMessageIdRef.current) return; // nothing new, skip
+        if (latestId === lastMessageIdRef.current) return;
         const isFirstLoad = lastMessageIdRef.current === null;
         lastMessageIdRef.current = latestId;
 
@@ -333,7 +329,6 @@ export default function CoachChat() {
         }
     };
 
-    // Explicit Trigger Action to submit notes to backend database
     const handleSavePrivateNotes = async () => {
         if (!sessionId) return;
 
@@ -381,11 +376,6 @@ export default function CoachChat() {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
-    };
-
     const getResolvedUserName = () => {
         if (!sessionMeta) return "User #8291";
         return sessionMeta.clientName || sessionMeta.userName || sessionMeta.username || `User #${String(sessionId).slice(-4)}`;
@@ -393,52 +383,17 @@ export default function CoachChat() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background text-on-surface">
+            <div className="h-[100dvh] flex items-center justify-center bg-background text-on-surface">
                 <p className="font-body-lg text-body-lg animate-pulse">Establishing workspace backend synchronization link...</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+        <div className="bg-background text-on-background font-body-md h-[100dvh] flex flex-col overflow-hidden">
             <Navbar />
-            {/* SideNavBar */}
-            <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-surface-container flex-col py-4 space-y-2 shadow-md shadow-primary/5 z-50">
-                <div className="px-6 mb-8">
-                    <h1 className="font-headline-md text-headline-md text-secondary">Coach Workspace</h1>
-                    <p className="font-label-sm text-label-sm text-on-surface-variant">Managing active connections</p>
-                </div>
-                <nav className="flex-1 space-y-1">
-                    <button onClick={() => navigate('/coach-dashboard')} className="w-full flex items-center gap-3 py-3 px-4 mx-2 text-on-surface-variant hover:bg-surface-variant transition-all duration-300 ease-in-out cursor-pointer">
-                        <span className="material-symbols-outlined text-[20px]">dashboard</span>
-                        <span className="font-label-sm">Dashboard</span>
-                    </button>
-                    <button onClick={() => navigate('/coach-chat')} className="w-full flex items-center gap-3 py-3 px-4 bg-secondary-container text-on-secondary-container rounded-xl mx-2 transition-all duration-300 ease-in-out cursor-pointer">
-                        <span className="material-symbols-outlined text-[20px]">forum</span>
-                        <span className="font-label-sm">Client Wall</span>
-                    </button>
-                </nav>
-                <div className="px-4 py-4 space-y-2 mt-auto">
-                    <button onClick={() => navigate('/coach-dashboard')} className="w-full bg-primary text-on-primary py-3 rounded-full font-bold active:scale-95 transition-transform flex justify-center items-center gap-2 cursor-pointer">
-                        <span className="material-symbols-outlined">add_circle</span>
-                        Start Session
-                    </button>
-                    <div className="pt-4 space-y-1 border-t border-outline-variant/20">
-                        <button onClick={() => navigate('/help-center')} className="w-full flex items-center gap-3 py-2 px-4 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all cursor-pointer">
-                            <span className="material-symbols-outlined text-[20px]">help</span>
-                            <span className="font-label-sm">Help Center</span>
-                        </button>
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 py-2 px-4 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all cursor-pointer">
-                            <span className="material-symbols-outlined text-[20px]">logout</span>
-                            <span className="font-label-sm">Sign Out</span>
-                        </button>
-                    </div>
-                </div>
-            </aside>
 
-            {/* Main Content Grid */}
-            <main className="lg:ml-64 flex-1 h-screen overflow-hidden relative flex flex-col lg:flex-row">
-
+            <main className="flex-1 pt-16 overflow-hidden relative flex flex-col lg:flex-row w-full max-w-[1600px] mx-auto">
                 {/* Left Panel: User History */}
                 <section className="hidden xl:flex border-r border-outline-variant/20 flex-col h-full bg-surface-container-low/50 overflow-y-auto w-64 shrink-0">
                     <div className="p-6">
@@ -450,7 +405,6 @@ export default function CoachChat() {
                             <div>
                                 <h3 className="font-bold text-on-surface text-sm uppercase tracking-widest mb-4">Recent Emotion History</h3>
                                 <div className="space-y-3">
-                                    {/* Card 1: Shows Emotion of Latest Post */}
                                     <div className="flex items-center gap-3 p-3 glass-card rounded-2xl shadow-sm">
                                         <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error shrink-0">
                                             <span className="material-symbols-outlined">sentiment_very_dissatisfied</span>
@@ -464,7 +418,6 @@ export default function CoachChat() {
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Card 2: Shows Intensity of Latest Post */}
                                     <div className="flex items-center gap-3 p-3 glass-card rounded-2xl shadow-sm">
                                         <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary shrink-0">
                                             <span className="material-symbols-outlined">waves</span>
@@ -509,7 +462,6 @@ export default function CoachChat() {
 
                 {/* Center: Chat Conversation */}
                 <section className="flex flex-col h-full bg-white/40 flex-1 min-w-0">
-                    {/* Chat Header */}
                     <div className="h-16 flex items-center justify-between px-4 md:px-8 bg-surface-container-low/80 backdrop-blur-md border-b border-outline-variant/10 shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
@@ -529,7 +481,6 @@ export default function CoachChat() {
                         </div>
                     </div>
 
-                    {/* Messages Area */}
                     <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 flex flex-col w-full">
                         <div className="flex flex-col items-center mb-8 shrink-0 w-full">
                             <span className="px-4 py-1 bg-surface-variant text-on-surface-variant rounded-full text-xs font-bold">Today</span>
@@ -578,9 +529,8 @@ export default function CoachChat() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
-                    <div className="p-4 md:p-6 pb-24 lg:pb-6 bg-surface-container-low/50 border-t border-outline-variant/10 shrink-0">
-                        <div className="relative flex items-center">
+                    <div className="p-4 md:p-6 bg-surface-container-low/50 border-t border-outline-variant/10 shrink-0 w-full">
+                        <div className="relative flex items-center w-full">
                             <textarea
                                 value={chatInput}
                                 onChange={(e) => setChatInput(e.target.value)}
@@ -620,7 +570,6 @@ export default function CoachChat() {
                 {/* Right Panel: Resource & Notes */}
                 <section className="hidden xl:flex border-l border-outline-variant/20 flex-col h-full bg-surface-container-low/50 overflow-y-auto w-64 shrink-0">
                     <div className="p-6 h-full flex flex-col">
-                        {/* Resource Sharing Section */}
                         <div className="mb-8">
                             <h3 className="font-bold text-on-surface text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-secondary text-[20px]">auto_stories</span>
@@ -672,7 +621,6 @@ export default function CoachChat() {
                             </button>
                         </div>
 
-                        {/* Private Notes Section */}
                         <div className="flex-1 flex flex-col min-h-0">
                             <h3 className="font-bold text-on-surface text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-secondary text-[20px]">sticky_note_2</span>
@@ -706,7 +654,6 @@ export default function CoachChat() {
                             </div>
                         </div>
 
-                        {/* Bottom Status */}
                         <div className="mt-8 pt-6 border-t border-outline-variant/20">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">

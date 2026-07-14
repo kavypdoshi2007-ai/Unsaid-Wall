@@ -15,4 +15,7 @@ router.get('/:id', coachController.getCoachById);
 router.post('/', authMiddleware, authorize(['coach']), coachController.createProfile);
 router.post('/request-session', authMiddleware, authorize(['user']), coachController.requestSession); 
 
+// Profile check controllers ke thik niche add karein
+router.patch('/me', authMiddleware, coachController.updateProfile);
+
 module.exports = router;

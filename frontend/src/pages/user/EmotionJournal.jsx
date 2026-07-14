@@ -79,7 +79,7 @@ export default function EmotionJournal() {
 
             try {
                 // Past Memories now shows the user's own Wall posts, not a separate private journal.
-                const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
+                const response = await fetch(API_ENDPOINTS.JOURNAL.GET_USER_JOURNAL(userId), {
                     method: 'GET',
                     headers: headers
                 });
@@ -163,21 +163,19 @@ export default function EmotionJournal() {
     // exists, which would delete the wrong resource). This is a placeholder until a
     // POSTS.DELETE(postId) endpoint is added on the backend.
     const handleDeleteJournalRecord = async (id) => {
-        alert("Deleting Wall posts isn't supported yet — the backend needs a POSTS delete endpoint added first.");
-        // Once that endpoint exists, swap this in:
-        //
-        // if (!confirm("Are you sure you want to permanently delete this post?")) return;
-        // const headers = getAuthHeaders();
-        // if (!headers) return alert("Missing session authentication token.");
-        // try {
-        //     const response = await fetch(API_ENDPOINTS.POSTS.DELETE(id), { method: 'DELETE', headers });
-        //     if (!response.ok) throw new Error('Deletion processing aborted.');
-        //     const remaining = entries.filter(e => (e.id || e._id) !== id);
-        //     setEntries(remaining);
-        //     calculateEmotionalPulse(remaining);
-        // } catch (err) {
-        //     alert(`Error deleting entry: ${err.message}`);
-        // }
+        
+        if (!confirm("Are you sure you want to permanently delete this post?")) return;
+         const headers = getAuthHeaders();
+        if (!headers) return alert("Missing session authentication token.");
+        try {
+             const response = await fetch(API_ENDPOINTS.JOURNAL.DELETE_ENTRY(id), { method: 'DELETE', headers });
+            if (!response.ok) throw new Error('Deletion processing aborted.');
+             const remaining = entries.filter(e => (e.id || e._id) !== id);
+             setEntries(remaining);
+             calculateEmotionalPulse(remaining);
+         } catch (err) {
+             alert(`Error deleting entry: ${err.message}`);
+         }
     };
 
     const formatTimestamp = (entry) => {
