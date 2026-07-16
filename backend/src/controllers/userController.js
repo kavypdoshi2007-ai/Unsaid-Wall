@@ -207,6 +207,10 @@ const userController = {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
+      if (user.is_banned) {
+      return res.status(403).json({ error: "Your account has been suspended/banned." });
+      }
+
       // 3. Compare incoming plain text password against the stored database hash
       const isPasswordValid = await bcrypt.compare(password, user.password_hash);
       if (!isPasswordValid) {
@@ -294,6 +298,37 @@ const userController = {
     try {
       await prisma.user.delete({ where: { id: req.params.id } });
       return res.json({ message: 'User deleted safely' });
+    } catch (error) {
+      next(error);
+    }
+  },
+  //ban
+  async banUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      const is_banned = typeof req.body.is_banned === 'boolean' ? req.body.is_banned : true;
+
+      // Guard against an admin locking themselves out via this route
+      if (req.userData && req.userData.id === id) {
+        return res.status(400).json({ error: "You cannot ban your own account." });
+      }
+
+      const existingUser = await prisma.user.findUnique({ where: { id } });
+      if (!existingUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id },
+        data: { is_banned }
+      });
+
+      const { password_hash, ...sanitizedUser } = updatedUser;
+
+      return res.status(200).json({
+        message: `User has been successfully ${is_banned ? 'banned' : 'unbanned'}.`,
+        user: sanitizedUser
+      });
     } catch (error) {
       next(error);
     }
