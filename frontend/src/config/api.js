@@ -8,7 +8,8 @@ export const API_ENDPOINTS = {
     USERS: {
         REGISTER: `${BACKEND_URL}/users/register`,
         LOGIN: `${BACKEND_URL}/users/login`,
-        ME: `${BACKEND_URL}/users/me`
+        ME: `${BACKEND_URL}/users/me`,
+        BAN: (userId) => `${BACKEND_URL}/users/${userId}/ban`,
     },
 
     // 2. Expression Posts (Wall Timeline)
@@ -17,6 +18,7 @@ export const API_ENDPOINTS = {
         GET_MOD_QUEUE: `${BACKEND_URL}/posts/moderation-queue`,
         PREVIEW_USERNAME: `${BACKEND_URL}/posts/username`, // Get dynamic name on-the-fly
         CREATE: `${BACKEND_URL}/posts`,
+        MODERATE: (postId) => `${BACKEND_URL}/posts/${postId}/moderate`, // Admin: PATCH is_flagged/flag_level/is_hidden
         ADD_COMMENT: (postId) => `${BACKEND_URL}/posts/${postId}/comments` // For coaches only
     },
 

@@ -11,6 +11,8 @@ export default function AdminDashboard() {
     // --- Backend Form State ---
     const [broadcastMessage, setBroadcastMessage] = useState('');
     const [broadcastLink, setBroadcastLink] = useState('');
+    const [broadcastDueDate, setBroadcastDueDate] = useState('');
+    const [isBroadcastPinned, setIsBroadcastPinned] = useState(false);
 
     // --- Backend Fetched Metrics & Profile States ---
     const [adminAvatar, setAdminAvatar] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuDl3F6qPzoXfe2w4-D88uz6J_tSlsVuNX1v0jO-qfMXmwDehoaBPqp-Phf7SGqAgWAikmJGqUHxms1qKw5FhP0sPrBfotqlVJVsXchKrKsFdZkyMT5Tkk49bPGXivCA32aLc3qwPo-JtqqiUbhb-pb9KZmCXez9lLLMtnQlnYLtAe0j5fJlibEjK-26qNLvlrf98pN3LogJy7OwqgKrJ7lvBwdu_9Ttn916l1ajAM3lWxBjok5zj0I_ZBuVETFyP4Zmp-QWFb7iXRnw");
@@ -77,6 +79,14 @@ export default function AdminDashboard() {
         }
     ]);
 
+    const handleCloseModal = () => {
+        setShowBroadcast(false);
+        setBroadcastMessage('');
+        setBroadcastLink('');
+        setBroadcastDueDate('');
+        setIsBroadcastPinned(false);
+    };
+
     const getAuthHeaders = () => {
         const token = localStorage.getItem('token');
         return {
@@ -97,6 +107,52 @@ export default function AdminDashboard() {
         return `${Math.floor(hours / 24)}d ago`;
     };
 
+    const handleSendBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+        alert("Please enter an announcement message.");
+        return;
+    }
+
+    const token = localStorage.getItem('token');
+    
+    let adminId = null;
+    if (token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(window.atob(base64));
+            adminId = payload.id || payload.userId || payload.sub; 
+        } catch (e) {
+            console.error("Failed to parse token for adminId:", e);
+        }
+    }
+
+    const broadcastPayload = {
+        adminId: adminId,                     
+        content: broadcastMessage,             
+        url: broadcastLink || null,           
+        due_date: broadcastDueDate || null,    
+        is_pinned: isBroadcastPinned           
+    };
+    
+    try {
+        const res = await fetch(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, { 
+            method: 'POST', 
+            headers: getAuthHeaders(), 
+            body: JSON.stringify(broadcastPayload)
+        });
+        
+        if (res.ok) { 
+            alert("Broadcast sent successfully!"); 
+        } else {
+            const errorData = await res.json().catch(() => ({}));
+            console.error("Backend validation error details:", errorData);
+        }
+    } catch (err) {
+        console.error(err); //[cite: 1]
+    }
+    handleCloseModal(); //[cite: 1]
+};
     useEffect(() => {
         const timer = setTimeout(() => {
             setAnimateBars(true);
@@ -233,28 +289,6 @@ export default function AdminDashboard() {
         setCrisisAlerts(prev => prev.filter(a => a.id !== id));
     };
 
-    const handleSendBroadcast = (e) => {
-        e.preventDefault();
-        if (!broadcastMessage.trim()) return;
-
-        fetch(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({
-                content: broadcastMessage, // maps exactly to database field
-                link: broadcastLink || undefined
-            })
-        })
-        .then(res => {
-            if (res.ok) {
-                setBroadcastMessage('');
-                setBroadcastLink('');
-                setShowBroadcast(false);
-            }
-        })
-        .catch(err => console.error("Failed creating dynamic announcement:", err));
-    };
-
     const highPriorityCount = crisisAlerts.filter(a => a.severity === 'high').length;
 
     return (
@@ -287,60 +321,91 @@ export default function AdminDashboard() {
                 {/* Broadcast Modal Overlay */}
                 {showBroadcast && (
                     <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 w-screen h-screen">
-
-                        {/* 🌟 FIX: Added min-w-[320px], sm:w-[500px], and shrink-0 to prevent collapsing */}
                         <div className="bg-surface-container-lowest w-[90%] sm:w-[500px] min-w-[320px] shrink-0 p-8 rounded-xl shadow-xl border border-outline-variant/20 animate-fade-in">
-
+                            
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="font-headline-md text-primary text-xl font-bold whitespace-nowrap">New Global Broadcast</h3>
                                 <button
                                     className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors cursor-pointer shrink-0 ml-4"
-                                    onClick={() => setShowBroadcast(false)}
+                                    onClick={handleCloseModal}
                                 >
                                     close
                                 </button>
                             </div>
-
-                            <form onSubmit={handleSendBroadcast} className="space-y-5 w-full">
+                            
+                            <div className="space-y-5 w-full">
                                 <div className="w-full">
                                     <label className="block text-label-sm font-bold mb-2 uppercase tracking-wider text-on-surface">
                                         Announcement Message
                                     </label>
                                     <textarea
-                                        className="block w-full bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
-                                        placeholder="Enter broadcast message..." rows="4"
                                         value={broadcastMessage}
                                         onChange={(e) => setBroadcastMessage(e.target.value)}
-                                        required
+                                        className="block w-full bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none text-on-surface"
+                                        placeholder="Enter broadcast message..." rows="3"
                                     ></textarea>
                                 </div>
-
+                                
                                 <div className="w-full">
                                     <label className="block text-label-sm font-bold mb-2 uppercase tracking-wider text-on-surface">
                                         URL LINK (OPTIONAL)
                                     </label>
                                     <input
-                                        className="block w-full bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                                        placeholder="https://... (Optional)" type="url"
                                         value={broadcastLink}
                                         onChange={(e) => setBroadcastLink(e.target.value)}
+                                        className="block w-full bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none text-on-surface"
+                                        placeholder="https://... (Optional)" type="url"
                                     />
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                                    {/* 🌟 FIX: Added whitespace-nowrap so button text never stacks */}
-                                    <button type="submit" className="flex-1 bg-primary text-on-primary py-3 px-4 rounded-full font-bold hover:brightness-110 transition-all cursor-pointer whitespace-nowrap">
+                                <div className="w-full">
+                                    <label className="block text-label-sm font-bold mb-2 uppercase tracking-wider text-on-surface">
+                                        DUE DATE & TIME (OPTIONAL)
+                                    </label>
+                                    <input
+                                        value={broadcastDueDate}
+                                        onChange={(e) => setBroadcastDueDate(e.target.value)}
+                                        className="block w-full bg-surface-container-low border border-outline-variant/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none text-on-surface"
+                                        type="datetime-local"
+                                    />
+                                </div>
+
+                                {/* Pin to Top Option */}
+                                <div 
+                                    className="w-full flex items-center justify-between bg-surface-container-low border border-outline-variant/20 rounded-lg p-4 cursor-pointer hover:bg-surface-variant/50 transition-colors"
+                                    onClick={() => setIsBroadcastPinned(!isBroadcastPinned)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isBroadcastPinned ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+                                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: isBroadcastPinned ? "'FILL' 1" : "'FILL' 0" }}>keep</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface">Pin to Top</p>
+                                            <p className="text-[10px] text-on-surface-variant">Keep this announcement at the top of the feed</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Toggle Switch */}
+                                    <div className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${isBroadcastPinned ? 'bg-primary' : 'bg-outline-variant/50'}`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isBroadcastPinned ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-4 border-t border-outline-variant/20">
+                                    <button 
+                                        onClick={handleSendBroadcast}
+                                        className="flex-1 bg-primary text-on-primary py-3 px-4 rounded-full font-bold hover:brightness-110 transition-all cursor-pointer whitespace-nowrap"
+                                    >
                                         Send Broadcast
                                     </button>
                                     <button
-                                        type="button"
                                         className="py-3 px-8 rounded-full font-bold text-on-surface-variant hover:bg-surface-variant transition-all cursor-pointer whitespace-nowrap"
-                                        onClick={() => setShowBroadcast(false)}
+                                        onClick={handleCloseModal}
                                     >
                                         Cancel
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -523,8 +588,6 @@ export default function AdminDashboard() {
                         </div>
                     </section>
 
-                    {/* Large Community Vibe Chart */}
-                    {/* Large Community Vibe Chart with Dynamic Matching Colors */}
                     {/* MODERN, FIX-HEIGHT 8-COLUMN BAR GRAPH COMPONENT */}
                     <section className="bg-surface-container-highest/60 backdrop-blur-xl p-8 rounded-lg border border-outline-variant/10 relative overflow-hidden flex flex-col justify-between">
                         <div>

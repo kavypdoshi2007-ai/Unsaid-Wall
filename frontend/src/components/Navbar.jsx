@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -31,11 +32,26 @@ export default function Navbar() {
         }
     }, [location.pathname]);
 
-    const handleLogout = () => {
-        localStorage.clear();
-        window.location.reload();
-        navigate('/login');
-    };
+    const handleLogout = async () => {
+    try {
+        // 1. Tell the backend to clear the httpOnly cookie securely
+        await fetch('https://diminish-waving-shore.ngrok-free.dev/api/users/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (err) {
+        console.error("Backend logout clean failed:", err);
+    }
+
+    // 2. Clear out local client cookies as a double safety measure
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
+    // 3. Clear application state and route away
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+};
 
     return (
         <>
@@ -78,7 +94,7 @@ export default function Navbar() {
                                 <button onClick={() => navigate('/coach-profile')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/coach-profile') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Coaches</button>
                                 <button onClick={() => navigate('/my-sessions')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/my-sessions') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Sessions</button>
                                 <button onClick={() => navigate('/resources')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/resources') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Resource Library</button>
-                                <button onClick={() => navigate('/login')} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
+                                <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
                             </>
                         )}
 
@@ -88,7 +104,7 @@ export default function Navbar() {
                                 <button onClick={() => navigate('/coach-dashboard')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/coach-dashboard') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Dashboard</button>
                                 <button onClick={() => navigate('/coach-requests')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/coach-requests') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Requests</button>
                                 <button onClick={() => navigate('/resources')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/resources') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Resource Library</button>
-                                <button onClick={() => navigate('/login')} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
+                                <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
                             </>
                         )}
 
@@ -98,7 +114,7 @@ export default function Navbar() {
                                 <button onClick={() => navigate('/admin-dashboard')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/admin-dashboard') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>System Hub</button>
                                 <button onClick={() => navigate('/admin-coaches')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/admin-coaches') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Manage Coaches</button>
                                 <button onClick={() => navigate('/admin-reports')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/admin-reports') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Reports</button>
-                                <button onClick={() => navigate('/login')} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
+                                <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
                             </>
                         )}
                     </div>
