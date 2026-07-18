@@ -16,6 +16,6 @@ router.post('/:postId/comments', authMiddleware, authorize(['coach']), postContr
 // Backend route setup
 router.get('/moderation-queue',authMiddleware, authorize(['coach','admin']),postController.getFlaggedPost);
 
-router.patch('/:postId/visibility', authMiddleware, authorize(['admin']), postController.updatePostVisibility);
+router.patch('/:postId/moderate', authMiddleware, authorize(['admin']), postController.updatePostVisibility);
 
 module.exports = router;

@@ -333,6 +333,21 @@ const userController = {
       next(error);
     }
   },
+  async logoutUser(req, res, next) {
+        try {
+            // Clear the cookie by name (e.g., 'token')
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: true,          // Must match how it was created
+                sameSite: 'none',      // Crucial for cross-origin environments like ngrok
+                path: '/'              // Must match the creation path exactly
+            });
+
+            return res.status(200).json({ message: "Logged out successfully." });
+        } catch (error) {
+            return res.status(500).json({ error: "Logout failed." });
+        }
+    }
 };
 
 module.exports = userController;
