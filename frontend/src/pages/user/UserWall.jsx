@@ -10,11 +10,15 @@ export default function UserWall() {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
     const [error, setError] = useState(null);
+
     // --- State Variables ---
     const [posts, setPosts] = useState([]);
     const [loadingFeed, setLoadingFeed] = useState(true);
     const [userRole, setUserRole] = useState('user');
     const [currentUserId, setCurrentUserId] = useState(null);
+
+    // Custom Notification State for Crisis Alerts
+    const [notification, setNotification] = useState(null);
 
     // Support Session State
     const [sessionStatus, setSessionStatus] = useState('idle'); // idle | loading | pending | accepted
@@ -24,7 +28,7 @@ export default function UserWall() {
     const [isComposerOpen, setIsComposerOpen] = useState(false);
     const [activeLang, setActiveLang] = useState('en');
     const [postText, setPostText] = useState('');
-    const [selectedEmotion, setSelectedEmotion] = useState({ emoji: '😵', label: 'Overwhelmed' });
+    const [selectedEmotion, setSelectedEmotion] = useState({ emoji: '亰', label: 'Overwhelmed' });
     const [previewUsername, setPreviewUsername] = useState('Loading...');
 
     // Inline Coach Comment State
@@ -48,16 +52,14 @@ export default function UserWall() {
     useEffect(() => {
         if (!token || !currentUserId) return;
 
-        // Establish the socket connection passing the JWT auth credentials
         const socket = io('https://diminish-waving-shore.ngrok-free.dev', {
-            transports: ['websocket'], // 🚀 CRITICAL: Forces WebSocket only, bypassing CORS polling
+            transports: ['websocket'],
             upgrade: false,
             auth: {
-                token: localStorage.getItem('token') // Or wherever you pull your token from
+                token: localStorage.getItem('token')
             }
         });
 
-        // Listen for the exact moment a coach clicks "Accept"
         socket.on(`session_accepted_${currentUserId}`, (data) => {
             setSessionStatus('accepted');
             setActiveSessionId(data.sessionId);
@@ -84,13 +86,10 @@ export default function UserWall() {
                 }
             });
 
-            // 🌟 NEW: Handle errors with backend messages
             if (!response.ok) {
-                // Attempt to parse the backend error JSON
                 const errorData = await response.json().catch(() => ({}));
                 const errorMessage = errorData.error || errorData.message || `Error ${response.status}`;
 
-                // If it's a 403, we know specifically it's an authorization/permission issue
                 if (response.status === 403) {
                     throw new Error(`Access Denied: ${errorMessage}`);
                 } else {
@@ -100,7 +99,6 @@ export default function UserWall() {
 
             const data = await response.json();
 
-            // Sort posts by newest first
             const sortedPosts = data.sort((a, b) => {
                 const dateA = new Date(a.created_at || a.createdAt || 0);
                 const dateB = new Date(b.created_at || b.createdAt || 0);
@@ -111,12 +109,12 @@ export default function UserWall() {
 
         } catch (error) {
             console.error("Error building dashboard timeline:", error);
-            // 🌟 Set the error state so you can show it to the user
             setError(error.message);
         } finally {
             setLoadingFeed(false);
         }
     };
+
     // --- Create / Request Support Session Loop ---
     const startSupportSession = async () => {
         if (!token) {
@@ -143,7 +141,6 @@ export default function UserWall() {
             }
 
             setSessionStatus('pending');
-            console.log("Database entry added. Waiting in live queue pool...");
         } catch (err) {
             console.error("Session request loop crashed:", err);
             alert(`Could not start support session: ${err.message}`);
@@ -175,6 +172,7 @@ export default function UserWall() {
         }
     };
 
+    // 検 FIX: Cleaned up submission logic to correctly handle the 403 response
     const handlePostSubmit = async () => {
         if (!postText.trim()) return;
 
@@ -183,24 +181,36 @@ export default function UserWall() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': token ? `Bearer ${token}` : '',
                     'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({
                     content: postText,
                     language: activeLang,
-                    emotion: 'REFLECTION', // 🌟 FIX: Re-added the missing emotion field!
+                    emotion: 'REFLECTION',
                     display_name: previewUsername
                 })
             });
 
-            if (response.ok) {
-                setPostText('');
+            // 検 TRIGGER: Intercept Crisis Flag
+            if (response.status === 403) {
+                setNotification({
+                    title: "Support Alert",
+                    message: "Your post has been kept private. We hear you, and you are not alone. Let's connect you with a supportive space right now.\n\niCall (9152987821)\nVandrevala Foundation (1860-2662-345)",
+                    type: "warning"
+                });
                 setIsComposerOpen(false);
-                fetchFeed(); // This will now fetch and sort the newest post to the top!
-            } else {
-                console.error("Backend rejected the post.");
+                setPostText('');
+                return;
             }
+
+            if (!response.ok) {
+                throw new Error("Failed to post.");
+            }
+
+            setPostText('');
+            setIsComposerOpen(false);
+            fetchFeed();
         } catch (error) {
             console.error("Error submitting expression:", error);
         }
@@ -213,7 +223,6 @@ export default function UserWall() {
             return;
         }
 
-        // 1. Optimistic UI updates
         const updatedPosts = posts.map(post => {
             if (post.id !== postId) return post;
 
@@ -221,7 +230,6 @@ export default function UserWall() {
             const existingReactionIdx = reactions.findIndex(r => r.reaction_type === reactionType && (r.user_id === currentUserId || r.userHasReacted));
 
             if (existingReactionIdx > -1) {
-                // Remove reaction locally
                 const target = reactions[existingReactionIdx];
                 if (Number(target.count) > 1) {
                     reactions[existingReactionIdx] = { ...target, count: Number(target.count) - 1, userHasReacted: false };
@@ -229,7 +237,6 @@ export default function UserWall() {
                     reactions.splice(existingReactionIdx, 1);
                 }
             } else {
-                // Add reaction locally
                 reactions.push({ reaction_type: reactionType, count: 1, userHasReacted: true, user_id: currentUserId });
             }
 
@@ -238,7 +245,6 @@ export default function UserWall() {
         setPosts(updatedPosts);
 
         try {
-            // 2. Network Payload Request
             await fetch(`${BACKEND_URL}/reactions/toggle`, {
                 method: 'POST',
                 headers: {
@@ -248,7 +254,6 @@ export default function UserWall() {
                 body: JSON.stringify({ post_id: postId, reaction_type: reactionType })
             });
 
-            // 3. Sync Database State with server Verification
             const syncResponse = await fetch(`${BACKEND_URL}/reactions/post/${postId}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
@@ -261,7 +266,7 @@ export default function UserWall() {
         } catch (err) {
             console.error("Failed persisting interaction data event:", err);
             setError("Failed to update reaction. Please try again.");
-            fetchFeed(); // Rollback to source of truth on failure
+            fetchFeed();
         }
     };
 
@@ -288,7 +293,6 @@ export default function UserWall() {
                 const newComment = await response.json();
                 setCommentInputs(prev => ({ ...prev, [postId]: '' }));
 
-                // Append the comment cleanly into state array
                 setPosts(prev => prev.map(post => {
                     if (post.id !== postId) return post;
                     const existingComments = Array.isArray(post.comments) ? post.comments : [];
@@ -300,7 +304,6 @@ export default function UserWall() {
         }
     };
 
-    // Helper to calculate total count for a specific reaction code
     const getReactionDetails = (post, type) => {
         let count = 0;
         let reacted = false;
@@ -320,16 +323,14 @@ export default function UserWall() {
     return (
         <div className="bg-background text-on-surface font-body-md min-h-screen pb-24 overflow-x-hidden">
             <Navbar />
-            {/* MAIN LAYOUT CANVAS */}
+
             <main className="pt-24 px-6 max-w-[720px] mx-auto space-y-6">
-                {/* 🌟 ADD THIS BLOCK HERE */}
                 {error && (
                     <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm text-center">
                         {error}
                     </div>
                 )}
 
-                {/* LIVE DYNAMIC CHAT REQUEST BAR */}
                 <section id="support-action-container" className="w-full">
                     {sessionStatus === 'idle' && (
                         <div className="p-4 bg-white/40 border border-zinc-100 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
@@ -350,7 +351,7 @@ export default function UserWall() {
                         <div id="user-session-status-box" className="p-6 bg-amber-50 text-amber-900 rounded-xl border border-amber-200 text-center shadow-sm">
                             <div className="flex items-center justify-center gap-2">
                                 <span className="animate-spin h-4 w-4 border-2 border-amber-600 border-t-transparent rounded-full"></span>
-                                <p className="font-bold text-sm text-amber-800">⏳ Request sent to all active coaches.</p>
+                                <p className="font-bold text-sm text-amber-800">竢ｳ Request sent to all active coaches.</p>
                             </div>
                             <p className="text-xs text-amber-600 mt-2">Waiting for a coach to accept... Keep this dashboard open.</p>
                         </div>
@@ -358,7 +359,7 @@ export default function UserWall() {
 
                     {sessionStatus === 'accepted' && (
                         <div id="user-session-status-box" className="p-6 bg-emerald-50 text-emerald-900 rounded-xl border border-emerald-300 text-center shadow-md animate-in fade-in">
-                            <p className="font-extrabold text-base text-emerald-800">🎉 Connection Established!</p>
+                            <p className="font-extrabold text-base text-emerald-800">脂 Connection Established!</p>
                             <p className="text-xs text-emerald-700 mt-1">A support specialist has accepted your session request.</p>
                             <a href={`/User_Chat.html?session_id=${activeSessionId}`} className="mt-4 inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md active:scale-95">
                                 Join Live Chat Session Now
@@ -367,7 +368,6 @@ export default function UserWall() {
                     )}
                 </section>
 
-                {/* TIMELINE FEED */}
                 <div id="posts-feed-container" className="space-y-6 pb-12">
                     {loadingFeed ? (
                         <div className="text-center py-12">
@@ -396,7 +396,6 @@ export default function UserWall() {
 
                                     <p className="text-zinc-700 font-['Literata'] text-base leading-relaxed mb-4">{post.content}</p>
 
-                                    {/* INTERACTIVE COMPONENT REACTION TOOLBAR */}
                                     <div className="flex flex-wrap items-center gap-2 pb-1 text-[12px] font-label-sm mt-2">
                                         <button onClick={() => toggleReaction(post.id, 'HEAR_YOU')} className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-transform active:scale-110 ${hr.reacted ? 'bg-surface-variant text-on-surface-variant' : 'bg-surface-container text-on-surface-variant hover:bg-surface-variant/50'}`}>
                                             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: `'FILL' ${hr.reacted ? '1' : '0'}` }}>sentiment_satisfied</span>
@@ -418,7 +417,7 @@ export default function UserWall() {
                                             <span className="font-semibold">Will Pass ({wp.count})</span>
                                         </button>
                                     </div>
-                                    {/* COACH GUIDANCE WRAPPER CHANNEL */}
+
                                     {((post.comments && post.comments.length > 0) || userRole === 'coach') && (
                                         <div className="mt-4 pt-3 border-t border-zinc-100">
                                             <h4 className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1">
@@ -442,7 +441,6 @@ export default function UserWall() {
                                                 ))}
                                             </div>
 
-                                            {/* Conditionally Render Input Form For Verified Coaches */}
                                             {userRole === 'coach' && (
                                                 <div className="mt-3 pt-3 border-t border-zinc-100">
                                                     <div className="flex gap-2">
@@ -468,12 +466,28 @@ export default function UserWall() {
                 </div>
             </main>
 
-            {/* FLOATING ACTION OVERLAY BUTTON */}
             <button onClick={openComposer} className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-primary text-on-primary shadow-xl flex items-center justify-center active:scale-90 transition-all z-50 cursor-pointer">
                 <span className="material-symbols-outlined">add</span>
             </button>
 
-            {/* BOTTOM FULL SHEET COMPOSER MODAL */}
+            {notification && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-sm min-w-[320px] text-center border-t-4 border-error flex flex-col items-center box-border">
+                        <span className="material-symbols-outlined text-error text-5xl mb-4">warning</span>
+                        <h3 className="font-bold text-lg mb-3 text-on-surface">{notification.title}</h3>
+                        <p className="text-sm text-zinc-600 mb-6 leading-relaxed w-full text-center" style={{ whiteSpace: 'pre-line' }}>
+                            {notification.message}
+                        </p>
+                        <button
+                            onClick={() => setNotification(null)}
+                            className="w-full bg-error text-white font-bold py-3 rounded-xl cursor-pointer hover:bg-error/90 transition-all shadow-sm active:scale-[0.98]"
+                        >
+                            Understood
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-transform duration-500 ease-out flex flex-col ${isComposerOpen ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="mt-auto w-full max-w-[720px] mx-auto bg-surface backdrop-blur-xl rounded-t-2xl shadow-2xl relative overflow-hidden border-t border-outline-variant/20">
                     <div className="w-12 h-1.5 bg-outline-variant/40 rounded-full mx-auto my-4 cursor-pointer" onClick={() => setIsComposerOpen(false)}></div>
@@ -486,7 +500,6 @@ export default function UserWall() {
                                 ))}
                             </div>
                         </div>
-
 
                         <div className="relative">
                             <textarea value={postText} onChange={(e) => setPostText(e.target.value)} maxLength={280} className="w-full h-40 p-5 bg-surface-container-lowest/60 border border-outline-variant/30 rounded-lg font-body-lg text-on-surface focus:ring-2 focus:ring-primary/50 outline-none resize-none" placeholder="Type your thoughts here... no judgment, just space."></textarea>

@@ -13,14 +13,15 @@ export default function ResourceLibrary() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
 
-    // --- Form States (Restored) ---
+    // --- Form States (Mapped to Prisma Schema) ---
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [newResource, setNewResource] = useState({
         title: '',
-        category: 'Stress Management', // Updated default to match new tags
+        category: 'Stress Management',
+        type: 'Article', // 🌟 Replaced read_time with type to match schema
         description: '',
-        read_time: '',
-        external_url: ''
+        url: '', // 🌟 Renamed from external_url to match schema
+        is_pinned: false // 🌟 Added pinned state
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -43,13 +44,14 @@ export default function ResourceLibrary() {
         }
     }, [token]);
 
-    // 🌟 FIXED: These now perfectly match the tags in your database!
     const categories = ['All', 'Crisis Support', 'Sleep Support', 'Stress Management', 'Anxiety', 'Meditation', 'Mindfulness'];
     const formCategories = ['Crisis Support', 'Sleep Support', 'Stress Management', 'Anxiety', 'Meditation', 'Mindfulness'];
+    const resourceTypes = ['Article', 'Audio', 'Video', 'External Link'];
+
     // Absolute Backend Endpoint Targeting Your Express Router
     const API_RESOURCES_URL = 'https://diminish-waving-shore.ngrok-free.dev/api/resource';
 
-    // --- Fetch Live Resources ---
+    // --- Fetch Live Resources & Sort Pinned ---
     useEffect(() => {
         async function fetchResources() {
             setLoading(true);
@@ -69,7 +71,15 @@ export default function ResourceLibrary() {
 
                 if (!response.ok) throw new Error(`Server status error: ${response.status}`);
                 const data = await response.json();
-                setResources(Array.isArray(data) ? data : []);
+
+                // 🌟 Sort: Pinned items first, then by newest date
+                const sortedData = (Array.isArray(data) ? data : []).sort((a, b) => {
+                    if (a.is_pinned && !b.is_pinned) return -1;
+                    if (!a.is_pinned && b.is_pinned) return 1;
+                    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+                });
+
+                setResources(sortedData);
             } catch (err) {
                 console.error("Express resource library connection breakdown:", err);
                 setError(err.message);
@@ -82,20 +92,21 @@ export default function ResourceLibrary() {
 
     // --- Handle Resource Submission ---
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewResource(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setNewResource(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
+
     const handleSubmitResource = async (e) => {
         e.preventDefault();
-        console.log("Submit clicked. User role:", userRole); // 🌟 DEBUG: Check console
 
-        // 1. Role Check
-        if (userRole !== 'coach') {
+        if (userRole !== 'coach' && userRole !== 'admin') {
             alert('Unauthorized: You do not have permission to add resources.');
             return;
         }
 
-        // 2. Simple UI validation
         if (!newResource.title || !newResource.description) {
             alert('Please fill out the Title and Description fields.');
             return;
@@ -103,8 +114,6 @@ export default function ResourceLibrary() {
 
         setSubmitting(true);
         try {
-            console.log("Sending request to:", API_RESOURCES_URL);
-
             const response = await fetch(API_RESOURCES_URL, {
                 method: 'POST',
                 headers: {
@@ -112,12 +121,11 @@ export default function ResourceLibrary() {
                     'Authorization': `Bearer ${token}`,
                     'ngrok-skip-browser-warning': 'true'
                 },
+                // Send matching schema payload
                 body: JSON.stringify(newResource)
             });
 
-            const data = await response.json().catch(() => ({})); // Handle non-json responses
-            console.log("Response status:", response.status);
-            console.log("Response data:", data);
+            const data = await response.json().catch(() => ({}));
 
             if (response.status === 401 || response.status === 403) {
                 alert("Access Denied (401/403): You are not authorized to perform this action.");
@@ -128,9 +136,17 @@ export default function ResourceLibrary() {
                 throw new Error(data.message || `Server error: ${response.status}`);
             }
 
-            // Success
-            setResources(prev => [data, ...prev]);
-            setNewResource({ title: '', category: 'Stress Management', description: '', read_time: '', external_url: '' });
+            // Success: Add to top of list (and re-sort if it was pinned)
+            setResources(prev => {
+                const newList = [data, ...prev];
+                return newList.sort((a, b) => {
+                    if (a.is_pinned && !b.is_pinned) return -1;
+                    if (!a.is_pinned && b.is_pinned) return 1;
+                    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+                });
+            });
+
+            setNewResource({ title: '', category: 'Stress Management', type: 'Article', description: '', url: '', is_pinned: false });
             setIsFormOpen(false);
             alert("Resource added successfully!");
 
@@ -142,14 +158,22 @@ export default function ResourceLibrary() {
         }
     };
 
+    // Helper to assign icons based on type
+    const getTypeIcon = (type) => {
+        switch ((type || '').toLowerCase()) {
+            case 'article': return 'article';
+            case 'audio': return 'headphones';
+            case 'video': return 'play_circle';
+            case 'external link': return 'link';
+            default: return 'description';
+        }
+    };
+
     return (
         <div className="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen">
             <Navbar />
-            {/* Main Container Layout */}
-            {/* FIX: Replaced max-w-720 with max-w-5xl to constrain reading width, added px-6 md:px-8 */}
             <main className="pt-32 pb-32 px-6 md:px-8 w-full max-w-5xl mx-auto space-y-8">
 
-                {/* Section Hero Headline Block & Action Button */}
                 <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <div className="space-y-2 max-w-2xl">
                         <h1 className="font-display-lg text-4xl font-bold text-on-background tracking-tight">Self-Guided Resources</h1>
@@ -158,8 +182,7 @@ export default function ResourceLibrary() {
                         </p>
                     </div>
 
-                    {/* 🌟 NEW: Only render the "Add Resource" button if the user is a coach */}
-                    {userRole === 'coach' && (
+                    {(userRole === 'coach' || userRole === 'admin') && (
                         <button
                             onClick={() => setIsFormOpen(!isFormOpen)}
                             className="py-2.5 px-6 bg-primary text-on-primary font-label-sm text-sm font-bold rounded-full shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap cursor-pointer shrink-0"
@@ -169,8 +192,7 @@ export default function ResourceLibrary() {
                     )}
                 </section>
 
-                {/* Restored: Dynamic Resource Contribution Form Toggle Window */}
-                {isFormOpen && userRole === 'coach' && (
+                {isFormOpen && (userRole === 'coach' || userRole === 'admin') && (
                     <section className="glass-card p-6 md:p-8 rounded-2xl border border-primary/20 bg-surface shadow-md animate-fade-in space-y-6">
                         <h2 className="font-headline-md text-xl font-bold text-primary">Contribute a New Resource</h2>
                         <form onSubmit={handleSubmitResource} className="space-y-5">
@@ -195,16 +217,18 @@ export default function ResourceLibrary() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-on-surface-variant ml-1">Read / Duration Time</label>
-                                    <input
-                                        type="text" name="read_time" value={newResource.read_time} onChange={handleInputChange} placeholder="e.g., 5 min read, 10 min audio"
+                                    <label className="text-sm font-bold text-on-surface-variant ml-1">Resource Type</label>
+                                    <select
+                                        name="type" value={newResource.type} onChange={handleInputChange}
                                         className="w-full h-12 px-4 rounded-xl bg-surface-container-lowest border border-outline-variant/40 text-sm focus:outline-none focus:border-primary text-on-surface"
-                                    />
+                                    >
+                                        {resourceTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-on-surface-variant ml-1">Resource Link (URL)</label>
                                     <input
-                                        type="url" name="external_url" value={newResource.external_url} onChange={handleInputChange} placeholder="https://example.com/resource"
+                                        type="url" name="url" value={newResource.url} onChange={handleInputChange} placeholder="https://example.com/resource"
                                         className="w-full h-12 px-4 rounded-xl bg-surface-container-lowest border border-outline-variant/40 text-sm focus:outline-none focus:border-primary text-on-surface"
                                     />
                                 </div>
@@ -218,6 +242,20 @@ export default function ResourceLibrary() {
                                 ></textarea>
                             </div>
 
+                            <div className="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/40">
+                                <input
+                                    type="checkbox"
+                                    id="is_pinned"
+                                    name="is_pinned"
+                                    checked={newResource.is_pinned}
+                                    onChange={handleInputChange}
+                                    className="w-5 h-5 text-primary focus:ring-primary border-outline-variant/50 rounded"
+                                />
+                                <label htmlFor="is_pinned" className="text-sm font-bold text-on-surface cursor-pointer select-none">
+                                    Pin to top of Library
+                                </label>
+                            </div>
+
                             <button
                                 type="submit" disabled={submitting}
                                 className="w-full h-12 mt-2 bg-primary text-on-primary font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer shadow-sm shadow-primary/20"
@@ -228,7 +266,6 @@ export default function ResourceLibrary() {
                     </section>
                 )}
 
-                {/* Search Bar Element */}
                 <section className="relative w-full">
                     <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-outline pointer-events-none">search</span>
                     <input
@@ -238,20 +275,17 @@ export default function ResourceLibrary() {
                     />
                 </section>
 
-                {/* Horizontal Scrolling Pill Filters Ribbon */}
                 <section className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
                     {categories.map((cat) => (
                         <button
                             key={cat} onClick={() => setActiveCategory(cat)}
-                            className={`whitespace-nowrap px-6 py-2 rounded-full font-label-sm text-sm transition-all cursor-pointer ${activeCategory === cat ? 'bg-primary text-on-primary shadow-md' : 'bg-surface-container text-on-surface-variant hover:bg-primary/10'
-                                }`}
+                            className={`whitespace-nowrap px-6 py-2 rounded-full font-label-sm text-sm transition-all cursor-pointer ${activeCategory === cat ? 'bg-primary text-on-primary shadow-md' : 'bg-surface-container text-on-surface-variant hover:bg-primary/10'}`}
                         >
                             {cat}
                         </button>
                     ))}
                 </section>
 
-                {/* Dynamic Content Cards Feed Grid */}
                 <section className="grid grid-cols-1 gap-5">
                     {loading ? (
                         <div className="text-center py-20 text-outline font-body-md italic animate-pulse">
@@ -265,14 +299,25 @@ export default function ResourceLibrary() {
                         resources.map((item) => (
                             <article
                                 key={item.id || item._id}
-                                className="glass-card p-6 md:p-8 rounded-2xl border border-outline-variant/30 bg-surface/50 flex flex-col gap-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all"
+                                className={`glass-card p-6 md:p-8 rounded-2xl border flex flex-col gap-4 shadow-sm hover:shadow-md transition-all ${item.is_pinned ? 'border-primary/40 bg-surface-container-low/80 ring-1 ring-primary/20' : 'border-outline-variant/30 bg-surface/50 hover:border-primary/30'}`}
                             >
                                 <div className="flex justify-between items-start gap-4">
-                                    <div className="space-y-2">
-                                        <span className="text-[11px] uppercase font-bold tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
-                                            {item.category || "General Wellness"}
-                                        </span>
-                                        <h3 className="font-headline-md text-xl font-bold text-on-surface pt-2 leading-tight">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-[10px] uppercase font-bold tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
+                                                {item.category || "General Wellness"}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[12px]">{getTypeIcon(item.type)}</span>
+                                                {item.type || 'Resource'}
+                                            </span>
+                                            {item.is_pinned && (
+                                                <span className="material-symbols-outlined text-primary text-[18px]" title="Pinned Resource" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                                    keep
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="font-headline-md text-xl font-bold text-on-surface leading-tight">
                                             {item.title || "Untitled Toolkit"}
                                         </h3>
                                     </div>
@@ -286,13 +331,13 @@ export default function ResourceLibrary() {
                                 </p>
 
                                 <div className="flex items-center justify-between pt-4 border-t border-outline-variant/20 mt-2">
-                                    <span className="text-sm font-medium text-on-surface-variant flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[20px]">schedule</span>
-                                        {item.read_time || item.duration || "5 min read"}
+                                    <span className="text-sm font-medium text-on-surface-variant flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+                                        Added: {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}
                                     </span>
 
                                     <a
-                                        href={item.external_url || item.link || "#"}
+                                        href={item.url || item.link || "#"}
                                         target="_blank" rel="noopener noreferrer"
                                         className="text-sm font-bold text-primary hover:text-primary-dim hover:underline flex items-center gap-1 transition-colors"
                                     >
