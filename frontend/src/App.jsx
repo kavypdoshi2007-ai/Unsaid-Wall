@@ -7,7 +7,7 @@ import CoachDirectory from './pages/public/CoachDirectory';
 import ResourceLibrary from './pages/public/ResourceLibrary';
 import LoginPage from './pages/auth/LoginPage';
 import GuestWall from './pages/public/GuestWall';
-
+import Announcements from './pages/public/announcement'; // Adjust the path if needed
 // User Pages
 import UserWall from './pages/user/UserWall';
 import EmotionJournal from './pages/user/EmotionJournal';
@@ -51,6 +51,8 @@ export default function App() {
             <Route path="/guest-wall" element={<GuestWall />} />
             <Route path="/coach-directory" element={<CoachDirectory />} />
             <Route path="/resources" element={<ResourceLibrary />} />
+            {/* Add this new line: */}
+            <Route path="/announcements" element={<Announcements />} />
 
             {/* USER ROUTES */}
             <Route path="/user-wall" element={<UserWall />} />

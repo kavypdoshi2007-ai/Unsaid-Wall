@@ -6,7 +6,7 @@ const authorize = require('../middleware/roleMiddleware');
 const announcementController = require('../controllers/announcementController');
 
 router.post('/', authMiddleware, authorize(['admin']), announcementController.createAnnouncement);
-router.get('/', authorize(['guest', 'user', 'coach', 'admin']), announcementController.getActiveAnnouncements);
+router.get('/', announcementController.getActiveAnnouncements);
 router.delete('/:id', authMiddleware, authorize(['admin']), announcementController.deleteAnnouncement);
 
 module.exports = router;
