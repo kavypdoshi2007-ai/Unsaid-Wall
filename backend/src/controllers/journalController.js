@@ -3,49 +3,29 @@ const prisma = require('../config/db');
 
 const journalController = {
   async createEntry(req, res, next) {
-    try {
-      const user_id = req.userData.id;
-      const { emotion, intensity, note } = req.body;
+  try {
+    const user_id = req.userData.id;
+    const { emotion, intensity, note } = req.body;
 
-      if (!emotion || !intensity) {
-        return res.status(400).json({ error: "Emotion and intensity are required fields" });
-      }
-
-      // Format types explicitly to match your schema requirements
-      const normalizedEmotion = emotion.toUpperCase(); 
-      const normalizedIntensity = intensity.toLowerCase();
-
-      // Create a private-by-default shadow Post that cascades into an automatic Emotion Journal log block
-      const journalPost = await prisma.post.create({
-        data: {
-          user_id,
-          content: note ? note.substring(0, 280) : `Logged private tracking entry for ${normalizedEmotion}`,
-          display_name: "Private Note",
-          emotion: normalizedEmotion,
-          intensity: normalizedIntensity,
-          language: "en", 
-          is_hidden: true, // Absolutely guarantees it stays private and hidden from the public feed
-          flag_level: "safe",
-          journal_entry: {
-            create: {
-              user_id,
-              emotion: normalizedEmotion,
-              intensity: normalizedIntensity,
-              note: note
-            }
-          }
-        },
-        include: {
-          journal_entry: true
-        }
-      });
-
-      // Returns the interior nested journal information node back to the client interface layout
-      return res.status(201).json(journalPost.journal_entry);
-    } catch (error) {
-      next(error);
+    if (!emotion || !intensity) {
+      return res.status(400).json({ error: "Emotion and intensity are required fields" });
     }
-  },
+
+    // Create journal entry directly without creating a record in the Post table
+    const journalEntry = await prisma.emotionJournal.create({
+      data: {
+        user_id,
+        emotion: emotion.toUpperCase(),
+        intensity: intensity.toLowerCase(),
+        note: note
+      }
+    });
+
+    return res.status(201).json(journalEntry);
+  } catch (error) {
+    next(error);
+  }
+},
 
   async getUserJournal(req, res, next) {
     try {

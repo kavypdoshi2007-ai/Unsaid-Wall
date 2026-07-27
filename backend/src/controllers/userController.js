@@ -302,6 +302,30 @@ const userController = {
       next(error);
     }
   },
+  async getUserPosts(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Fetch all posts for this user
+    const posts = await prisma.post.findMany({
+      where: { user_id: id },
+      orderBy: { created_at: 'desc' }
+    });
+
+    return res.json(posts);
+  } catch (error) {
+    next(error);
+  }
+},
   //ban
   async banUser(req, res, next) {
     try {

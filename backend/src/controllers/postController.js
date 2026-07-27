@@ -51,6 +51,31 @@ const postController = {
     }
   },
 
+async getAllPosts(req, res, next) {
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: { created_at: 'desc' },
+      include: {
+        reactions: true,
+        comments: {
+          orderBy: { created_at: 'asc' },
+          include: {
+            user: {
+              select: {
+                coach_profile: { select: { name: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return res.json(posts);
+  } catch (error) {
+    next(error);
+  }
+},
+
   async createPost(req, res, next) {
     try {
       const user_id = req.userData.id; 

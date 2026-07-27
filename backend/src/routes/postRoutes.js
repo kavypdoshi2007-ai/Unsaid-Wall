@@ -9,6 +9,9 @@ const postController = require('../controllers/postController');
 router.get('/', authorize(['guest', 'user', 'coach', 'admin']), postController.getFeed);
 
 router.get('/username', authMiddleware, authorize(['user']), postController.getPreviewUsername);
+
+router.get('/admin/all', authMiddleware, authorize(['admin']), postController.getAllPosts);
+
 router.post('/', authMiddleware, authorize(['user']), postController.createPost);
 
 router.post('/:postId/comments', authMiddleware, authorize(['coach']), postController.addComment);

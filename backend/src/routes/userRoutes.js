@@ -29,4 +29,6 @@ router.post('/login', userController.loginUser);
 router.post('/register', userController.registerUser);
 router.post('/logout', userController.logoutUser);
 
+router.get('/:id/posts', userController.getUserPosts);
+
 module.exports = router;
