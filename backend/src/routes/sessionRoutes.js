@@ -21,6 +21,13 @@ router.patch(
     sessionController.updateStatus
 );
 
+router.patch(
+    '/:id/reschedule', 
+    authMiddleware, 
+    authorize(['coach']), 
+    sessionController.rescheduleSession
+);
+
 // 3. Users, Coaches, and Admins can view their relevant session listings
 router.get(
     '/', 

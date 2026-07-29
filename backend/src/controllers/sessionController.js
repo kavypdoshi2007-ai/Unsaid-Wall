@@ -112,6 +112,47 @@ const sessionController = {
 
     const updateData = { status };
 
+    if (status === 'scheduled') {
+      // Coach is accepting a pending request and committing to a specific time.
+      const { scheduled_at } = req.body;
+
+      if (!scheduled_at) {
+        return res.status(400).json({ error: "scheduled_at is required to schedule this session." });
+      }
+
+      const scheduledDate = new Date(scheduled_at);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
+        return res.status(400).json({ error: "Please provide a valid future date and time for scheduling." });
+      }
+
+      // Same first-responder guard as the 'active' path: block if another coach already claimed it
+      if (session.coach_id !== null && session.coach_id !== coachProfile.id) {
+        return res.status(409).json({
+          error: "Too late! Another support coach has already accepted this session request."
+        });
+      }
+
+      // Only pending (unclaimed) requests can be scheduled this way
+      if (session.status !== 'pending') {
+        return res.status(400).json({ error: "Only pending requests can be scheduled." });
+      }
+
+      updateData.coach_id = coachProfile.id;
+      updateData.scheduled_at = scheduledDate;
+      // Note: coach availability stays 'available' here — they're booked, not busy yet.
+      // They only become 'busy' when the session actually goes 'active' (see below).
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('session_request_claimed', { sessionId: id });
+        io.emit(`session_scheduled_${session.user_id}`, {
+          sessionId: id,
+          scheduled_at: scheduledDate,
+          coachName: coachProfile.display_name_pool?.[0] || 'A Support Specialist'
+        });
+      }
+    }
+
     if (status === 'active') {
       updateData.started_at = new Date();
       updateData.coach_id = coachProfile.id; // Permanently link the winning coach to this session
@@ -318,6 +359,63 @@ const sessionController = {
             data: { rating: parseFloat(avgRating.toFixed(2)) }
           });
         }
+      }
+
+      return res.json(updatedSession);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // =========================================================================
+  // COACH ACTION: Edit the time of a session already scheduled with them
+  // =========================================================================
+  async rescheduleSession(req, res, next) {
+    try {
+      const { id } = req.params; // Session ID
+      const { scheduled_at } = req.body;
+      const authenticatedUserId = req.userData.id;
+
+      if (!scheduled_at) {
+        return res.status(400).json({ error: "scheduled_at is a required field." });
+      }
+
+      const scheduledDate = new Date(scheduled_at);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate < new Date()) {
+        return res.status(400).json({ error: "Please provide a valid future date and time." });
+      }
+
+      // Fetch session with coach relation to verify ownership
+      const session = await prisma.session.findUnique({
+        where: { id },
+        include: { coach: true }
+      });
+
+      if (!session) {
+        return res.status(404).json({ error: "Session record not found." });
+      }
+
+      // SECURE VERIFICATION: only the coach this session is scheduled with can edit it
+      if (!session.coach || session.coach.user_id !== authenticatedUserId) {
+        return res.status(403).json({ error: "Forbidden: You cannot reschedule another coach's session." });
+      }
+
+      // You can only move a time around before it's gone live
+      if (session.status !== 'scheduled') {
+        return res.status(400).json({ error: "Only scheduled sessions can be rescheduled." });
+      }
+
+      const updatedSession = await prisma.session.update({
+        where: { id },
+        data: { scheduled_at: scheduledDate }
+      });
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit(`session_rescheduled_${session.user_id}`, {
+          sessionId: id,
+          scheduled_at: scheduledDate
+        });
       }
 
       return res.json(updatedSession);
