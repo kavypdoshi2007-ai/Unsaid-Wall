@@ -53,4 +53,6 @@ router.patch(
     sessionController.submitCoachReviewNotes
 );
 
+router.delete('/:id', authMiddleware, sessionController.deleteSession);
+
 module.exports = router;

@@ -462,7 +462,44 @@ const sessionController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
+  
+  async deleteSession(req, res, next) {
+    try {
+        const sessionId = req.params.id;
+        const userId = req.userData?.id || req.user?.id;
+
+        // 1. Fetch session via Prisma
+        const session = await prisma.session.findUnique({
+            where: { id: sessionId }
+        });
+
+        if (!session) {
+            return res.status(404).json({ error: "Session request not found." });
+        }
+
+        // 2. Authorization check (Optional: verify session belongs to user)
+        if (session.user_id && session.user_id !== userId) {
+            return res.status(403).json({ error: "Unauthorized to delete this session request." });
+        }
+
+        // 3. Status check
+        if (session.status?.toLowerCase() !== 'pending') {
+            return res.status(400).json({ error: "Only pending requests can be canceled or deleted." });
+        }
+
+        // 4. Delete session via Prisma (FIXED LINE)
+        await prisma.session.delete({
+            where: { id: sessionId }
+        });
+
+        return res.status(200).json({ message: "Session request canceled successfully." });
+
+    } catch (error) {
+        console.error("Error deleting session:", error);
+        return res.status(500).json({ error: "Server error while deleting session request." });
+    }
+}
 };
 
 module.exports = sessionController;
