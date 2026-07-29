@@ -72,8 +72,19 @@ export default function LoginPage() {
                     localStorage.setItem('token', data.token);
                 }
 
+                // Determine user role (defaults to 'user')
+                const rawRole = data.role || (data.user && data.user.role) || 'user';
+                const userRole = rawRole.toLowerCase();
+
+                // SAVE ROLE & USER TO LOCALSTORAGE
+                localStorage.setItem('role', userRole);
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id || data.user?.id,
+                    phone_number: cleanPhone,
+                    role: userRole
+                }));
+
                 // Conditional role redirection
-                const userRole = data.role || (data.user && data.user.role) || 'user';
                 if (userRole === 'coach') {
                     navigate('/coach-dashboard');
                 } else if (userRole === 'admin') {
@@ -133,10 +144,21 @@ export default function LoginPage() {
             // Save baseline seed identity state locally
             localStorage.setItem('unsaid_user_name', generatedName);
 
-            // Save token if your backend sends one upon registration so they stay logged in
+            // Save token if backend sends one upon registration
             if (data.token) {
                 localStorage.setItem('token', data.token);
             }
+
+            // SAVE DEFAULT ROLE & USER DATA ON REGISTER
+            const createdUser = data.user || {};
+            const userRole = (createdUser.role || 'user').toLowerCase();
+            
+            localStorage.setItem('role', userRole);
+            localStorage.setItem('user', JSON.stringify({
+                id: createdUser.id,
+                phone_number: cleanPhone,
+                role: userRole
+            }));
 
             // Redirect directly to the User Wall
             navigate('/user-wall');
@@ -423,7 +445,6 @@ export default function LoginPage() {
                         </div>
                     </div>
                 )}
-
             </main>
         </div>
     );

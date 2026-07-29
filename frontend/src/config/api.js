@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     // 2. Expression Posts (Wall Timeline)
     POSTS: {
         GET_FEED: `${BACKEND_URL}/posts`, // Accessible by guest, user, coach, admin
+        GET_ALL_ADMIN: `${BACKEND_URL}/posts/admin/all`,
         GET_MOD_QUEUE: `${BACKEND_URL}/posts/moderation-queue`,
         PREVIEW_USERNAME: `${BACKEND_URL}/posts/username`, // Get dynamic name on-the-fly
         CREATE: `${BACKEND_URL}/posts`,
@@ -43,8 +44,10 @@ export const API_ENDPOINTS = {
         UPDATE_STATUS: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}/status`, // Coached accepting/declining
         GET_LISTING: `${BACKEND_URL}/sessions`, // View matching active logs
         GET_BY_ID: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}`,
+        RESCHEDULE: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}/reschedule`,
         SUBMIT_RATING: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}/rate`, // User star reviews
-        SUBMIT_NOTES: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}/review-notes` // Coach case files
+        SUBMIT_NOTES: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}/review-notes`, // Coach case files
+        DELETE: (sessionId) => `${BACKEND_URL}/sessions/${sessionId}`,
     },
 
     // 6. Direct Private Chat Messaging Data

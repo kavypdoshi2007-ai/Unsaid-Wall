@@ -34,7 +34,6 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         try {
-            // 1. Tell the backend to clear the httpOnly cookie securely
             await fetch('https://diminish-waving-shore.ngrok-free.dev/api/users/logout', {
                 method: 'POST',
                 headers: {
@@ -45,17 +44,14 @@ export default function Navbar() {
             console.error("Backend logout clean failed:", err);
         }
 
-        // 2. Clear out local client cookies using the js-cookie package
         Cookies.remove('token', { path: '/' });
-
-        // 3. Clear application state and route away
         localStorage.removeItem('token');
         window.location.href = '/login';
     };
 
     return (
         <>
-            {/* 🌟 DESKTOP NAVBAR */}
+            {/* DESKTOP NAVBAR */}
             <header className="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0px_4px_20px_rgba(5,139,3,0.05)] border-b border-outline-variant/10">
                 <div className="flex items-center justify-between px-6 h-16 w-full max-w-screen-xl mx-auto">
 
@@ -93,7 +89,7 @@ export default function Navbar() {
                                 <button onClick={() => navigate('/user-wall')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/user-wall') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>TheWall</button>
                                 <button onClick={() => navigate('/emotion-journal')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/emotion-journal') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Journal</button>
                                 <button onClick={() => navigate('/coach-profile')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/coach-profile') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Coaches</button>
-                                <button onClick={() => navigate('/my-sessions')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/my-sessions') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Sessions</button>
+                                <button onClick={() => navigate('/sessions')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/sessions') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Sessions</button>
                                 <button onClick={() => navigate('/resources')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/resources') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Resource Library</button>
                                 <button onClick={() => navigate('/announcements')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/announcements') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Announcements</button>
                                 <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
@@ -104,6 +100,7 @@ export default function Navbar() {
                         {isAuthenticated && userRole === 'coach' && (
                             <>
                                 <button onClick={() => navigate('/coach-dashboard')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/coach-dashboard') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Dashboard</button>
+                                <button onClick={() => navigate('/sessions')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/sessions') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Sessions</button>
                                 <button onClick={() => navigate('/resources')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/resources') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Resource Library</button>
                                 <button onClick={() => navigate('/announcements')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/announcements') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Announcements</button>
                                 <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
@@ -123,7 +120,7 @@ export default function Navbar() {
                 </div>
             </header>
 
-            {/* 🌟 MOBILE BOTTOM NAVBAR */}
+            {/* MOBILE BOTTOM NAVBAR */}
             <nav className="fixed bottom-0 left-0 w-full md:hidden bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl shadow-[0px_-4px_24px_rgba(5,139,3,0.08)] z-50 rounded-t-xl overflow-x-auto hide-scrollbar">
                 <div className="flex justify-around items-center px-2 py-3 pb-safe min-w-max mx-auto gap-2">
 
@@ -168,8 +165,8 @@ export default function Navbar() {
                                 <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/coach-profile') ? "'FILL' 1" : "'FILL' 0" }}>psychology</span>
                                 <span className="font-label-sm text-[10px] font-semibold whitespace-nowrap">Coaches</span>
                             </button>
-                            <button onClick={() => navigate('/my-sessions')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/my-sessions') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
-                                <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/my-sessions') ? "'FILL' 1" : "'FILL' 0" }}>forum</span>
+                            <button onClick={() => navigate('/sessions')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/sessions') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
+                                <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/sessions') ? "'FILL' 1" : "'FILL' 0" }}>forum</span>
                                 <span className="font-label-sm text-[10px] font-semibold whitespace-nowrap">Sessions</span>
                             </button>
                             <button onClick={() => navigate('/resources')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/resources') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
@@ -193,6 +190,10 @@ export default function Navbar() {
                             <button onClick={() => navigate('/coach-dashboard')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/coach-dashboard') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
                                 <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/coach-dashboard') ? "'FILL' 1" : "'FILL' 0" }}>dashboard</span>
                                 <span className="font-label-sm text-[10px] font-semibold whitespace-nowrap">Dashboard</span>
+                            </button>
+                            <button onClick={() => navigate('/sessions')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/sessions') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
+                                <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/sessions') ? "'FILL' 1" : "'FILL' 0" }}>forum</span>
+                                <span className="font-label-sm text-[10px] font-semibold whitespace-nowrap">Sessions</span>
                             </button>
                             <button onClick={() => navigate('/resources')} className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${isActive('/resources') ? 'bg-primary-container text-on-primary-container rounded-full px-5 py-1.5' : 'text-on-surface-variant hover:text-primary px-2 py-1'}`}>
                                 <span className="material-symbols-outlined mb-1 text-xl" style={{ fontVariationSettings: isActive('/resources') ? "'FILL' 1" : "'FILL' 0" }}>local_library</span>

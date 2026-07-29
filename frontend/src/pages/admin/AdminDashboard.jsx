@@ -128,10 +128,10 @@ export default function AdminDashboard() {
     }
 
     const broadcastPayload = {
-        adminId: adminId,                     
+        admin_id: adminId,                     
         content: broadcastMessage,             
-        url: broadcastLink || null,           
-        due_date: broadcastDueDate || null,    
+        link: broadcastLink || null,           
+        expires_at: broadcastDueDate || null,    
         is_pinned: isBroadcastPinned           
     };
     
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                         return {
                             id: item.id || idx,
                             title: item.display_name || `User (${String(item.user_id || '').slice(0,6)})`,
-                            flagLabel: item.emotion ? `Flag: ${item.emotion}` : 'Flag: Distress Pattern',
+                            flagLabel: item.flag_level ? `Flag: ${item.flag_level}` : 'Flag: Distress Pattern',
                             snippet: item.content || '',
                             timeAgo: determineTimeAgo(item.created_at),
                             severity: isHighPriority ? 'high' : 'medium',

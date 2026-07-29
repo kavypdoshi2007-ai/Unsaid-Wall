@@ -14,12 +14,14 @@ import EmotionJournal from './pages/user/EmotionJournal';
 import PrivateJournal from './pages/user/PrivateJournal';
 import MySessions from './pages/user/MySessions';
 import CoachProfile from './pages/user/CoachProfile';
+import SessionHistory from './pages/coach/SessionHistory';
 
 // Dashboards 
 import CoachDashboard from './pages/coach/CoachDashboard';
 import CoachChat from './pages/coach/CoachChat';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminModeration from './pages/admin/AdminModeration';
+import UserProfile from './pages/admin/UserProfile';
 
 // 🌟 IMPORT YOUR FOOTER HERE (Adjust the path if your components folder is elsewhere)
 import Footer from './components/Footer';
@@ -58,16 +60,17 @@ export default function App() {
             <Route path="/user-wall" element={<UserWall />} />
             <Route path="/emotion-journal" element={<EmotionJournal />} />
             <Route path="/private-journal" element={<PrivateJournal />} />
-            <Route path="/my-sessions" element={<MySessions />} />
+            <Route path="/chat" element={<MySessions />} /> 
             <Route path="/coach-profile" element={<CoachProfile />} />
 
             {/* COACH ROUTES */}
             <Route path="/coach-dashboard" element={<CoachDashboard />} />
             <Route path="/coach-chat" element={<CoachChat />} />
-
+            <Route path="/sessions" element={<SessionHistory />} />
             {/* ADMIN ROUTES */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin-moderation" element={<AdminModeration />} />
+            <Route path="/admin/users/:userId" element={<UserProfile />} />
           </Routes>
         </div>
 

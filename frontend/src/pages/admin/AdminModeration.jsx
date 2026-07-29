@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar'; // Adjust path as needed
+import Navbar from '../../components/Navbar'; 
+import { API_ENDPOINTS } from '../../config/api'; // Central endpoint configuration
 
 export default function AdminModeration() {
     const navigate = useNavigate();
     const [flaggedPosts, setFlaggedPosts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 🌟 Fetch Database Posts for Moderation Queue
+    // Filter states
+    const [flagLevelFilter, setFlagLevelFilter] = useState('all');
+    const [visibilityFilter, setVisibilityFilter] = useState('all');
+
+    // 🌟 Fetch database posts using Option 1 endpoint
     useEffect(() => {
         const fetchModerationQueue = async () => {
             const token = localStorage.getItem('token');
             try {
-                const res = await fetch('https://diminish-waving-shore.ngrok-free.dev/api/posts', {
+                const res = await fetch(API_ENDPOINTS.POSTS.GET_ALL_ADMIN, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'ngrok-skip-browser-warning': 'true'
@@ -21,28 +26,10 @@ export default function AdminModeration() {
 
                 if (res.ok) {
                     const allPosts = await res.json();
-
-                    // Filter for posts that are explicitly flagged or have severe distress
-                    let crisisPosts = allPosts.filter(post =>
-                        post.flag_level ||
-                        post.is_flagged ||
-                        post.status === 'flagged' ||
-                        post.emotion === 'Severe Distress'
-                    );
-
-                    // 🌟 FAILSAFE: If no posts are officially flagged yet, grab the 4 newest posts to test the UI
-                    if (crisisPosts.length === 0 && allPosts.length > 0) {
-                        crisisPosts = allPosts.slice(0, 4).map(p => ({
-                            ...p,
-                            flag_level: 'Harmful Speech (Test)',
-                            flag_reason: 'Testing Moderation Queue'
-                        }));
-                    }
-
-                    setFlaggedPosts(crisisPosts);
+                    setFlaggedPosts(allPosts);
                 }
             } catch (error) {
-                console.error("Error fetching moderation queue:", error);
+                console.error("Error fetching admin moderation posts:", error);
             } finally {
                 setLoading(false);
             }
@@ -50,6 +37,26 @@ export default function AdminModeration() {
 
         fetchModerationQueue();
     }, []);
+
+    // Filter logic based on selected flag_level and visibility
+    const filteredPosts = useMemo(() => {
+        return flaggedPosts.filter(post => {
+            // Flag level filtering
+            const matchesFlagLevel = flagLevelFilter === 'all' || 
+                (post.flag_level && String(post.flag_level).toLowerCase() === flagLevelFilter.toLowerCase());
+
+            // Visibility filtering (hidden vs public)
+            const isHidden = Boolean(post.is_hidden);
+            let matchesVisibility = true;
+            if (visibilityFilter === 'hidden') {
+                matchesVisibility = isHidden === true;
+            } else if (visibilityFilter === 'public') {
+                matchesVisibility = isHidden === false;
+            }
+
+            return matchesFlagLevel && matchesVisibility;
+        });
+    }, [flaggedPosts, flagLevelFilter, visibilityFilter]);
 
     // Helper function to extract a clean name
     const resolveClientName = (item) => {
@@ -61,11 +68,45 @@ export default function AdminModeration() {
         return `User_${String(item.id || item._id).slice(-4)}`;
     };
 
-    // Action Handlers (To be connected to backend PUT requests later)
+    // 🌟 Toggle Visibility (Hide / Unhide) via backend endpoint
+    const handleToggleVisibility = async (postId, currentHiddenStatus) => {
+        const token = localStorage.getItem('token');
+        const nextHiddenState = !currentHiddenStatus;
+
+        try {
+            const res = await fetch(API_ENDPOINTS.POSTS.MODERATE(postId), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ is_hidden: nextHiddenState })
+            });
+
+            if (res.ok) {
+                // Optimistically update the UI state to show updated visibility status
+                setFlaggedPosts(prev =>
+                    prev.map(post => {
+                        if ((post.id || post._id) === postId) {
+                            return { ...post, is_hidden: nextHiddenState };
+                        }
+                        return post;
+                    })
+                );
+            } else {
+                const errData = await res.json();
+                alert(errData.error || "Failed to update post visibility.");
+            }
+        } catch (error) {
+            console.error("Error updating visibility:", error);
+            alert("Network error updating post visibility.");
+        }
+    };
+
+    // Action Handlers for other interactions
     const handleAction = (postId, action) => {
         console.log(`Action [${action}] triggered for post ID: ${postId}`);
-        // Optimistically remove the post from the queue
-        setFlaggedPosts(prev => prev.filter(post => post.id !== postId && post._id !== postId));
         alert(`Post has been marked as: ${action}`);
     };
 
@@ -81,14 +122,42 @@ export default function AdminModeration() {
                             Review flagged content to ensure the "Unsaid Wall" remains a safe, garden-like space for healing and quiet strength.
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* Flag Level Filter Controls */}
+                        <div className="flex items-center gap-1 bg-surface-variant/40 px-3 py-1.5 rounded-full border border-outline-variant/30 text-xs">
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant">filter_alt</span>
+                            <span className="font-bold text-on-surface-variant mr-1">Flag:</span>
+                            <select 
+                                value={flagLevelFilter} 
+                                onChange={(e) => setFlagLevelFilter(e.target.value)}
+                                className="bg-transparent text-on-surface font-semibold focus:outline-none cursor-pointer"
+                            >
+                                <option value="all" className="bg-background text-on-surface">All Levels</option>
+                                <option value="safe" className="bg-background text-on-surface">Safe</option>
+                                <option value="concerning" className="bg-background text-on-surface">Concerning</option>
+                                <option value="crisis" className="bg-background text-on-surface">Crisis</option>
+                            </select>
+                        </div>
+
+                        {/* Visibility Filter Controls */}
+                        <div className="flex items-center gap-1 bg-surface-variant/40 px-3 py-1.5 rounded-full border border-outline-variant/30 text-xs">
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant">visibility</span>
+                            <span className="font-bold text-on-surface-variant mr-1">Status:</span>
+                            <select 
+                                value={visibilityFilter} 
+                                onChange={(e) => setVisibilityFilter(e.target.value)}
+                                className="bg-transparent text-on-surface font-semibold focus:outline-none cursor-pointer"
+                            >
+                                <option value="all" className="bg-background text-on-surface">All Statuses</option>
+                                <option value="public" className="bg-background text-on-surface">Public</option>
+                                <option value="hidden" className="bg-background text-on-surface">Hidden</option>
+                            </select>
+                        </div>
+
                         <span className="bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
                             <span className="material-symbols-outlined text-[18px]">pending_actions</span>
-                            {flaggedPosts.length} Pending
-                        </span>
-                        <span className="bg-tertiary-container text-on-tertiary-container px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[18px]">bolt</span>
-                            Priority Mode
+                            {filteredPosts.length} Displayed
                         </span>
                     </div>
                 </header>
@@ -99,14 +168,27 @@ export default function AdminModeration() {
                             <div className="glass-card rounded-xl p-8 border border-outline-variant/30 text-center animate-pulse text-on-surface-variant">
                                 Loading moderation queue from database...
                             </div>
-                        ) : flaggedPosts.length > 0 ? (
-                            flaggedPosts.map(post => {
+                        ) : filteredPosts.length > 0 ? (
+                            filteredPosts.map(post => {
                                 const solvedName = resolveClientName(post);
+                                const isHidden = post.is_hidden;
+
+                                // Safely extract user ID from potential schema variations
+                                const userId = post.user_id || post.userId || (post.user && (post.user.id || post.user._id));
+
                                 return (
                                     <div key={post.id || post._id} className="glass-card rounded-xl p-6 border border-outline-variant/30 shadow-sm transition-all hover:shadow-md">
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
-                                                <h3 className="font-bold text-lg text-on-surface">{solvedName}</h3>
+                                                {/* Clickable Username to User Profile */}
+                                                <h3 
+                                                    onClick={() => userId && navigate(`/admin/users/${userId}`)}
+                                                    className={`font-bold text-lg text-on-surface ${userId ? 'hover:text-primary hover:underline cursor-pointer transition-colors' : ''}`}
+                                                    title={userId ? "View user profile" : "User ID unavailable"}
+                                                >
+                                                    {solvedName}
+                                                </h3>
+
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-[10px] uppercase font-bold bg-error-container text-on-error-container px-2 py-0.5 rounded-full flex items-center gap-1">
                                                         <span className="material-symbols-outlined text-[12px]">flag</span>
@@ -115,6 +197,16 @@ export default function AdminModeration() {
                                                     <span className="text-[11px] text-on-surface-variant bg-surface-variant/50 px-2 py-0.5 rounded-full">
                                                         Emotion: {post.emotion || 'Unknown'}
                                                     </span>
+                                                    {/* Status badge reflecting data accurately */}
+                                                    {isHidden ? (
+                                                        <span className="text-[10px] uppercase font-bold bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                            <span className="material-symbols-outlined text-[12px]">visibility_off</span> Hidden
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] uppercase font-bold bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                            <span className="material-symbols-outlined text-[12px]">visibility</span> Public
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <span className="text-xs text-on-surface-variant">
@@ -127,12 +219,23 @@ export default function AdminModeration() {
                                         </p>
 
                                         <div className="flex flex-wrap gap-3 border-t border-outline-variant/10 pt-4">
-                                            <button
-                                                onClick={() => handleAction(post.id || post._id, 'Hidden')}
-                                                className="px-6 py-2 rounded-full border border-error text-error text-sm font-bold hover:bg-error hover:text-white transition-all cursor-pointer flex items-center gap-1"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">visibility_off</span> Hide
-                                            </button>
+                                            {/* Dynamic Hide / Unhide Toggle Button */}
+                                            {isHidden ? (
+                                                <button
+                                                    onClick={() => handleToggleVisibility(post.id || post._id, true)}
+                                                    className="px-6 py-2 rounded-full border border-tertiary text-tertiary text-sm font-bold hover:bg-tertiary hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">visibility</span> Unhide
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleToggleVisibility(post.id || post._id, false)}
+                                                    className="px-6 py-2 rounded-full border border-error text-error text-sm font-bold hover:bg-error hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">visibility_off</span> Hide
+                                                </button>
+                                            )}
+
                                             <button
                                                 onClick={() => handleAction(post.id || post._id, 'Kept')}
                                                 className="px-6 py-2 rounded-full bg-primary text-on-primary text-sm font-bold hover:bg-primary-dim transition-all cursor-pointer flex items-center gap-1"
@@ -151,7 +254,6 @@ export default function AdminModeration() {
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">support_agent</span> Assign
                                             </button>
-                                            {/* 🌟 ADDED: Block text and adjusted padding to match other buttons */}
                                             <button
                                                 onClick={() => handleAction(post.id || post._id, 'Banned')}
                                                 className="px-6 py-2 rounded-full border border-error text-error text-sm font-bold hover:bg-error hover:text-white transition-colors cursor-pointer flex items-center gap-1"
@@ -167,7 +269,7 @@ export default function AdminModeration() {
                             <div className="glass-card rounded-xl p-12 border border-outline-variant/30 text-center text-on-surface-variant">
                                 <span className="material-symbols-outlined text-5xl mb-3 text-primary/40 block">check_circle</span>
                                 <p className="font-bold text-lg text-on-surface">Queue is clear</p>
-                                <p>No posts require moderation at this time.</p>
+                                <p>No posts match the current filter criteria.</p>
                             </div>
                         )}
                     </div>
