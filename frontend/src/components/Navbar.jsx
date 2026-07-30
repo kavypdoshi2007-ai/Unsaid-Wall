@@ -103,6 +103,7 @@ export default function Navbar() {
                                 <button onClick={() => navigate('/sessions')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/sessions') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Sessions</button>
                                 <button onClick={() => navigate('/resources')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/resources') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Resource Library</button>
                                 <button onClick={() => navigate('/announcements')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/announcements') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>Announcements</button>
+                                <button onClick={() => navigate('/user-wall')} className={`font-label-sm font-semibold transition-colors cursor-pointer ${isActive('/user-wall') ? 'text-primary bg-primary-container/20 px-4 py-2 rounded-full' : 'text-outline hover:text-primary'}`}>TheWall</button>
                                 <button onClick={handleLogout} className="py-2 px-4 bg-outline/10 text-outline rounded-full font-label-sm font-bold hover:bg-error/10 hover:text-error transition-all cursor-pointer">Logout</button>
                             </>
                         )}

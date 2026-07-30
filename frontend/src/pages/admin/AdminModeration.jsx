@@ -9,8 +9,8 @@ export default function AdminModeration() {
     const [loading, setLoading] = useState(true);
 
     // Filter states
-    const [flagLevelFilter, setFlagLevelFilter] = useState('all');
-    const [visibilityFilter, setVisibilityFilter] = useState('all');
+    const [flagLevelFilter, setFlagLevelFilter] = useState('crisis');
+    const [visibilityFilter, setVisibilityFilter] = useState('hidden');
 
     // 🌟 Fetch database posts using Option 1 endpoint
     useEffect(() => {
