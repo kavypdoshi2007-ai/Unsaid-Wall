@@ -59,7 +59,7 @@ export default function CoachDashboard() {
                 }
 
                 // 3. Fetch All Posts and Filter Active Crisis Alerts
-                const postsRes = await fetch('https://diminish-waving-shore.ngrok-free.dev/api/posts', { headers });
+                const postsRes = await fetch(API_ENDPOINTS.POSTS.GET_MOD_QUEUE, { headers });
                 if (postsRes.ok) {
                     const allPosts = await postsRes.json();
 

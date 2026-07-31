@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. IMPORTED NAVIGATION
 import Navbar from '../../components/Navbar'; // Adjust path as needed
+import { API_ENDPOINTS } from '../../config/api'; // Adjust path as needed
 
 export default function LandingPage() {
     const navigate = useNavigate(); // 2. INITIALIZED NAVIGATION
@@ -10,9 +11,6 @@ export default function LandingPage() {
     const [topCoaches, setTopCoaches] = useState([]);
     const [feedLoading, setFeedLoading] = useState(true);
     const [coachesLoading, setCoachesLoading] = useState(true);
-
-    const API_POSTS_URL = 'https://diminish-waving-shore.ngrok-free.dev/api/posts';
-    const API_COACHES_URL = 'https://diminish-waving-shore.ngrok-free.dev/api/coaches';
 
     const fallbackHeadshots = [
         "https://lh3.googleusercontent.com/aida-public/AB6AXuB47eql7E1shj7x9ZcoYJ4EDbMiU0U8VsGPGhAaNAsR93EX2paEufA_F87iNu5ZFGJetK4rmzd2j51eio8-RgbCuaptL3wsesmOTqE1XBJCcRcVQxmWFhzsg5S6TKACy-A3tHZdQxxWPzBdk4kxTQZ6B9YPBEiZDI15IUYTBS_holRsE0xZYwsiiBifrbOKas5Ac4sHUTPCyP5tk041LpROPdkth4M65FjqnIomVCadHZLLQ-YuAnojpTUnAZYaiCBJ68pEmfcF6UU",
@@ -51,7 +49,7 @@ export default function LandingPage() {
     useEffect(() => {
         async function loadLiveFeed() {
             try {
-                const response = await fetch(API_POSTS_URL, {
+                const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -70,7 +68,7 @@ export default function LandingPage() {
 
         async function loadTopCoaches() {
             try {
-                const response = await fetch(API_COACHES_URL, {
+                const response = await fetch(API_ENDPOINTS.COACHES.GET_ALL, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

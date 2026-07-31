@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { API_ENDPOINTS } from '../../config/api';
+import { API_ENDPOINTS, BACKEND_URL } from '../../config/api';
 import Navbar from '../../components/Navbar';
 
 export default function MySessions() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Read activeSessionId directly from route state passed by SessionHistory or CoachDashboard
     const activeSessionId = location.state?.sessionId;
 
     const [messages, setMessages] = useState([]);
@@ -33,7 +32,6 @@ export default function MySessions() {
         }
 
         if (!activeSessionId) {
-            // Fallback if accessed directly without selecting a session
             navigate('/sessions');
             return;
         }
@@ -63,7 +61,7 @@ export default function MySessions() {
     useEffect(() => {
         if (!token || !activeSessionId || activeSession?.status !== 'active') return;
 
-        socketRef.current = io('https://diminish-waving-shore.ngrok-free.dev', {
+        socketRef.current = io(BACKEND_URL, {
             transports: ['websocket'],
             auth: { token }
         });
@@ -212,6 +210,42 @@ export default function MySessions() {
         }
     };
 
+    // --- DATE SEPARATOR HELPER FUNCTIONS ---
+    const formatDateSeparator = (dateString) => {
+        if (!dateString) return "Today";
+
+        const messageDate = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        // Reset hours for accurate date comparison
+        messageDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        yesterday.setHours(0, 0, 0, 0);
+
+        if (messageDate.getTime() === today.getTime()) {
+            return "Today";
+        } else if (messageDate.getTime() === yesterday.getTime()) {
+            return "Yesterday";
+        } else {
+            return new Date(dateString).toLocaleDateString([], {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+    };
+
+    const shouldShowDateHeader = (currentMsg, prevMsg) => {
+        if (!prevMsg) return true;
+
+        const currentDate = new Date(currentMsg.created_at || Date.now()).toDateString();
+        const prevDate = new Date(prevMsg.created_at || Date.now()).toDateString();
+
+        return currentDate !== prevDate;
+    };
+
     return (
         <div className="font-body-md text-on-surface bg-background h-screen flex flex-col overflow-hidden">
             <Navbar />
@@ -275,35 +309,51 @@ export default function MySessions() {
                             </div>
                         )}
 
-                        <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-4 md:p-8 space-y-6 pb-24 md:pb-8">
+                        <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-4 md:p-8 space-y-4 pb-24 md:pb-8">
                             {messages.length === 0 ? (
                                 <div className="text-center text-xs text-on-surface-variant/55 pt-8">
                                     Secure communication pipeline opened.
                                 </div>
                             ) : (
                                 messages.map((msg, idx) => {
+                                    const prevMsg = messages[idx - 1];
+                                    const showDateHeader = shouldShowDateHeader(msg, prevMsg);
                                     const isMe = msg.sender_id === myUserId || msg.sender === 'user';
                                     const timestamp = msg.created_at
                                         ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                         : "Just now";
 
                                     return (
-                                        <div key={msg.id || idx} className={`flex gap-3 md:gap-4 max-w-[85%] md:max-w-2xl ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
-                                            {isMe ? (
-                                                <div className="h-8 w-8 rounded-full bg-primary-container text-on-primary-container flex-shrink-0 flex items-center justify-center text-[10px] font-bold">ME</div>
-                                            ) : (
-                                                <img alt="Coach avatar" className="w-8 h-8 rounded-full flex-shrink-0 object-cover" src={coachProfile.avatar} />
-                                            )}
-                                            <div className={`space-y-1 md:space-y-2 ${isMe ? 'text-right' : ''}`}>
-                                                <div className={`p-3 md:p-4 rounded-2xl shadow-sm text-sm leading-relaxed text-left ${isMe
-                                                    ? 'bg-primary text-on-primary rounded-tr-none'
-                                                    : 'bg-white/60 backdrop-blur-xl border border-primary/10 rounded-tl-none'
-                                                    }`}>
-                                                    {msg.content || msg.text}
+                                        <React.Fragment key={msg.id || idx}>
+                                            {/* DATE SEPARATOR BADGE */}
+                                            {showDateHeader && (
+                                                <div className="flex items-center justify-center my-6">
+                                                    <span className="bg-surface-variant/60 text-on-surface-variant border border-outline-variant/10 text-[11px] font-semibold px-3 py-1 rounded-full shadow-xs uppercase tracking-wider backdrop-blur-sm">
+                                                        {formatDateSeparator(msg.created_at)}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] text-on-surface-variant mx-1 block">{timestamp}</span>
+                                            )}
+
+                                            {/* CHAT BUBBLE */}
+                                            <div className={`flex gap-3 md:gap-4 max-w-[85%] md:max-w-2xl ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
+                                                {isMe ? (
+                                                    <div className="h-8 w-8 rounded-full bg-primary-container text-on-primary-container flex-shrink-0 flex items-center justify-center text-[10px] font-bold">ME</div>
+                                                ) : (
+                                                    <img alt="Coach avatar" className="w-8 h-8 rounded-full flex-shrink-0 object-cover" src={coachProfile.avatar} />
+                                                )}
+                                                <div className={`space-y-1 ${isMe ? 'text-right' : ''}`}>
+                                                    <div className={`p-3 md:p-4 rounded-2xl shadow-xs text-sm leading-relaxed text-left ${isMe
+                                                        ? 'bg-primary text-on-primary rounded-tr-none'
+                                                        : 'bg-white/70 backdrop-blur-xl border border-primary/10 rounded-tl-none'
+                                                        }`}>
+                                                        {msg.content || msg.text}
+                                                    </div>
+                                                    <span className="text-[10px] text-on-surface-variant/70 mx-1 block font-medium">
+                                                        {timestamp}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </React.Fragment>
                                     );
                                 })
                             )}

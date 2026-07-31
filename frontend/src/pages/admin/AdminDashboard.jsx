@@ -180,7 +180,6 @@ export default function AdminDashboard() {
             .then(res => res.ok ? res.json() : [])
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
-                    // Filter pending/scheduled/active out based on backend SessionStatus enum
                     const openSessions = data.filter(s => ['active'].includes(s.status));
                     setActiveSessionsCount(openSessions.length || data.length);
                 }

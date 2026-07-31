@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
-
-// Keep your backend endpoint centralized so it works everywhere
-const BACKEND_URL = 'https://diminish-waving-shore.ngrok-free.dev/api';
+import { API_ENDPOINTS, BACKEND_URL } from '../../config/api'; // Central configuration endpoints[cite: 6]
 
 export default function UserWall() {
     const navigate = useNavigate();
@@ -52,7 +50,7 @@ export default function UserWall() {
     useEffect(() => {
         if (!token || !currentUserId) return;
 
-        const socket = io('https://diminish-waving-shore.ngrok-free.dev', {
+        const socket = io(BACKEND_URL, {
             transports: ['websocket'],
             upgrade: false,
             auth: {
@@ -78,7 +76,7 @@ export default function UserWall() {
     const fetchFeed = async () => {
         try {
             setLoadingFeed(true);
-            const response = await fetch(`${BACKEND_URL}/posts`, {
+            const response = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
                 method: 'GET',
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
@@ -126,7 +124,7 @@ export default function UserWall() {
         setSessionStatus('loading');
 
         try {
-            const response = await fetch(`${BACKEND_URL}/sessions`, {
+            const response = await fetch(API_ENDPOINTS.SESSIONS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -153,7 +151,7 @@ export default function UserWall() {
         setIsComposerOpen(true);
         setPreviewUsername('Generating anonymous identity...');
         try {
-            const response = await fetch(`${BACKEND_URL}/posts/username`, {
+            const response = await fetch(API_ENDPOINTS.POSTS.PREVIEW_USERNAME, {
                 method: 'GET',
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
@@ -177,7 +175,7 @@ export default function UserWall() {
         if (!postText.trim()) return;
 
         try {
-            const response = await fetch(`${BACKEND_URL}/posts`, {
+            const response = await fetch(API_ENDPOINTS.POSTS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -245,7 +243,7 @@ export default function UserWall() {
         setPosts(updatedPosts);
 
         try {
-            await fetch(`${BACKEND_URL}/reactions/toggle`, {
+            await fetch(API_ENDPOINTS.REACTIONS.TOGGLE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -254,7 +252,7 @@ export default function UserWall() {
                 body: JSON.stringify({ post_id: postId, reaction_type: reactionType })
             });
 
-            const syncResponse = await fetch(`${BACKEND_URL}/reactions/post/${postId}`, {
+            const syncResponse = await fetch(API_ENDPOINTS.REACTIONS.GET_BY_POST(postId), {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
             });
@@ -280,7 +278,7 @@ export default function UserWall() {
         if (!text) return;
 
         try {
-            const response = await fetch(`${BACKEND_URL}/posts/${postId}/comments`, {
+            const response = await fetch(API_ENDPOINTS.POSTS.ADD_COMMENT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

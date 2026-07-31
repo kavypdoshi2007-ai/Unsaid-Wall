@@ -72,7 +72,7 @@ export default function UserProfile() {
         const token = localStorage.getItem('token');
 
         try {
-            const res = await fetch(`/api/users/${userId}/ban`, {
+            const res = await fetch(API_ENDPOINTS.USERS.BAN(userId), {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
+import { API_ENDPOINTS } from '../../config/api'; // Adjust path as needed
 
 export default function ResourceLibrary() {
     const navigate = useNavigate();
@@ -48,9 +49,6 @@ export default function ResourceLibrary() {
     const formCategories = ['Crisis Support', 'Sleep Support', 'Stress Management', 'Anxiety', 'Meditation', 'Mindfulness'];
     const resourceTypes = ['Article', 'Audio', 'Video', 'External Link'];
 
-    // Absolute Backend Endpoint Targeting Your Express Router
-    const API_RESOURCES_URL = 'https://diminish-waving-shore.ngrok-free.dev/api/resource';
-
     // --- Fetch Live Resources & Sort Pinned ---
     useEffect(() => {
         async function fetchResources() {
@@ -61,7 +59,7 @@ export default function ResourceLibrary() {
                 if (activeCategory !== 'All') queryParams.append('category', activeCategory);
                 if (searchTerm.trim() !== '') queryParams.append('search', searchTerm);
 
-                const response = await fetch(`${API_RESOURCES_URL}?${queryParams.toString()}`, {
+                const response = await fetch(API_ENDPOINTS.RESOURCES.GET_ALL + `?${queryParams.toString()}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -114,7 +112,7 @@ export default function ResourceLibrary() {
 
         setSubmitting(true);
         try {
-            const response = await fetch(API_RESOURCES_URL, {
+            const response = await fetch(API_ENDPOINTS.RESOURCES.CREATE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

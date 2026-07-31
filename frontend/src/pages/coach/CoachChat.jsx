@@ -4,7 +4,6 @@ import { io as socketIOClient } from 'socket.io-client';
 import { API_ENDPOINTS, BACKEND_URL } from '../../config/api';
 import Navbar from '../../components/Navbar'; // Adjust path as needed
 
-// The API base is BACKEND_URL + '/api'; Socket.io runs on the bare host, not under /api
 const SOCKET_URL = BACKEND_URL.replace(/\/api\/?$/, '');
 
 export default function CoachChat() {
@@ -79,7 +78,7 @@ export default function CoachChat() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${BACKEND_URL}/posts`, {
+            const res = await fetch(API_ENDPOINTS.POSTS.GET_FEED, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
