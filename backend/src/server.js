@@ -18,21 +18,22 @@ let sentimentClassifier;
 const activeTimers = {}; // ⏱️ Keeps track of timeouts for active sessions
 
 async function initializeAIModels() {
-  try {
-    console.log("⏳ Loading Verified ONNX Multi-Model Engine Core...");
+ // try {
+  //   console.log("⏳ Loading Verified ONNX Multi-Model Engine Core...");
     
-    // 1. Load the 6-class Emotion Model (For precise feelings & intensities)
-    emotionClassifier = await pipeline('text-classification', 'nicky48/emotion-english-distilroberta-base-ONNX');
-    console.log("✅ Emotion Classification Pipeline Loaded.");
+  //   // 1. Load the 6-class Emotion Model (For precise feelings & intensities)
+  //   emotionClassifier = await pipeline('text-classification', 'nicky48/emotion-english-distilroberta-base-ONNX');
+  //   console.log("✅ Emotion Classification Pipeline Loaded.");
 
-    // 2. Load the Binary Sentiment Model (Your original model for auxiliary crisis/flag assistance)
-    sentimentClassifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
-    console.log("✅ Sentiment Validation Pipeline Loaded.");
+  //   // 2. Load the Binary Sentiment Model (Your original model for auxiliary crisis/flag assistance)
+  //   sentimentClassifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+  //   console.log("✅ Sentiment Validation Pipeline Loaded.");
     
-    console.log("🚀 Both Safety & Emotion Engines Are Fully Active.");
-  } catch (err) {
-    console.error("❌ Models failed to load:", err);
-  }
+  //   console.log("🚀 Both Safety & Emotion Engines Are Fully Active.");
+  // } catch (err) {
+  //   console.error("❌ Models failed to load:", err);
+  console.log("⚠️ Skipping heavy AI models on Free Tier to prevent OOM crash.");
+  return;
 }
 initializeAIModels();
 
