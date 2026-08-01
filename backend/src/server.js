@@ -44,6 +44,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
+  'https://unsaid-wall.onrender.com/',
   'https://diminish-waving-shore.ngrok-free.dev' // Allows standard API requests through ngrok
 ];
 
